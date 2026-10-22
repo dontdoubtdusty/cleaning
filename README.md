@@ -6,7 +6,7 @@ Cleaning rounds that run in your browser. It's part of the Big apps, alongside [
 
 - More than one property: tap the property name at the top to switch or add one. Each has its own floors, areas, tasks, supplies and history.
 - Your building set up as floors and areas, in the order you walk them
-- A map of each floor (Rounds > Map): every room is drawn where it sits in real life, colored by what's left to do. Tap one for its checklist. Lay it out under Setup > Edit map on a pegboard 12 pegs across: drag rooms onto the pegs, drag a corner peg to resize, make L-shaped rooms, and add labels like Entrance or Closet.
+- A map of each floor (Rounds > Map): every room is drawn where it sits in real life, colored by what's left to do. Tap one for its checklist. Lay it out under Setup > Edit map on a pegboard 12 pegs across: drag rooms onto the pegs (drop one on another to swap them), drag a corner peg to resize, make L-shaped rooms, and add labels like Entrance or Closet.
 - One standard task set (sweep, mop, dust, windows and door glass) that every area gets, with per-area extras and the option to turn a standard task off in a specific area
 - Each task has a frequency: every round, daily, weekly, monthly or as needed. Rounds only shows what's due.
 - Start and finish a round; every task you check off is stamped with the date and time
