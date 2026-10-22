@@ -157,22 +157,32 @@ body.dragmode{user-select:none;-webkit-user-select:none;cursor:grabbing}
 
 /* ===== Floor map ===== */
 .map{padding:12px}.view>.map{padding-top:15px}
-.mgrid,.lgrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-auto-rows:56px;gap:6px}
-.mt{display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;gap:2px;min-width:0;padding:7px 9px;border-radius:12px;border:1.5px solid var(--bd);background:var(--card);color:var(--tx);box-shadow:none;font-size:12px;font-weight:700;text-align:left;line-height:1.2;overflow:hidden}
-.mt span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:100%;word-break:break-word}
-.mt em{font-style:normal;font-size:11px;font-weight:800;color:var(--mu);display:flex}
-.mt.r1{flex-direction:row;align-items:center}.mt.r1 span{-webkit-line-clamp:1;flex:1}.mt.r1 em{flex:none}
-.mt.due{border-color:color-mix(in srgb,var(--pc) 55%,transparent);background:color-mix(in srgb,var(--pc) 7%,var(--card))}.mt.due em{color:var(--pc)}
-.mt.part{border-color:color-mix(in srgb,var(--pc) 55%,transparent);background:linear-gradient(90deg,color-mix(in srgb,var(--pc) 30%,var(--card)) var(--f),color-mix(in srgb,var(--pc) 7%,var(--card)) var(--f))}.mt.part em{color:var(--pc)}
-.mt.ok{background:linear-gradient(135deg,var(--pc),var(--pc2));border-color:transparent;color:#fff}.mt.ok em{color:#fff}
-.mt.idle{border-style:dashed;color:var(--mu)}
-.mt.sel{box-shadow:0 0 0 2px var(--card),0 0 0 4.5px var(--pc)}
+.board{position:relative;width:100%;max-width:420px;margin:0 auto;aspect-ratio:12/18}
+.board>svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.board .pegs{fill:color-mix(in srgb,var(--mu) 45%,transparent)}.board.edit .pegs{fill:color-mix(in srgb,var(--mu) 70%,transparent)}
+.board path{stroke:color-mix(in srgb,var(--pc) 55%,transparent);stroke-width:1.5px;stroke-linejoin:round;fill:color-mix(in srgb,var(--pc) 7%,var(--card));vector-effect:non-scaling-stroke;transition:fill .2s}
+.board path.part{fill:color-mix(in srgb,var(--pc) 32%,var(--card))}.board path.ok{fill:var(--pc);stroke:var(--pc)}
+.board path.idle{fill:var(--card);stroke:color-mix(in srgb,var(--mu) 50%,transparent);stroke-dasharray:4 3}
+.board path.sel{stroke:var(--tx);stroke-width:3px}
+.board path.ed{fill:color-mix(in srgb,var(--pc) 10%,var(--card))}.board path.ed.sel{fill:color-mix(in srgb,var(--pc) 22%,var(--card));stroke:var(--pc);stroke-width:2.5px}
+.board path.drag{fill-opacity:.85}.board path.bad{fill:color-mix(in srgb,var(--neg) 18%,var(--card));stroke:var(--neg)}
+.rl{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:2px 4px;background:none;border:0;border-radius:6px;box-shadow:none;color:var(--tx);font-size:11px;font-weight:800;line-height:1.15;text-align:center;overflow:hidden}
+.rl span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;max-width:100%}
+.rl em{font-style:normal;font-size:10px;font-weight:800;color:var(--pc);display:flex}
+.rl.sm{flex-direction:row;gap:4px;font-size:10px}.rl.sm span{-webkit-line-clamp:1}
+.rl.ok{color:#fff}.rl.ok em{color:#fff}.rl em svg{width:16px;height:16px;flex:none}.rl.idle{color:var(--mu)}
+.rl:is(:active,.prs){transform:scale(.96)}
+.board.edit{touch-action:none;user-select:none;-webkit-user-select:none}
+.lt{cursor:grab}.lt:is(:active,.prs){transform:none;cursor:grabbing}
+.hd{position:absolute;z-index:3;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;background:var(--pc);border:3px solid var(--card);box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:nwse-resize;touch-action:none}
+.hd.cut{background:var(--card);border-color:var(--pc);cursor:move}
+.hd::before{content:"";position:absolute;inset:-10px;border-radius:50%}
+.mk{position:absolute;z-index:2;transform:translate(-50%,-50%);white-space:nowrap;max-width:60%;overflow:hidden;text-overflow:ellipsis;font-size:10px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:var(--mu);background:var(--card);border:1.5px solid var(--bd);border-radius:99px;padding:2px 8px;pointer-events:none}
+.board.edit .mk{pointer-events:auto;cursor:grab;color:var(--tx);border-color:color-mix(in srgb,var(--mu) 50%,transparent);box-shadow:0 2px 6px rgba(0,0,0,.12)}.mk.drag{box-shadow:0 8px 18px rgba(0,0,0,.25)}
 .view>.legend{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin:2px 4px -4px;font-size:12px;font-weight:700}
-.legend span{display:inline-flex;align-items:center;gap:6px}.legend i{width:14px;height:14px;border-radius:4px;border:1.5px solid color-mix(in srgb,var(--pc) 55%,transparent)}
-.legend i.due{background:color-mix(in srgb,var(--pc) 7%,var(--card))}.legend i.part{background:linear-gradient(90deg,color-mix(in srgb,var(--pc) 30%,var(--card)) 50%,color-mix(in srgb,var(--pc) 7%,var(--card)) 50%)}.legend i.ok{background:linear-gradient(135deg,var(--pc),var(--pc2));border-color:transparent}
-.lc{border:1.5px dashed color-mix(in srgb,var(--mu) 30%,transparent);border-radius:10px}
-.lt{touch-action:none;cursor:grab;z-index:1;user-select:none;-webkit-user-select:none}.lt.sel{border-color:var(--pc);background:color-mix(in srgb,var(--pc) 10%,var(--card))}
-.lt.drag{z-index:3;cursor:grabbing;box-shadow:0 10px 24px rgba(16,24,40,.22);transform:scale(1.03)}.lt.bad{border-color:var(--neg);background:color-mix(in srgb,var(--neg) 10%,var(--card))}
+.legend span{display:inline-flex;align-items:center;gap:6px}.legend i{width:14px;height:14px;border-radius:4px;border:1.5px solid color-mix(in srgb,var(--pc) 55%,transparent);background:color-mix(in srgb,var(--pc) 7%,var(--card))}
+.legend i.part{background:color-mix(in srgb,var(--pc) 32%,var(--card))}.legend i.ok{background:var(--pc);border-color:var(--pc)}
+.seg.shp button{padding:6px 0;display:grid;place-items:center;color:var(--mu)}.seg.shp button.on{color:var(--pc);border-color:var(--pc);background:color-mix(in srgb,var(--pc) 10%,var(--card))}
 .lctl{margin-top:12px;padding:12px;border-radius:14px;background:var(--fld)}.lctl .row button{flex:1}
 
 /* ===== Confetti ===== */
@@ -246,7 +256,7 @@ function seed(){
  const tk=(n,f='daily')=>({id:uid('t'),n,f});
  const std=[tk('Sweep'),tk('Mop'),tk('Dust'),tk('Windows and door glass')];
  const sid=n=>std.find(t=>t.n==n).id;
- const floors=['Floor 1','Floor 2','Floor 3','Floor 4','Building-wide'].map(n=>({id:uid('f'),n}));
+ const floors=['Floor 1','Floor 2','Floor 3','Floor 4','Building-wide'].map(n=>({id:uid('f'),n,marks:[]}));
  const fl=n=>floors.find(f=>f.n==n).id;
  const A=(n,f,ex=[],skip=[])=>({id:uid('a'),n,fl:fl(f),useStd:true,skip:skip.map(sid),ex:ex.map(x=>Array.isArray(x)?tk(...x):tk(x))});
  const RR=['Clean toilets and urinals','Clean sinks and mirrors','Restock paper and soap','Empty trash'];
@@ -280,6 +290,12 @@ const MIGRATIONS=[
  S=>{if(!Array.isArray(S.props)){const id=uid('p');S.props=[{id,n:(S.set.site||'').trim()||'Main building',floors:S.floors||[],std:S.std||[],areas:S.areas||[],sup:S.sup||[]}];
    ['floors','std','areas','sup'].forEach(k=>delete S[k]);delete S.set.site;S.set.prop=id;S.log.forEach(e=>e.p=id);S.rounds.forEach(r=>r.p=id);if(S.cur)S.cur.p=id}
   S.props.forEach(p=>p.areas.forEach(a=>{if(!a.lay)place(p,a)}))},
+ // v3: the map becomes a pegboard twice as fine (12 across, 18 down) and floors can hold labels.
+ // Old boxes double in size; anything that no longer fits the board is placed again.
+ S=>{S.props.forEach(p=>{p.floors.forEach(f=>{if(!Array.isArray(f.marks))f.marks=[]});
+  p.areas.forEach(a=>{if(a.lay)a.lay={x:a.lay.x*2,y:a.lay.y*2,w:a.lay.w*2,h:a.lay.h*2}});
+  p.floors.forEach(f=>{const as=p.areas.filter(a=>a.fl==f.id);if(as.some(a=>!a.lay||!fits(a.lay))){as.forEach(a=>a.lay=null);as.forEach(a=>place(p,a))}});
+  })},
 ];
 function migrate(){S.set=S.set||{};for(let v=S.v||0;v<MIGRATIONS.length;v++)MIGRATIONS[v](S);S.v=MIGRATIONS.length;if(!S.props.some(p=>p.id==S.set.prop))S.set.prop=S.props[0].id;prune()}
 function load(){try{S=JSON.parse(localStorage.getItem(LS))}catch(e){}if(!S)S=seed();migrate()}
@@ -313,15 +329,29 @@ const P=()=>S.props.find(p=>p.id==S.set.prop)||S.props[0];
 const PP=()=>'props.'+S.props.indexOf(P());
 const curHere=()=>!!S.cur&&S.cur.p==P().id;              // a round is running at this property
 const areaById=id=>{for(const p of S.props){const a=p.areas.find(a=>a.id==id);if(a)return a}};
-// ---- Floor map: each area is a box on a 6-column grid ({x, y, w, h} in grid cells) ----
-const COLS=6;
-const defSize=n=>/hall|sidewalk|walkway|corridor/i.test(n)?[6,1]:/stair|elevator/i.test(n)?[3,1]:[3,2];
-function spotFree(prop,a,x,y,w,h){if(x<0||y<0||w<1||h<1||x+w>COLS)return false;
- return !prop.areas.some(b=>b!==a&&b.fl==a.fl&&b.lay&&x<b.lay.x+b.lay.w&&b.lay.x<x+w&&y<b.lay.y+b.lay.h&&b.lay.y<y+h)}
-// Put an area in the first free spot on its floor, top to bottom, left to right
-function place(prop,a){const [w,h]=a.lay?[a.lay.w,a.lay.h]:defSize(a.n||'');a.lay=null;
- for(let y=0;y<400;y++)for(let x=0;x+w<=COLS;x++)if(spotFree(prop,a,x,y,w,h)){a.lay={x,y,w,h};return}}
-const mapRows=(prop,f,extra=0)=>Math.max(1,...prop.areas.filter(a=>a.fl==f.id&&a.lay).map(a=>a.lay.y+a.lay.h))+extra;
+// ---- Floor map: a pegboard 12 pegs across and 18 down. Each area is a shape on it: a rectangle
+//      {x, y, w, h} in pegs, optionally with one corner cut out to make an L ({cut: {c: 'tl'|'tr'|'bl'|'br', w, h}}). ----
+const COLS=12,ROWS=18,PEG=10;            // PEG: drawing units per peg in the SVG
+const defSize=n=>/hall|sidewalk|walkway|corridor/i.test(n)?[12,2]:/stair|elevator/i.test(n)?[4,2]:[4,3];
+// The rectangles that make up a shape (one, or two for an L)
+function rectsOf(L){if(!L.cut)return [L];const {x,y,w,h}=L,cw=L.cut.w,ch=L.cut.h;
+ return {tl:[{x:x+cw,y,w:w-cw,h:ch},{x,y:y+ch,w,h:h-ch}],tr:[{x,y,w:w-cw,h:ch},{x,y:y+ch,w,h:h-ch}],
+  bl:[{x,y,w,h:h-ch},{x:x+cw,y:y+h-ch,w:w-cw,h:ch}],br:[{x,y,w,h:h-ch},{x,y:y+h-ch,w:w-cw,h:ch}]}[L.cut.c]}
+// Outline points, clockwise from the top-left
+function polyOf(L){const {x,y,w,h}=L;if(!L.cut)return [[x,y],[x+w,y],[x+w,y+h],[x,y+h]];const cw=L.cut.w,ch=L.cut.h;
+ return {tl:[[x+cw,y],[x+w,y],[x+w,y+h],[x,y+h],[x,y+ch],[x+cw,y+ch]],tr:[[x,y],[x+w-cw,y],[x+w-cw,y+ch],[x+w,y+ch],[x+w,y+h],[x,y+h]],
+  br:[[x,y],[x+w,y],[x+w,y+h-ch],[x+w-cw,y+h-ch],[x+w-cw,y+h],[x,y+h]],bl:[[x,y],[x+w,y],[x+w,y+h],[x+cw,y+h],[x+cw,y+h-ch],[x,y+h-ch]]}[L.cut.c]}
+// Where the inside corner of an L sits (its handle)
+function notchOf(L){const {x,y,w,h}=L,cw=L.cut.w,ch=L.cut.h;return {tl:[x+cw,y+ch],tr:[x+w-cw,y+ch],br:[x+w-cw,y+h-ch],bl:[x+cw,y+h-ch]}[L.cut.c]}
+const bigRect=L=>rectsOf(L).reduce((m,r)=>r.w*r.h>m.w*m.h?r:m);
+const fits=L=>L.x>=0&&L.y>=0&&L.w>=1&&L.h>=1&&L.x+L.w<=COLS&&L.y+L.h<=ROWS&&(!L.cut||(L.cut.w>=1&&L.cut.h>=1&&L.cut.w<L.w&&L.cut.h<L.h));
+const hit=(A,B)=>rectsOf(A).some(a=>rectsOf(B).some(b=>a.x<b.x+b.w&&b.x<a.x+a.w&&a.y<b.y+b.h&&b.y<a.y+a.h));
+// A shape can go somewhere if it's on the board and doesn't cover another area on the same floor
+function spotFree(prop,a,L){return fits(L)&&!prop.areas.some(b=>b!==a&&b.fl==a.fl&&b.lay&&hit(L,b.lay))}
+// Put an area in the first free spot on its floor, top to bottom, left to right (shrinking it if the floor is full)
+function place(prop,a){const want=a.lay?[a.lay.w,a.lay.h]:defSize(a.n||''),cutW=a.lay&&a.lay.cut;a.lay=null;
+ for(const [w,h,c] of [[...want,cutW],[...want],[4,2],[2,2],[2,1]])for(let y=0;y+h<=ROWS;y++)for(let x=0;x+w<=COLS;x++){const L={x,y,w,h};if(c)L.cut={...c};if(spotFree(prop,a,L)){a.lay=L;return}}
+ a.lay={x:0,y:0,w:2,h:1}}
 const floorOf=a=>P().floors.find(f=>f.id==a.fl);
 // The tasks an area gets: the standard set (minus any turned off there), then its own extras
 const tasksOf=a=>(a.useStd?P().std.filter(t=>!a.skip.includes(t.id)):[]).concat(a.ex);
@@ -468,24 +498,43 @@ function vArea(a){const i=P().areas.indexOf(a),p=PP()+'.areas.'+i;
   <div class="row" style="margin-top:6px"><button class="g bd" data-a="addEx">Add extra task</button></div></div>
  <div class="card"><h2>Remove</h2><p class="mu" style="margin:0 0 8px">History for this area stays in the log.</p><button class="x bd" data-a="delArea">Delete this area</button></div>`}
 
-// ---- Map: each floor drawn as boxes, colored by what's left to do. Tap a box for its checklist. ----
-function mapTile(a,edit){const L=a.lay||{x:0,y:0,w:3,h:2},pos=`grid-column:${L.x+1}/span ${L.w};grid-row:${L.y+1}/span ${L.h}`;
- if(edit)return `<button class="mt lt${LSEL==a.id?' sel':''}${L.h==1?' r1':''}" data-lt="${a.id}" style="${pos}"><span>${esc(a.n||'Untitled')}</span><em>${L.w} x ${L.h}</em></button>`;
- const q=prog([a]),cls=!q.tot?'idle':!q.due?'ok':q.done?'part':'due',f=q.tot?Math.round(q.done/q.tot*100):0;
- return `<button class="mt ${cls}${MS==a.id?' sel':''}${L.h==1?' r1':''}" data-a="selArea" data-id="${a.id}" style="${pos};--f:${f}%" aria-label="${esc(a.n)}: ${q.done} of ${q.tot} done"><span>${esc(a.n||'Untitled')}</span><em>${!q.tot?'--':!q.due?ICK:q.done+'/'+q.tot}</em></button>`}
+// ---- Floor map: the pegboard with each area drawn as a shape. On Rounds it's colored by what's left; in Setup you arrange it. ----
+let DRAG=null;                            // UI-only: shape or label being dragged in the editor {id, L, bad} / {mk, x, y}
+const pct=(v,of)=>(v/of*100).toFixed(3)+'%';
+function board(f,edit){const as=areasOn(f),marks=f.marks||[];let pg='',sh='',ov='',hd='';
+ // The editor shows the whole board; on Rounds it's trimmed to the rows in use
+ const rows=edit?ROWS:Math.min(ROWS,Math.max(2,...as.filter(a=>a.lay).map(a=>a.lay.y+a.lay.h),...marks.map(m=>Math.ceil(m.y+.5))));
+ for(let y=0;y<=rows;y++)for(let x=0;x<=COLS;x++)pg+=`<circle cx="${x*PEG}" cy="${y*PEG}" r="${edit?1:.7}"/>`;
+ as.forEach(a=>{const dr=DRAG&&DRAG.id==a.id,L=dr?DRAG.L:a.lay;if(!L)return;
+  const d='M'+polyOf(L).map(([x,y])=>x*PEG+' '+y*PEG).join('L')+'Z',lr=bigRect(L),box=`left:${pct(lr.x,COLS)};top:${pct(lr.y,rows)};width:${pct(lr.w,COLS)};height:${pct(lr.h,rows)}`;
+  if(edit){const sel=LSEL==a.id;
+   sh+=`<path d="${d}" class="ed${sel?' sel':''}${dr?' drag':''}${dr&&DRAG.bad?' bad':''}"/>`;
+   ov+=`<div class="rl lt${lr.h==1||lr.w<=2?' sm':''}" data-lt="${a.id}" style="${box}"><span>${esc(a.n||'Untitled')}</span></div>`;
+   if(sel){hd+=`<i class="hd" data-hd="size" data-id="${a.id}" style="left:${pct(L.x+L.w,COLS)};top:${pct(L.y+L.h,rows)}" title="Drag to resize"></i>`;
+    if(L.cut){const [nx,ny]=notchOf(L);hd+=`<i class="hd cut" data-hd="cut" data-id="${a.id}" style="left:${pct(nx,COLS)};top:${pct(ny,rows)}" title="Drag to change the L"></i>`}}}
+  else{const q=prog([a]),cls=!q.tot?'idle':!q.due?'ok':q.done?'part':'due';
+   sh+=`<path d="${d}" class="${cls}${MS==a.id?' sel':''}"/>`;
+   ov+=`<button class="rl ${cls}${lr.h==1||lr.w<=2?' sm':''}" data-a="selArea" data-id="${a.id}" style="${box}" aria-label="${esc(a.n)}: ${q.done} of ${q.tot} done"><span>${esc(a.n||'Untitled')}</span><em>${!q.tot?'':!q.due?ICK:q.done+'/'+q.tot}</em></button>`}});
+ marks.forEach(m=>{const dr=DRAG&&DRAG.mk==m.id,x=dr?DRAG.x:m.x,y=dr?DRAG.y:m.y;
+  ov+=`<${edit?'div':'span'} class="mk${dr?' drag':''}" ${edit?`data-mk="${m.id}"`:''} style="left:${pct(x,COLS)};top:${pct(y,rows)}">${esc(m.n||'Label')}</${edit?'div':'span'}>`});
+ return `<div class="board${edit?' edit':''}" style="aspect-ratio:${COLS}/${rows}"><svg viewBox="0 0 ${COLS*PEG} ${rows*PEG}" preserveAspectRatio="none" aria-hidden="true"><g class="pegs">${pg}</g>${sh}</svg>${ov}${hd}</div>`}
 function vMap(){let h='',any=false;
  P().floors.forEach(f=>{const as=areasOn(f);if(!as.length)return;any=true;const q=prog(as),sel=as.find(a=>a.id==MS);
-  h+=`<div class="flh" id="fl-${f.id}"><h2>${esc(f.n)}</h2><span>${q.done}/${q.tot} done</span></div><div class="card wide map"><div class="mgrid" style="grid-template-rows:repeat(${mapRows(P(),f)},56px)">${as.map(a=>mapTile(a)).join('')}</div></div>${sel?areaCard(sel,1):''}`});
+  h+=`<div class="flh" id="fl-${f.id}"><h2>${esc(f.n)}</h2><span>${q.done}/${q.tot} done</span></div><div class="card wide map">${board(f)}</div>${sel?areaCard(sel,1):''}`});
  if(!any)return `<div class="card wide"><p class="mu" style="margin:0">No areas yet. Add them in Setup.</p></div>`;
- return `<div class="legend"><span><i class="due"></i>Due</span><span><i class="part"></i>Started</span><span><i class="ok"></i>Done</span><span class="mu">Tap a box for its checklist</span></div>`+h}
-// Map editor (Setup): drag boxes around, pick one to change its size
-function vLayout(f){const as=areasOn(f),rows=mapRows(P(),f,2),sel=as.find(a=>a.id==LSEL);let cells='';
- for(let y=0;y<rows;y++)for(let x=0;x<COLS;x++)cells+=`<i class="lc" style="grid-column:${x+1};grid-row:${y+1}"></i>`;
+ return `<div class="legend"><span><i class="due"></i>Due</span><span><i class="part"></i>Started</span><span><i class="ok"></i>Done</span><span class="mu">Tap a room for its checklist</span></div>`+h}
+// Corner-cut picker icons (which corner of the room is missing)
+const LIC=c=>{const pts={none:'3,3 21,3 21,21 3,21',tl:'11,3 21,3 21,21 3,21 3,11 11,11',tr:'3,3 13,3 13,11 21,11 21,21 3,21',br:'3,3 21,3 21,13 13,13 13,21 3,21',bl:'3,3 21,3 21,21 11,21 11,13 3,13'}[c];
+ return `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><polygon points="${pts}" fill="currentColor" fill-opacity=".25" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`};
+function vLayout(f){const sel=areasOn(f).find(a=>a.id==LSEL),L=sel&&sel.lay,cur=L?(L.cut?L.cut.c:'none'):'';
  return `<button class="g lback" data-a="elBack">‹ Setup</button>
- <div class="card wide"><h2>${esc(f.n)} map</h2><p class="mu" style="margin:0 0 10px">Drag a box to move it. Tap one to change its size. Lay it out the way the floor looks when you walk it.</p>
-  <div class="lgrid" style="grid-template-rows:repeat(${rows},56px)">${cells}${as.map(a=>mapTile(a,1)).join('')}</div>
-  ${sel?`<div class="lctl"><b>${esc(sel.n||'Untitled')}</b><div class="row"><button class="g bd" data-a="lay" data-v="-1,0">Narrower</button><button class="g bd" data-a="lay" data-v="1,0">Wider</button></div><div class="row"><button class="g bd" data-a="lay" data-v="0,-1">Shorter</button><button class="g bd" data-a="lay" data-v="0,1">Taller</button></div></div>`:''}
-  <div class="row" style="margin-top:10px"><button class="g bd" data-a="layAuto">Arrange automatically</button></div></div>`}
+ <div class="card wide"><h2>${esc(f.n)} map</h2><p class="mu" style="margin:0 0 10px">Drag a room onto the pegs where it sits in real life. Tap a room, then drag its corner peg to resize it.</p>
+  ${board(f,1)}
+  ${sel?`<div class="lctl"><div class="row" style="min-height:0"><b style="flex:1">${esc(sel.n||'Untitled')}</b><span class="mu">${L.w} x ${L.h} pegs</span></div>
+   <div class="sec" style="margin:10px 0 6px">Shape</div><div class="seg shp">${['none','tl','tr','bl','br'].map(c=>`<button class="${cur==c?'on':''}" data-a="shape" data-v="${c}" aria-label="${c=='none'?'Rectangle':'L shape, '+{tl:'top left',tr:'top right',bl:'bottom left',br:'bottom right'}[c]+' corner cut out'}">${LIC(c)}</button>`).join('')}</div>
+   ${L.cut?'<p class="mu" style="margin:8px 0 0">Drag the inside corner peg to change the shape of the L.</p>':''}</div>`:''}
+  <div class="row" style="margin-top:10px;flex-wrap:wrap"><button class="g bd" data-a="addMark">Add a label</button><button class="g bd" data-a="layAuto">Arrange automatically</button></div>
+  <p class="mu" style="margin:6px 0 0">Labels mark things without tasks, like the entrance or a closet. Tap one to rename or remove it.</p></div>`}
 
 // ---- Settings ----
 function vMore(){
@@ -528,13 +577,16 @@ function exportData(){const f=bkFile(),u=URL.createObjectURL(f),a=document.creat
 async function shareData(){const f=bkFile();try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'Big Shiny Rounds Backup'});markBk()}else{exportData();alert('Sharing files is not supported here, so the backup was downloaded instead.')}}catch(e){if(e&&e.name!=='AbortError')exportData()}}
 function importFile(inp){const f=inp.files&&inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{let j=JSON.parse(r.result);if(j&&j.data&&j.app)j=j.data;if(!j||!(Array.isArray(j.props)||Array.isArray(j.areas)))throw 0;if(!confirm('Replace everything on this device with this backup? This can’t be undone.')){inp.value='';return}S=j;migrate();save();flush();R();toast('Backup restored')}catch(e){alert('That file is not valid Big Shiny backup data')}inp.value=''};r.onerror=()=>alert('Couldn’t read that file');r.readAsText(f)}
 const ea=()=>areaById(EA);
-let LSEL=null;                            // UI-only: box picked in the map editor
+let LSEL=null;                            // UI-only: room picked in the map editor
+// Tap a label in the map editor: rename or remove it
+function markDlg(fid,mid){const f=P().floors.find(x=>x.id==fid),m=f&&(f.marks||[]).find(x=>x.id==mid);if(!m)return;
+ openDlg('Label','',[['Save','',v=>{v=(v||'').trim();if(v){m.n=v;save();R()}}],['Remove label','x bd',()=>{const i=f.marks.indexOf(m);f.marks.splice(i,1);save();R();toast('Removed label',()=>{f.marks.splice(i,0,m);save();R()})}],['Cancel','g bd',null]],`<input type="text" id="dlgIn" value="${esc(m.n)}" autocomplete="off">`)}
 // Switching property finishes a round that's running at the old one
 function switchProp(id){if(id==P().id)return;if(S.cur&&S.cur.p!=id){const c=S.cur,n=S.log.filter(e=>e.r==c.id).length;if(n)S.rounds.push({id:c.id,s:c.s,e:Date.now(),p:c.p});S.cur=null}
  S.set.prop=id;EA=EL=MS=null;save();R();scrollTo(0,0);toast('Switched to '+(P().n||'property'))}
 function addPropDlg(){openDlg('Add a property','It starts with the same standard tasks as '+(P().n||'this one')+'. Add its floors and areas in Setup.',
  [['Add property','',v=>{v=(v||'').trim();if(!v){toast('Enter a name first');return}
-  const p={id:uid('p'),n:v,floors:[{id:uid('f'),n:'Floor 1'}],std:P().std.map(t=>({id:uid('t'),n:t.n,f:t.f})),areas:[],sup:[]};
+  const p={id:uid('p'),n:v,floors:[{id:uid('f'),n:'Floor 1',marks:[]}],std:P().std.map(t=>({id:uid('t'),n:t.n,f:t.f})),areas:[],sup:[]};
   S.props.push(p);switchProp(p.id);goTab('setup')}],['Cancel','g bd',null]],'<input type="text" id="dlgIn" placeholder="Property name" autocomplete="off">')}
 const ACT={
  tab:d=>goTab(d.id), gear:()=>goTab(T=='more'?'today':'more'),
@@ -568,11 +620,12 @@ const ACT={
  addArea:d=>{const a={id:uid('a'),n:'',fl:d.fl,useStd:true,skip:[],ex:[]};P().areas.push(a);place(P(),a);EA=a.id;save();R();scrollTo(0,0);const n=document.querySelector('[data-p$=".n"]');n&&n.focus()},
  editArea:d=>{EA=d.id;R();scrollTo(0,0)}, eaBack:()=>{EA=null;R();scrollTo(0,0)},
  areaFloor:(d,el)=>{const a=ea();if(!a)return;a.fl=el.value;place(P(),a);save();R()},
- editLay:d=>{EL=d.id;LSEL=null;R();scrollTo(0,0)}, elBack:()=>{EL=null;R();scrollTo(0,0)},
- lay:d=>{const a=areaById(LSEL);if(!a||!a.lay)return;const L=a.lay,[dw,dh]=d.v.split(',').map(Number),w=L.w+dw,h=L.h+dh;
-  if(w<1||h<1)return;if(L.x+w>COLS&&spotFree(P(),a,COLS-w,L.y,w,h)){a.lay={x:COLS-w,y:L.y,w,h};save();R();return}
-  if(!spotFree(P(),a,L.x,L.y,w,h)){toast('There’s no room there. Move the box next to it first.');return}a.lay={x:L.x,y:L.y,w,h};save();R()},
- layAuto:()=>{const f=EL,as=P().areas.filter(a=>a.fl==f);as.forEach(a=>a.lay=null);as.forEach(a=>place(P(),a));save();R();toast('Done: boxes rearranged')},
+ editLay:d=>{EL=d.id;LSEL=null;R();scrollTo(0,0)}, elBack:()=>{EL=null;LSEL=null;R();scrollTo(0,0)},
+ shape:d=>{const a=areaById(LSEL);if(!a||!a.lay)return;const L={...a.lay};delete L.cut;
+  if(d.v!='none'){if(L.w<2||L.h<2){toast('Make the room at least 2 by 2 pegs first');return}const o=a.lay.cut;L.cut={c:d.v,w:o?Math.min(o.w,L.w-1):Math.max(1,Math.floor(L.w/2)),h:o?Math.min(o.h,L.h-1):Math.max(1,Math.floor(L.h/2))}}
+  if(!spotFree(P(),a,L)){toast('There’s no room for that shape here');return}a.lay=L;save();R()},
+ layAuto:()=>{const f=EL;openDlg('Arrange automatically?','Every room on this floor is put back in a simple stack, in list order. Labels stay where they are.',[['Arrange','',()=>{const as=P().areas.filter(a=>a.fl==f);as.forEach(a=>a.lay=null);as.forEach(a=>place(P(),a));save();R();toast('Done: rooms rearranged')}],['Cancel','g bd',null]])},
+ addMark:()=>{const f=P().floors.find(x=>x.id==EL);if(!f)return;openDlg('Add a label','It goes in the middle of the map. Drag it into place.',[['Add label','',v=>{v=(v||'').trim();if(!v){toast('Enter a name first');return}(f.marks=f.marks||[]).push({id:uid('m'),n:v,x:COLS/2,y:ROWS/2});save();R();toast('Added '+v)}],['Cancel','g bd',null]],'<input type="text" id="dlgIn" placeholder="e.g. Entrance, Closet, Office" autocomplete="off">')},
  // properties
  props:()=>{openDlg('Properties','',[...S.props.map(p=>[p.n||'Untitled property',p.id==P().id?'':'g bd',()=>switchProp(p.id)]),['Add a property','g bd',addPropDlg],['Cancel','g bd',null]])},
  delProp:()=>{const p=P();openDlg('Delete '+(p.n||'this property')+'?','Its floors, areas, supplies and history are removed from this device. This can’t be undone.',[['Delete property','x bd',()=>{const id=p.id;if(S.cur&&S.cur.p==id)S.cur=null;S.props=S.props.filter(x=>x!==p);S.log=S.log.filter(e=>e.p!=id);S.rounds=S.rounds.filter(r=>r.p!=id);S.set.prop=S.props[0].id;EA=EL=MS=null;save();R();scrollTo(0,0);toast('Deleted '+(p.n||'property'))}],['Cancel','g bd',null]])},
@@ -580,7 +633,7 @@ const ACT={
  addEx:()=>{const a=ea();if(!a)return;a.ex.push({id:uid('t'),n:'',f:'daily'});save();R();const ins=document.querySelectorAll('[data-dl$=".ex"] input');ins.length&&ins[ins.length-1].focus()},
  delEx:d=>{const a=ea();if(!a)return;const i=+d.i,t=a.ex[i];snap(e=>e.a==a.id&&e.t==t.id);a.ex.splice(i,1);save();R();toast('Deleted “'+(t.n||'task')+'”',()=>{a.ex.splice(i,0,t);save();R()})},
  delArea:()=>{const a=ea();if(!a)return;openDlg('Delete '+(a.n||'this area')+'?','Its history stays in the log and on reports.',[['Delete area','x bd',()=>{const i=P().areas.indexOf(a);snap(e=>e.a==a.id);P().areas.splice(i,1);EA=null;save();R();scrollTo(0,0);toast('Deleted “'+(a.n||'area')+'”',()=>{P().areas.splice(i,0,a);save();R()})}],['Cancel','g bd',null]])},
- addFloor:()=>{const el=document.getElementById('fn'),n=el.value.trim();if(!n){toast('Enter a name first');return}P().floors.push({id:uid('f'),n});save();R();toast('Added '+n)},
+ addFloor:()=>{const el=document.getElementById('fn'),n=el.value.trim();if(!n){toast('Enter a name first');return}P().floors.push({id:uid('f'),n,marks:[]});save();R();toast('Added '+n)},
  delFloor:d=>{const i=+d.i,f=P().floors[i];if(areasOn(f).length){alert('Move or delete the areas on '+f.n+' first.');return}P().floors.splice(i,1);save();R();toast('Deleted “'+f.n+'”',()=>{P().floors.splice(i,0,f);save();R()})},
  // settings
  keep:d=>{S.set.keep=+d.v;prune();save();R()},
@@ -640,7 +693,7 @@ let DAY='';document.addEventListener('visibilitychange',()=>{if(!document.hidden
 let RK='';
 function R(){const de=document.documentElement;de.dataset.theme=themeOf(S.set.theme||'system');dnTimer();DAY=tdy();buildIndex();
  const c=TC[T]||TC.today;de.style.setProperty('--pc',c[0]);de.style.setProperty('--pc2',c[1]);
- if(T!='setup')EA=EL=null;
+ if(T!='setup'){EA=EL=null;DRAG=null}
  const key=T+'|'+(EA||'')+'|'+(EL||'')+'|'+P().id,full=key!==RK;RK=key;
  patch(APP(),(T=='more'?SETTINGS:TABS.find(t=>t[0]==T))[2](),full);
  document.getElementById('gear').classList.toggle('on',T=='more');
@@ -686,7 +739,7 @@ function mkPeek(id){let p=document.getElementById('peek');
 const rmPeek=()=>{const p=document.getElementById('peek');if(p)p.remove()};
 (function(){let sx=0,sy=0,lx=0,lt=0,vx=0,ax=null,ok=false,busy=false;const W=()=>innerWidth,nav=()=>document.getElementById('nav');
  const mv=(el,x,tr)=>{el.style.transition=tr||'none';el.style.transform=`translate3d(${x}px,0,0)`};
- document.addEventListener('touchstart',e=>{const t=e.target;ok=!busy&&!DLG&&T!='more'&&e.touches.length==1&&!t.closest('input,select,textarea,nav,header,.dh,.stp,.lgrid');ax=null;if(!ok)return;sx=lx=e.touches[0].clientX;sy=e.touches[0].clientY;lt=performance.now();vx=0},{passive:true});
+ document.addEventListener('touchstart',e=>{const t=e.target;ok=!busy&&!DLG&&T!='more'&&e.touches.length==1&&!t.closest('input,select,textarea,nav,header,.dh,.stp,.board.edit');ax=null;if(!ok)return;sx=lx=e.touches[0].clientX;sy=e.touches[0].clientY;lt=performance.now();vx=0},{passive:true});
  document.addEventListener('touchmove',e=>{if(!ok)return;const x=e.touches[0].clientX,y=e.touches[0].clientY,dx=x-sx,dy=y-sy;
   if(ax==null){if(Math.abs(dx)<8&&Math.abs(dy)<8)return;ax=Math.abs(dx)>Math.abs(dy)*1.2?'x':'y';if(ax=='x'){APP().style.willChange='transform';nav().classList.add('drag')}}
   if(ax!='x')return;e.preventDefault();const now=performance.now();vx=.7*vx+.3*((x-lx)/Math.max(1,now-lt));lx=x;lt=now;
@@ -723,22 +776,32 @@ const rmPeek=()=>{const p=document.getElementById('peek');if(p)p.remove()};
  document.addEventListener('pointerup',drop);document.addEventListener('pointercancel',drop);
 })();
 
-// ---- Map editor: drag a box to a new spot on the grid (a tap without moving picks it) ----
+// ---- Map editor: drag a room to move it, drag its corner peg to resize, drag the inside corner of an L, drag labels.
+//      A tap without moving picks a room (or opens a label). Moves that would cover another room snap back. ----
 (function(){let D=null;
- const cell=g=>{const r=g.getBoundingClientRect();return {cw:(r.width+6)/COLS,ch:62}};
- document.addEventListener('pointerdown',e=>{const el=e.target.closest('.lgrid .lt');if(!el)return;const a=areaById(el.dataset.lt);if(!a||!a.lay)return;e.preventDefault();
-  D={el,a,x0:e.clientX,y0:e.clientY,id:e.pointerId,g:el.parentElement,nx:a.lay.x,ny:a.lay.y,moved:false};try{el.setPointerCapture(e.pointerId)}catch(_){}});
- document.addEventListener('pointermove',e=>{if(!D||e.pointerId!=D.id)return;const {cw,ch}=cell(D.g),L=D.a.lay;
-  if(!D.moved&&Math.hypot(e.clientX-D.x0,e.clientY-D.y0)<8)return;
-  const dx=Math.round((e.clientX-D.x0)/cw),dy=Math.round((e.clientY-D.y0)/ch);
-  if(!D.moved){D.moved=true;D.el.classList.add('drag');window.Feedback&&Feedback.hap('tick')}
-  D.nx=Math.max(0,Math.min(COLS-L.w,L.x+dx));D.ny=Math.max(0,L.y+dy);
-  D.el.style.gridColumn=`${D.nx+1}/span ${L.w}`;D.el.style.gridRow=`${D.ny+1}/span ${L.h}`;
-  D.el.classList.toggle('bad',!spotFree(P(),D.a,D.nx,D.ny,L.w,L.h))});
- const up=e=>{if(!D||e.pointerId!=D.id)return;const d=D;D=null;d.el.classList.remove('drag','bad');
-  if(!d.moved){LSEL=LSEL==d.a.id?null:d.a.id;R();return}
-  const L=d.a.lay;if((d.nx!=L.x||d.ny!=L.y)&&spotFree(P(),d.a,d.nx,d.ny,L.w,L.h)){d.a.lay={x:d.nx,y:d.ny,w:L.w,h:L.h};LSEL=d.a.id;save();window.Feedback&&Feedback.hap('select')}
-  d.el.style.gridColumn='';d.el.style.gridRow='';R()};
+ const pegAt=(e,b)=>{const r=b.getBoundingClientRect();return [Math.round((e.clientX-r.left)/r.width*COLS),Math.round((e.clientY-r.top)/r.height*ROWS)]};
+ document.addEventListener('pointerdown',e=>{const b=e.target.closest('.board.edit');if(!b)return;
+  const t=e.target.closest('[data-lt],[data-hd],[data-mk]');if(!t)return;e.preventDefault();
+  const f=P().floors.find(x=>x.id==EL);D={b,x0:e.clientX,y0:e.clientY,id:e.pointerId,moved:false,el:t};
+  if(t.dataset.mk){const m=(f.marks||[]).find(x=>x.id==t.dataset.mk);if(!m){D=null;return}D.kind='mk';D.m=m;D.f=f}
+  else{const a=areaById(t.dataset.lt||t.dataset.id);if(!a||!a.lay){D=null;return}D.kind=t.dataset.hd||'move';D.a=a;D.L0=JSON.parse(JSON.stringify(a.lay))}
+  try{t.setPointerCapture(e.pointerId)}catch(_){}});
+ document.addEventListener('pointermove',e=>{if(!D||e.pointerId!=D.id)return;
+  if(!D.moved&&Math.hypot(e.clientX-D.x0,e.clientY-D.y0)<6)return;
+  if(!D.moved){D.moved=true;if(D.a&&D.kind=='move')LSEL=D.a.id;window.Feedback&&Feedback.hap('tick')}
+  const r=D.b.getBoundingClientRect(),dx=Math.round((e.clientX-D.x0)/r.width*COLS),dy=Math.round((e.clientY-D.y0)/r.height*ROWS);
+  if(D.kind=='mk'){DRAG={mk:D.m.id,x:Math.max(0,Math.min(COLS,D.m.x+dx)),y:Math.max(0,Math.min(ROWS,D.m.y+dy))};R();return}
+  const L0=D.L0,L=JSON.parse(JSON.stringify(L0));
+  if(D.kind=='move'){L.x=Math.max(0,Math.min(COLS-L.w,L0.x+dx));L.y=Math.max(0,Math.min(ROWS-L.h,L0.y+dy))}
+  else if(D.kind=='size'){const mw=L.cut?L.cut.w+1:1,mh=L.cut?L.cut.h+1:1;L.w=Math.max(mw,Math.min(COLS-L.x,L0.w+dx));L.h=Math.max(mh,Math.min(ROWS-L.y,L0.h+dy))}
+  else if(D.kind=='cut'){const [px,py]=pegAt(e,D.b),c=L.cut.c;
+   L.cut.w=Math.max(1,Math.min(L.w-1,c=='tl'||c=='bl'?px-L.x:L.x+L.w-px));L.cut.h=Math.max(1,Math.min(L.h-1,c=='tl'||c=='tr'?py-L.y:L.y+L.h-py))}
+  DRAG={id:D.a.id,L,bad:!spotFree(P(),D.a,L)};R()});
+ const up=e=>{if(!D||e.pointerId!=D.id)return;const d=D;D=null;const dr=DRAG;DRAG=null;
+  if(!d.moved){if(d.kind=='mk')markDlg(d.f.id,d.m.id);else if(d.kind=='move'){LSEL=LSEL==d.a.id?null:d.a.id;R()}return}
+  if(d.kind=='mk'&&dr){d.m.x=dr.x;d.m.y=dr.y;save()}
+  else if(dr&&dr.L){if(!dr.bad){d.a.lay=dr.L;save();window.Feedback&&Feedback.hap('select')}else toast('That spot is taken')}
+  R()};
  document.addEventListener('pointerup',up);document.addEventListener('pointercancel',up);
 })();
 
