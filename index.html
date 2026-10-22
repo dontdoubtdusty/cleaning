@@ -257,6 +257,7 @@ function addMonths(d,n){const x=new Date(d+'T00:00'),day=x.getDate();x.setDate(1
 // 4. STATE: seed data, schema migrations, load/save
 // =====================================================================
 let S,T='today';                          // data, current tab
+let FV=null;                              // UI-only: floor opened from Today (Rounds shows just that floor)
 let O={},EA=null,EL=null,DLG=null,VIEW='due',MS=null,FL='';// UI-only: open <details>, area / floor map being edited in Setup, open popup, Rounds view (due/all/map), area picked on the map, flash message
 let LR='today',LF='',LT='';               // UI-only: log range and custom dates
 let LI=new Map();                         // UI-only: latest log entry for each "area|task", rebuilt on every draw
@@ -458,6 +459,7 @@ function vToday(){const p=prog(P().areas),od=overdue(),low=P().sup.filter(isLow)
 
 // ---- Rounds: walk the building and check tasks off ----
 function vRounds(){
+ if(FV){const f=P().floors.find(x=>x.id==FV);if(f)return vFloor(f);FV=null}
  let h=propBar()+roundCard()+`<div class="seg qm">${[['due','Due now'],['all','All tasks'],['map','Map']].map(([v,l])=>`<button class="${VIEW==v?'on':''}" data-a="view" data-v="${v}">${l}</button>`).join('')}</div>`;
  if(VIEW=='map')return h+vMap();
  let any=false;
@@ -466,11 +468,11 @@ function vRounds(){
   h+=`<div class="flh" id="fl-${f.id}"><h2>${esc(f.n)}</h2><span>${q.done}/${q.tot} done</span></div>`+cards});
  if(!any)h+=`<div class="card wide"><div class="allok">${ICK} Everything is done for now.</div><p class="mu" style="margin:6px 0 0">Switch to All tasks to see everything, including as-needed tasks.</p></div>`;
  return h}
-function areaCard(a,map){const ts=tasksOf(a).map(t=>({t,s:st(a,t)}));
+function areaCard(a,map,force){const ts=tasksOf(a).map(t=>({t,s:st(a,t)}));
  let shown=VIEW=='all'?ts:ts.filter(x=>x.s.due||x.s.today);if(map&&!shown.length)shown=ts;if(!shown.length)return '';
  const due=ts.filter(x=>x.s.due).length,cnt=ts.filter(x=>x.t.f!='need'&&(x.s.due||x.s.today)),dn=cnt.filter(x=>!x.s.due).length;
- const open=map||(O['a'+a.id]??(due>0));
- return `<details class="card area wide${due?'':' done'}"${map?' data-map="1"':` data-o="a${a.id}"`} ${open?'open':''}><summary><div><b>${esc(a.n)}</b>${bar(dn,cnt.length)}</div><em>${due?dn+'/'+cnt.length:'Done'}</em>${CHEV}</summary><div class="tasks">${shown.map(({t,s})=>{
+ const open=map||force||(O['a'+a.id]??(due>0));
+ return `<details id="ac-${a.id}" class="card area wide${due?'':' done'}"${map?' data-map="1"':` data-o="a${a.id}"`} ${open?'open':''}><summary><div><b>${esc(a.n)}</b>${bar(dn,cnt.length)}</div><em>${due?dn+'/'+cnt.length:'Done'}</em>${CHEV}</summary><div class="tasks">${shown.map(({t,s})=>{
    const note=s.done&&s.last.note;
    return `<div class="task"><label><input type="checkbox" ${s.done?'checked':''} data-a="tick" data-ar="${a.id}" data-tk="${t.id}"><span>${esc(t.n)}</span></label>${t.f!='daily'?`<span class="tag">${FN[t.f]}</span>`:''}${s.done?`<span class="tm">${tm(s.last.at)}</span><button class="nb${note?' has':''}" data-a="note" data-id="${s.last.id}" aria-label="Note">${ICN}</button>`:s.last&&(VIEW=='all'||map)?`<span class="tm">${sd(dOf(s.last.at))}</span>`:''}</div>${note?`<div class="nt">${esc(note)}</div>`:''}`}).join('')}
   ${due>1?`<div class="aall"><button class="g bd" data-a="allDone" data-ar="${a.id}">Mark all done</button></div>`:''}</div></details>`}
@@ -552,7 +554,14 @@ function vMap(){let h='',any=false;
  P().floors.forEach(f=>{const as=areasOn(f);if(!as.length)return;any=true;const q=prog(as),sel=as.find(a=>a.id==MS);
   h+=`<div class="flh" id="fl-${f.id}"><h2>${esc(f.n)}</h2><span>${q.done}/${q.tot} done</span></div><div class="card wide map">${board(f)}</div>${sel?areaCard(sel,1):''}`});
  if(!any)return `<div class="card wide"><p class="mu" style="margin:0">No areas yet. Add them in Setup.</p></div>`;
- return `<div class="legend"><span><i class="due"></i>Due</span><span><i class="part"></i>Started</span><span><i class="ok"></i>Done</span><span class="mu">Each room has its own color; the more solid it is, the more is done. Tap a room for its checklist.</span></div>`+h}
+ return LEGEND()+h}
+const LEGEND=()=>`<div class="legend"><span><i class="due"></i>Due</span><span><i class="part"></i>Started</span><span><i class="ok"></i>Done</span><span class="mu">Each room has its own color; the more solid it is, the more is done. Tap a room for its checklist.</span></div>`;
+// One floor (opened from Today): its map, then the checklist for every room on it that has something due or done today.
+// Tapping a room on the map jumps to its checklist.
+function vFloor(f){const as=areasOn(f),q=prog(as),cards=as.map(a=>areaCard(a,0,MS==a.id)).filter(Boolean).join('');
+ return propBar()+roundCard()+`<button class="g lback" data-a="fvBack">‹ All floors</button><div class="flh"><h2>${esc(f.n)}</h2><span>${q.done}/${q.tot} done</span></div>`
+  +(as.length?`<div class="card wide map">${board(f)}</div>`:'')
+  +(cards||`<div class="card wide"><div class="allok">${ICK} Everything on ${esc(f.n)} is done for now.</div></div>`)}
 // Corner-cut picker icons (which corner of the room is missing)
 const LIC=c=>{const pts={none:'3,3 21,3 21,21 3,21',tl:'11,3 21,3 21,21 3,21 3,11 11,11',tr:'3,3 13,3 13,11 21,11 21,21 3,21',br:'3,3 21,3 21,13 13,13 13,21 3,21',bl:'3,3 21,3 21,21 11,21 11,13 3,13'}[c];
  return `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><polygon points="${pts}" fill="currentColor" fill-opacity=".25" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`};
@@ -613,7 +622,7 @@ function markDlg(fid,mid){const f=P().floors.find(x=>x.id==fid),m=f&&(f.marks||[
  openDlg('Label','',[['Save','',v=>{v=(v||'').trim();if(v){m.n=v;save();R()}}],['Remove label','x bd',()=>{const i=f.marks.indexOf(m);f.marks.splice(i,1);save();R();toast('Removed label',()=>{f.marks.splice(i,0,m);save();R()})}],['Cancel','g bd',null]],`<input type="text" id="dlgIn" value="${esc(m.n)}" autocomplete="off">`)}
 // Switching property finishes a round that's running at the old one
 function switchProp(id){if(id==P().id)return;if(S.cur&&S.cur.p!=id){const c=S.cur,n=S.log.filter(e=>e.r==c.id).length;if(n)S.rounds.push({id:c.id,s:c.s,e:Date.now(),p:c.p});S.cur=null}
- S.set.prop=id;EA=EL=MS=null;save();R();scrollTo(0,0);toast('Switched to '+(P().n||'property'))}
+ S.set.prop=id;EA=EL=MS=FV=null;save();R();scrollTo(0,0);toast('Switched to '+(P().n||'property'))}
 function addPropDlg(){openDlg('Add a property','It starts with the same standard tasks as '+(P().n||'this one')+'. Add its floors and areas in Setup.',
  [['Add property','',v=>{v=(v||'').trim();if(!v){toast('Enter a name first');return}
   const p={id:uid('p'),n:v,floors:[{id:uid('f'),n:'Floor 1',marks:[]}],std:P().std.map(t=>({id:uid('t'),n:t.n,f:t.f})),areas:[],sup:[]};
@@ -628,9 +637,10 @@ const ACT={
   save();R();buildIndex();if(all>0&&prog(P().areas).due==0)setTimeout(confetti,80);
   else toast('Done: '+a.n,()=>{S.log=S.log.filter(e=>!ids.includes(e.id));save();R()})},
  note:d=>noteDlg(d.id),
- view:d=>{VIEW=d.v;R()},
- selArea:d=>{MS=MS==d.id?null:d.id;R();if(MS)requestAnimationFrame(()=>{const el=document.querySelector('[data-map]');el&&el.getBoundingClientRect().bottom>innerHeight-90&&el.scrollIntoView({behavior:'smooth',block:'nearest'})})},
- goFloor:d=>{if(VIEW=='map')VIEW='due';goTab('rounds');requestAnimationFrame(()=>{const el=document.getElementById('fl-'+d.id);el&&el.scrollIntoView({behavior:'smooth',block:'start'})})},
+ view:d=>{VIEW=d.v;FV=null;R()},
+ selArea:d=>{MS=MS==d.id?null:d.id;if(FV&&MS)delete O['a'+MS];R();if(MS)requestAnimationFrame(()=>{const el=FV?document.getElementById('ac-'+MS):document.querySelector('[data-map]');if(FV&&el){el.scrollIntoView({behavior:'smooth',block:'start'});return}el&&el.getBoundingClientRect().bottom>innerHeight-90&&el.scrollIntoView({behavior:'smooth',block:'nearest'})})},
+ goFloor:d=>{FV=d.id;MS=null;if(T=='rounds'){R();scrollTo(0,0)}else goTab('rounds')},
+ fvBack:()=>{FV=null;MS=null;R();scrollTo(0,0)},
  startRound:()=>{S.cur={id:uid('r'),s:Date.now(),p:P().id};save();R();toast('Started a round');if(T=='today')goTab('rounds')},
  endRound:()=>{const c=S.cur;if(!c)return;const n=S.log.filter(e=>e.r==c.id).length;
   if(!n){openDlg('Finish this round?','Nothing was checked off, so it won’t be saved in the log.',[['Finish without saving','x bd',()=>{S.cur=null;save();R()}],['Keep going','g bd',null]]);return}
@@ -731,8 +741,8 @@ let DAY='';document.addEventListener('visibilitychange',()=>{if(!document.hidden
 let RK='';
 function R(){const de=document.documentElement;de.dataset.theme=themeOf(S.set.theme||'system');dnTimer();DAY=tdy();buildIndex();
  const c=TC[T]||TC.today;de.style.setProperty('--pc',c[0]);de.style.setProperty('--pc2',c[1]);
- if(T!='setup'){EA=EL=null;DRAG=null}
- const key=T+'|'+(EA||'')+'|'+(EL||'')+'|'+P().id,full=key!==RK;RK=key;
+ if(T!='setup'){EA=EL=null;DRAG=null}if(T!='rounds')FV=null;
+ const key=T+'|'+(EA||'')+'|'+(EL||'')+'|'+(FV||'')+'|'+P().id,full=key!==RK;RK=key;
  patch(APP(),(T=='more'?SETTINGS:TABS.find(t=>t[0]==T))[2](),full);
  document.getElementById('gear').classList.toggle('on',T=='more');
  patch(document.getElementById('nav'),`<i class="hl" aria-hidden="true"></i>${TABS.map(t=>`<button class="${T==t[0]?'on':''}"${T==t[0]?' aria-current="page"':''} style="--tc:${TC[t[0]][0]}" data-a="tab" data-id="${t[0]}"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[t[0]]}</svg><span>${t[1]}</span></button>`).join('')}`);
@@ -751,8 +761,8 @@ function slideIn(dir){const m=APP(),w=innerWidth;m.style.willChange='transform,o
  m.style.transition=`transform .22s ${EZ_IN},opacity .16s ease-out`;m.style.transform='translate3d(0,0,0)';m.style.opacity='1';
  setTimeout(()=>{m.style.transition='';m.style.transform='';m.style.opacity='';m.style.willChange=''},240)}
 // Levels below Today: any other tab (or Settings) 1; an area or floor map open in Setup and an open popup each add one
-function navDepth(){return (T=='today'?0:1)+(T=='setup'&&(EA||EL)?1:0)+(DLG?1:0)}
-function navUp(){if(DLG)return closeDlg();if(T=='setup'&&(EA||EL)){EA=EL=null;R();return}if(T!='today')goTab('today')}
+function navDepth(){return (T=='today'?0:1)+(T=='setup'&&(EA||EL)?1:0)+(T=='rounds'&&FV?1:0)+(DLG?1:0)}
+function navUp(){if(DLG)return closeDlg();if(T=='setup'&&(EA||EL)){EA=EL=null;R();return}if(T=='rounds'&&FV){FV=null;MS=null;R();return}if(T!='today')goTab('today')}
 // ---- Phone back button (the same block as the other Big apps) ----
 let HD=0,HPOP=0;
 function navSync(){if(HPOP)return;const d=navDepth();
