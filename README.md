@@ -4,7 +4,9 @@ Cleaning rounds that run in your browser. It's part of the Big apps, alongside [
 
 ## Features
 
+- More than one property: tap the property name at the top to switch or add one. Each has its own floors, areas, tasks, supplies and history.
 - Your building set up as floors and areas, in the order you walk them
+- A map of each floor (Rounds > Map): every area is a box colored by what's left to do. Tap one for its checklist. Lay the boxes out under Setup > Edit map.
 - One standard task set (sweep, mop, dust, windows and door glass) that every area gets, with per-area extras and the option to turn a standard task off in a specific area
 - Each task has a frequency: every round, daily, weekly, monthly or as needed. Rounds only shows what's due.
 - Start and finish a round; every task you check off is stamped with the date and time
