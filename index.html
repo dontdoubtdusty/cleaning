@@ -195,6 +195,15 @@ body.dragmode{user-select:none;-webkit-user-select:none;cursor:grabbing}
 .seg.shp button{padding:6px 0;display:grid;place-items:center;color:var(--mu)}.seg.shp button.on{color:var(--pc);border-color:var(--pc);background:color-mix(in srgb,var(--pc) 10%,var(--card))}
 .lctl{margin-top:12px;padding:12px;border-radius:14px;background:var(--fld)}.lctl .row button{flex:1}
 
+/* ===== Floor switcher (Rounds > By floor) ===== */
+.view>.fsw{grid-column:1/-1;display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:8px;background:var(--card);border:1px solid var(--bd);border-radius:22px;padding:10px;box-shadow:var(--sh)}
+.fsw>button{width:44px;height:44px;border-radius:50%;padding:0;font-size:24px;line-height:1;background:linear-gradient(135deg,var(--pc),var(--pc2))}
+.fsw>div{text-align:center;min-width:0}.fsw>div b{display:block;font:600 21px/1.2 var(--fd);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.fsw>div span{font-size:13px;color:var(--mu);font-weight:700}
+.fdots{grid-column:1/-1;display:flex;justify-content:center;gap:8px;padding-top:2px}
+.fdots button{width:12px;height:12px;padding:0;border-radius:50%;background:var(--fld);border:2px solid color-mix(in srgb,var(--pc) 35%,transparent);box-shadow:none}
+.fdots button.ok{background:color-mix(in srgb,var(--pc) 45%,var(--card))}.fdots button.on{background:var(--pc);border-color:var(--pc);transform:scale(1.25)}
+.fdots button::before{content:"";position:absolute;inset:-8px}.fdots button{position:relative}
+
 /* ===== Confetti ===== */
 .confetti{position:fixed;inset:0;pointer-events:none;z-index:40;overflow:hidden}.confetti i{position:absolute;top:-20px;animation:fall linear forwards}
 @keyframes fall{to{transform:translate(var(--dx),105vh) rotate(var(--r))}}
@@ -458,9 +467,12 @@ function vToday(){const p=prog(P().areas),od=overdue(),low=P().sup.filter(isLow)
   +odc+lowc+`<div class="card"><h2>Floors</h2>${floors||'<p class="mu">No areas yet. Add them in Setup.</p>'}</div>`}
 
 // ---- Rounds: walk the building and check tasks off ----
+// Due now / All tasks / Map / By floor
+const viewSeg=()=>`<div class="seg qm wrap">${[['due','Due now'],['all','All tasks'],['map','Map'],['floor','By floor']].map(([v,l])=>`<button class="${(FV?'floor':VIEW)==v?'on':''}" data-a="view" data-v="${v}">${l}</button>`).join('')}</div>`;
+const mapFloors=()=>P().floors.filter(f=>areasOn(f).length);
 function vRounds(){
  if(FV){const f=P().floors.find(x=>x.id==FV);if(f)return vFloor(f);FV=null}
- let h=propBar()+roundCard()+`<div class="seg qm">${[['due','Due now'],['all','All tasks'],['map','Map']].map(([v,l])=>`<button class="${VIEW==v?'on':''}" data-a="view" data-v="${v}">${l}</button>`).join('')}</div>`;
+ let h=propBar()+roundCard()+viewSeg();
  if(VIEW=='map')return h+vMap();
  let any=false;
  P().floors.forEach(f=>{const as=areasOn(f);if(!as.length)return;const q=prog(as);
@@ -558,8 +570,10 @@ function vMap(){let h='',any=false;
 const LEGEND=()=>`<div class="legend"><span><i class="due"></i>Due</span><span><i class="part"></i>Started</span><span><i class="ok"></i>Done</span><span class="mu">Each room has its own color; the more solid it is, the more is done. Tap a room for its checklist.</span></div>`;
 // One floor (opened from Today): its map, then the checklist for every room on it that has something due or done today.
 // Tapping a room on the map jumps to its checklist.
-function vFloor(f){const as=areasOn(f),q=prog(as),cards=as.map(a=>areaCard(a,0,MS==a.id)).filter(Boolean).join('');
- return propBar()+roundCard()+`<button class="g lback" data-a="fvBack">‹ All floors</button><div class="flh"><h2>${esc(f.n)}</h2><span>${q.done}/${q.tot} done</span></div>`
+function vFloor(f){const as=areasOn(f),q=prog(as),cards=as.map(a=>areaCard(a,0,MS==a.id)).filter(Boolean).join(''),fs=mapFloors(),i=fs.indexOf(f);
+ return propBar()+roundCard()+viewSeg()
+  +`<div class="fsw"><button data-a="fstep" data-d="-1" ${i>0?'':'disabled'} aria-label="Previous floor">‹</button><div><b>${esc(f.n)}</b><span>${q.done}/${q.tot} done${fs.length>1?` · ${i+1} of ${fs.length}`:''}</span></div><button data-a="fstep" data-d="1" ${i<fs.length-1?'':'disabled'} aria-label="Next floor">›</button>
+   ${fs.length>1?`<div class="fdots">${fs.map(x=>{const p=prog(areasOn(x));return `<button class="${x==f?'on':''}${p.tot&&!p.due?' ok':''}" data-a="goFloor" data-id="${x.id}" aria-label="${esc(x.n)}"></button>`}).join('')}</div>`:''}</div>`
   +(as.length?`<div class="card wide map">${board(f)}</div>`:'')
   +(cards||`<div class="card wide"><div class="allok">${ICK} Everything on ${esc(f.n)} is done for now.</div></div>`)}
 // Corner-cut picker icons (which corner of the room is missing)
@@ -637,10 +651,10 @@ const ACT={
   save();R();buildIndex();if(all>0&&prog(P().areas).due==0)setTimeout(confetti,80);
   else toast('Done: '+a.n,()=>{S.log=S.log.filter(e=>!ids.includes(e.id));save();R()})},
  note:d=>noteDlg(d.id),
- view:d=>{VIEW=d.v;FV=null;R()},
+ view:d=>{if(d.v=='floor'){if(FV)return;const fs=mapFloors(),f=fs.find(x=>prog(areasOn(x)).due)||fs[0];if(!f){toast('Add areas in Setup first');return}FV=f.id;MS=null;R();return}VIEW=d.v;FV=null;R()},
+ fstep:d=>{const fs=mapFloors(),i=fs.findIndex(x=>x.id==FV),f=fs[i+(+d.d)];if(!f)return;FV=f.id;MS=null;R();scrollTo(0,0);slideIn(+d.d)},
  selArea:d=>{MS=MS==d.id?null:d.id;if(FV&&MS)delete O['a'+MS];R();if(MS)requestAnimationFrame(()=>{const el=FV?document.getElementById('ac-'+MS):document.querySelector('[data-map]');if(FV&&el){el.scrollIntoView({behavior:'smooth',block:'start'});return}el&&el.getBoundingClientRect().bottom>innerHeight-90&&el.scrollIntoView({behavior:'smooth',block:'nearest'})})},
- goFloor:d=>{FV=d.id;MS=null;if(T=='rounds'){R();scrollTo(0,0)}else goTab('rounds')},
- fvBack:()=>{FV=null;MS=null;R();scrollTo(0,0)},
+ goFloor:d=>{const dir=FV?Math.sign(mapFloors().findIndex(x=>x.id==d.id)-mapFloors().findIndex(x=>x.id==FV)):0;if(d.id==FV)return;FV=d.id;MS=null;if(T=='rounds'){R();scrollTo(0,0);if(dir)slideIn(dir)}else goTab('rounds')},
  startRound:()=>{S.cur={id:uid('r'),s:Date.now(),p:P().id};save();R();toast('Started a round');if(T=='today')goTab('rounds')},
  endRound:()=>{const c=S.cur;if(!c)return;const n=S.log.filter(e=>e.r==c.id).length;
   if(!n){openDlg('Finish this round?','Nothing was checked off, so it won’t be saved in the log.',[['Finish without saving','x bd',()=>{S.cur=null;save();R()}],['Keep going','g bd',null]]);return}
