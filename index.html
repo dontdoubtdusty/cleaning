@@ -179,6 +179,9 @@ body.dragmode{user-select:none;-webkit-user-select:none;cursor:grabbing}
 .rl span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;max-width:100%}
 .rl em,.rl small{font-style:normal;font-size:9px;font-weight:800;color:var(--rc,var(--cy));display:flex;letter-spacing:.4px}
 .rl.sm{flex-direction:row;gap:5px}.rl.sm span{-webkit-line-clamp:1}
+/* Tall rooms: lettering runs up the long side, read bottom to top */
+.rl.vt{writing-mode:vertical-rl;transform:rotate(180deg);flex-direction:column;padding:4px 2px}.rl.vt.sm{flex-direction:row}.rl.vt span{display:block;-webkit-line-clamp:unset;white-space:normal;max-height:100%;max-width:none;overflow:hidden}
+.rl.vt:is(:active,.prs){transform:rotate(180deg) scale(.96)}.rl.vt em svg{transform:rotate(180deg)}
 .rl.ok{color:#0b2f5e}.rl.ok em{color:#0b2f5e}.rl em svg{width:16px;height:16px;flex:none}
 .rl:is(:active,.prs){transform:scale(.96)}
 .board.edit{touch-action:none;user-select:none;-webkit-user-select:none}
@@ -550,15 +553,15 @@ function board(f,edit){const as=areasOn(f),marks=f.marks||[];let pg='',sh='',ov=
  for(let y=0;y<=rows;y++)for(let x=0;x<=COLS;x++)pg+=`<circle cx="${x*PEG}" cy="${y*PEG}" r="${edit?1:.7}"/>`;
  const sw=DRAG&&DRAG.swap,RC=roomColors(as);
  as.forEach(a=>{const dr=DRAG&&DRAG.id==a.id,sb=sw&&sw.b==a.id,L=dr?DRAG.L:sb?sw.BL:a.lay;if(!L)return;
-  const d='M'+polyOf(L).map(([x,y])=>x*PEG+' '+(y-oy)*PEG).join('L')+'Z',lr=bigRect(L),box=`left:${pct(lr.x,COLS)};top:${pct(lr.y-oy,rows)};width:${pct(lr.w,COLS)};height:${pct(lr.h,rows)}`;
+  const lrv=bigRect(L),vt=lrv.h>lrv.w,tcls=(vt?' vt':'')+((vt?lrv.w==1||lrv.h<=2:lrv.h==1||lrv.w<=2)?' sm':''),d='M'+polyOf(L).map(([x,y])=>x*PEG+' '+(y-oy)*PEG).join('L')+'Z',lr=bigRect(L),box=`left:${pct(lr.x,COLS)};top:${pct(lr.y-oy,rows)};width:${pct(lr.w,COLS)};height:${pct(lr.h,rows)}`;
   if(edit){const sel=LSEL==a.id;
    sh+=`<path d="${d}" style="fill:${RC.get(a.id)}" class="ed${sel?' sel':''}${dr?' drag':''}${dr&&DRAG.bad&&!sw?' bad':''}${(dr||sb)&&sw?' swap':''}"/>`;
-   ov+=`<div class="rl lt${lr.h==1||lr.w<=2?' sm':''}" data-lt="${a.id}" style="${box};--rc:${RC.get(a.id)}"><span>${esc(a.n||'Untitled')}</span>${lr.h>1&&lr.w>2?`<small>${L.w} x ${L.h}</small>`:''}</div>`;
+   ov+=`<div class="rl lt${tcls}" data-lt="${a.id}" style="${box};--rc:${RC.get(a.id)}"><span>${esc(a.n||'Untitled')}</span>${Math.min(lr.w,lr.h)>1&&Math.max(lr.w,lr.h)>2?`<small>${L.w} x ${L.h}</small>`:''}</div>`;
    if(sel){hd+=`<i class="hd" data-hd="size" data-id="${a.id}" style="left:${pct(L.x+L.w,COLS)};top:${pct(L.y+L.h,rows)}" title="Drag to resize"></i>`;
     if(L.cut){const [nx,ny]=notchOf(L);hd+=`<i class="hd cut" data-hd="cut" data-id="${a.id}" style="left:${pct(nx,COLS)};top:${pct(ny,rows)}" title="Drag to change the L"></i>`}}}
   else{const q=prog([a]),cls=!q.tot?'idle':!q.due?'ok':q.done?'part':'due';
    sh+=`<path d="${d}" style="fill:${RC.get(a.id)}" class="${cls}${MS==a.id?' sel':''}"/>`;
-   ov+=`<button class="rl ${cls}${lr.h==1||lr.w<=2?' sm':''}" data-a="selArea" data-id="${a.id}" style="${box};--rc:${RC.get(a.id)}" aria-label="${esc(a.n)}: ${q.done} of ${q.tot} done"><span>${esc(a.n||'Untitled')}</span><em>${!q.tot?'':!q.due?ICK:q.done+'/'+q.tot}</em></button>`}});
+   ov+=`<button class="rl ${cls}${tcls}" data-a="selArea" data-id="${a.id}" style="${box};--rc:${RC.get(a.id)}" aria-label="${esc(a.n)}: ${q.done} of ${q.tot} done"><span>${esc(a.n||'Untitled')}</span><em>${!q.tot?'':!q.due?ICK:q.done+'/'+q.tot}</em></button>`}});
  marks.forEach(m=>{const dr=DRAG&&DRAG.mk==m.id,x=dr?DRAG.x:m.x,y=dr?DRAG.y:m.y;
   ov+=`<${edit?'div':'span'} class="mk${dr?' drag':''}" ${edit?`data-mk="${m.id}"`:''} style="left:${pct(x,COLS)};top:${pct(y-oy,rows)}">${esc(m.n||'Label')}</${edit?'div':'span'}>`});
  return `<div class="board${edit?' edit':''}" style="aspect-ratio:${COLS}/${rows};--rows:${rows}"><svg viewBox="0 0 ${COLS*PEG} ${rows*PEG}" preserveAspectRatio="none" aria-hidden="true"><g class="pegs">${pg}</g>${sh}</svg>${ov}${hd}</div>`}
