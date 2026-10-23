@@ -124,7 +124,15 @@ nav.drag .hl{transition:none}
 .tm{flex:none;font-size:12px;font-weight:700;color:var(--mu)}
 .nb{flex:none;background:none;color:var(--mu);width:36px;height:36px;padding:0;display:grid;place-items:center;border-radius:10px}.nb.has{color:var(--pc);background:color-mix(in srgb,var(--pc) 12%,transparent)}
 .nt{margin:-4px 0 8px 38px;font-size:13px;color:var(--tx);background:var(--fld);border-radius:10px;padding:6px 10px}
-.aall{display:flex;justify-content:flex-end;padding-top:6px}.aall button{padding:7px 14px;font-size:13px}
+.aall{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding-top:6px}.aall button{padding:7px 14px;font-size:13px}.aall button.g:not(.bd){margin-right:auto;padding:7px 4px}
+.aall:empty{display:none}
+
+/* ===== Area notes and one-time tasks ===== */
+.anote{display:flex;align-items:flex-start;gap:10px;width:100%;margin:12px 0 4px;background:color-mix(in srgb,var(--pc) 9%,var(--card));color:var(--tx);border:1px solid color-mix(in srgb,var(--pc) 22%,transparent);border-radius:12px;padding:9px 12px;box-shadow:none;text-align:left;font-weight:600;font-size:14px;white-space:pre-wrap}
+.anote svg{flex:none;width:16px;height:16px;margin-top:2px;color:var(--pc)}.anote span{flex:1;min-width:0}.anote:is(:active,.prs){transform:none;filter:brightness(.97)}
+textarea.anotein{height:72px}
+.jobs .row{min-height:44px}.jobs .row+.row,.jobs .nt+.row{border-top:1px solid color-mix(in srgb,var(--bd) 70%,transparent)}.jobs .nt{margin:-2px 0 8px 32px}
+.jobs .row:has(>input[type=checkbox]:checked)>input[type=text]{opacity:.5;text-decoration:line-through}
 
 /* ===== Log ===== */
 .lrow{display:flex;gap:10px;align-items:flex-start;padding:8px 0;font-size:14px}.lrow+.lrow{border-top:1px solid var(--bd)}
@@ -299,7 +307,7 @@ function seed(){
   A('Outdoor sidewalks','Building-wide',['Pick up litter'],['Mop','Dust','Windows and door glass'])];
  const sup=['Gloves','All-purpose cleaner','Window cleaner','Floor cleaner','Paper towels','Microfiber cloths','Feather duster','Toilet bowl cleaner','Magic erasers','Microfiber cloths for windows','Trash bags','Disinfectant spray','Mop heads','Dust mop heads']
   .map(n=>({id:uid('s'),n,q:null,u:'',low:null,w:''}));
- const prop={id:uid('p'),n:'Main building',floors,std,areas,sup};prop.areas.forEach(a=>place(prop,a));
+ const prop={id:uid('p'),n:'Main building',floors,std,areas,sup,jobs:[]};prop.areas.forEach(a=>place(prop,a));
  return {v:MIGRATIONS.length,set:{theme:'system',welcome:1,since:Date.now(),who:'',keep:6,prop:prop.id},props:[prop],log:[],rounds:[],cur:null}}
 
 // Schema migrations. S.v records how many have run. To change the data shape later,
@@ -319,12 +327,16 @@ const MIGRATIONS=[
   p.areas.forEach(a=>{if(a.lay)a.lay={x:a.lay.x*2,y:a.lay.y*2,w:a.lay.w*2,h:a.lay.h*2}});
   p.floors.forEach(f=>{const as=p.areas.filter(a=>a.fl==f.id);if(as.some(a=>!a.lay||!fits(a.lay))){as.forEach(a=>a.lay=null);as.forEach(a=>place(p,a))}});
   })},
+ // v4: one-time tasks for each property (things asked of you once, not tied to an area). Areas can also hold a note (a.note, optional).
+ S=>{S.props.forEach(p=>{if(!Array.isArray(p.jobs))p.jobs=[]})},
 ];
 function migrate(){S.set=S.set||{};for(let v=S.v||0;v<MIGRATIONS.length;v++)MIGRATIONS[v](S);S.v=MIGRATIONS.length;if(!S.props.some(p=>p.id==S.set.prop))S.set.prop=S.props[0].id;prune()}
 function load(){try{S=JSON.parse(localStorage.getItem(LS))}catch(e){}if(!S)S=seed();migrate()}
 // History is kept for a set number of months (Settings), so storage never fills up
-function prune(){const cut=addMonths(tdy(),-(S.set.keep||6)),n=S.log.length+S.rounds.length;
- S.log=S.log.filter(e=>e&&dOf(e.at)>=cut);S.rounds=S.rounds.filter(r=>r&&dOf(r.s)>=cut);return S.log.length+S.rounds.length!=n}
+// Finished one-time tasks drop off their list the day after (they stay in the history)
+function prune(){const cut=addMonths(tdy(),-(S.set.keep||6)),t=tdy(),cnt=()=>S.log.length+S.rounds.length+S.props.reduce((s,p)=>s+(p.jobs||[]).length,0),n=cnt();
+ S.log=S.log.filter(e=>e&&dOf(e.at)>=cut);S.rounds=S.rounds.filter(r=>r&&dOf(r.s)>=cut);
+ S.props.forEach(p=>p.jobs=(p.jobs||[]).filter(j=>!j.done||dOf(j.done)>=t));return cnt()!=n}
 // Saving: write to storage a moment later (and immediately when the app is hidden or closed)
 let SVT=0,SVFAIL=0;
 function flush(){clearTimeout(SVT);SVT=0;try{const t=JSON.stringify(S);localStorage.setItem(LS,t);SVFAIL=0;window.CloudSync&&CloudSync.saved(t)}catch(e){if(!SVFAIL){SVFAIL=1;setTimeout(()=>toast('Couldn’t save on this device. Download a backup in Settings.'),0)}}}
@@ -416,7 +428,7 @@ const isLow=s=>s.low!=null&&s.q!=null&&s.q<=s.low;
 // Names for a log entry (falls back to the names saved when an area or task was deleted)
 const eArea=e=>{const a=areaById(e.a);return a?a.n:e.an||'Deleted area'};
 const eFloor=e=>{const a=areaById(e.a),f=a&&floorOf(a);return f?f.n:e.fn||''};
-const eTask=e=>{const a=areaById(e.a),t=(a?a.ex:[]).concat(P().std).find(x=>x.id==e.t);return t?t.n:e.tn||'Deleted task'};
+const eTask=e=>{if(!e.a){const j=P().jobs.find(x=>x.id==e.t);if(j&&j.n)return j.n}const a=areaById(e.a),t=(a?a.ex:[]).concat(P().std).find(x=>x.id==e.t);return t?t.n:e.tn||'Deleted task'};
 // Before deleting, write the names into the history so old entries still read correctly
 function snap(pred){S.log.forEach(e=>{if(pred(e)){e.an=eArea(e);e.tn=eTask(e);e.fn=eFloor(e)}})}
 function logRange(){const t=tdy();
@@ -453,6 +465,13 @@ function roundCard(){const p=prog(P().areas);
   return `<div class="pcb"><div><b>Round in progress</b><span>Started ${tm(S.cur.s)} · ${plural(n,'task')} checked</span></div><button data-a="endRound">Finish</button></div>`}
  const last=S.rounds[S.rounds.length-1],lt=last&&dOf(last.s)==tdy()?` · Last round ${tm(last.s)} to ${tm(last.e)}`:'';
  return `<div class="pcb"><div><b>${p.due?'Ready for a round?':'All caught up'}</b><span>${p.due?plural(p.due,'task')+' due':'Nothing due right now'}${lt}</span></div><button data-a="startRound">Start round</button></div>`}
+// One-time tasks: things you were asked to do once that aren't tied to an area. They stay until checked off,
+// then show crossed out for the rest of that day. Checking one off writes it into the history like any task.
+const jobsLeft=()=>P().jobs.filter(j=>!j.done).length;
+function jobCard(){const js=P().jobs.map((j,i)=>[j,i]).filter(([j])=>!j.done||dOf(j.done)==tdy()),left=jobsLeft();
+ return `<div class="card wide jobs"><h2>One-time tasks</h2>${js.map(([j,i])=>{const e=j.done&&S.log.find(x=>x.id==j.e),note=e&&e.note;
+   return `<div class="row ed"><input type="checkbox" ${j.done?'checked':''} data-a="job" data-id="${j.id}">${I(`${PP()}.jobs.${i}.n`,'Task')}${j.done?`<span class="tm">${tm(j.done)}</span>${e?`<button class="nb${note?' has':''}" data-a="note" data-id="${e.id}" aria-label="Note">${ICN}</button>`:''}`:`<span class="tm">${sd(dOf(j.add))}</span>`}<button class="x" data-a="delJob" data-i="${i}" aria-label="Delete">${ICX}</button></div>${note?`<div class="nt">${esc(note)}</div>`:''}`}).join('')||'<p class="mu" style="margin:0 0 4px">Nothing extra right now. Add anything you’re asked to do that isn’t part of an area.</p>'}
+  <div class="row" style="margin-top:8px"><input type="text" id="jn" placeholder="e.g. Move boxes out of the lobby" enterkeyhint="done"><button data-a="addJob">Add</button></div>${left?`<p class="mu" style="margin:6px 0 0">${plural(left,'task')} left</p>`:''}</div>`}
 
 // =====================================================================
 // 7. VIEWS
@@ -467,7 +486,7 @@ function vToday(){const p=prog(P().areas),od=overdue(),low=P().sup.filter(isLow)
   return `<button class="flr" data-a="goFloor" data-id="${f.id}"><span>${esc(f.n)}${bar(q.done,q.tot)}</span><b class="${q.tot&&!q.due?'pos':''}">${q.done}/${q.tot}</b><i>${CHEV}</i></button>`}).join('');
  return hello()+propBar()+welcome+bk+roundCard()
   +`<div class="tiles"><div class="tile"><span class="mu">Done today</span><b>${p.done}</b></div><div class="tile"><span class="mu">Still due</span><b>${p.due}</b></div></div>`
-  +odc+lowc+`<div class="card"><h2>Floors</h2>${floors||'<p class="mu">No areas yet. Add them in Setup.</p>'}</div>`}
+  +odc+jobCard()+lowc+`<div class="card"><h2>Floors</h2>${floors||'<p class="mu">No areas yet. Add them in Setup.</p>'}</div>`}
 
 // ---- Rounds: walk the building and check tasks off ----
 // Due now / All tasks / Map / By floor
@@ -477,6 +496,7 @@ function vRounds(){
  if(FV){const f=P().floors.find(x=>x.id==FV);if(f)return vFloor(f);FV=null}
  let h=propBar()+roundCard()+viewSeg();
  if(VIEW=='map')return h+vMap();
+ if(VIEW=='all'||jobsLeft())h+=jobCard();
  let any=false;
  P().floors.forEach(f=>{const as=areasOn(f);if(!as.length)return;const q=prog(as);
   const cards=as.map(a=>areaCard(a)).filter(Boolean).join('');if(!cards)return;any=true;
@@ -487,10 +507,10 @@ function areaCard(a,map,force){const ts=tasksOf(a).map(t=>({t,s:st(a,t)}));
  let shown=VIEW=='all'?ts:ts.filter(x=>x.s.due||x.s.today);if(map&&!shown.length)shown=ts;if(!shown.length)return '';
  const due=ts.filter(x=>x.s.due).length,cnt=ts.filter(x=>x.t.f!='need'&&(x.s.due||x.s.today)),dn=cnt.filter(x=>!x.s.due).length;
  const open=map||force||(O['a'+a.id]??(due>0));
- return `<details id="ac-${a.id}" class="card area wide${due?'':' done'}"${map?' data-map="1"':` data-o="a${a.id}"`} ${open?'open':''}><summary><div><b>${esc(a.n)}</b>${bar(dn,cnt.length)}</div><em>${due?dn+'/'+cnt.length:'Done'}</em>${CHEV}</summary><div class="tasks">${shown.map(({t,s})=>{
+ return `<details id="ac-${a.id}" class="card area wide${due?'':' done'}"${map?' data-map="1"':` data-o="a${a.id}"`} ${open?'open':''}><summary><div><b>${esc(a.n)}</b>${bar(dn,cnt.length)}</div><em>${due?dn+'/'+cnt.length:'Done'}</em>${CHEV}</summary><div class="tasks">${a.note?`<button class="anote" data-a="areaNote" data-id="${a.id}" aria-label="Edit area note">${ICN}<span>${esc(a.note)}</span></button>`:''}${shown.map(({t,s})=>{
    const note=s.done&&s.last.note;
    return `<div class="task"><label><input type="checkbox" ${s.done?'checked':''} data-a="tick" data-ar="${a.id}" data-tk="${t.id}"><span>${esc(t.n)}</span></label>${t.f!='daily'?`<span class="tag">${FN[t.f]}</span>`:''}${s.done?`<span class="tm">${tm(s.last.at)}</span><button class="nb${note?' has':''}" data-a="note" data-id="${s.last.id}" aria-label="Note">${ICN}</button>`:s.last&&(VIEW=='all'||map)?`<span class="tm">${sd(dOf(s.last.at))}</span>`:''}</div>${note?`<div class="nt">${esc(note)}</div>`:''}`}).join('')}
-  ${due>1?`<div class="aall"><button class="g bd" data-a="allDone" data-ar="${a.id}">Mark all done</button></div>`:''}</div></details>`}
+  <div class="aall">${a.note?'':`<button class="g" data-a="areaNote" data-id="${a.id}">Add area note</button>`}${due>1?`<button class="g bd" data-a="allDone" data-ar="${a.id}">Mark all done</button>`:''}</div></div></details>`}
 
 // ---- Log: history and the printable report ----
 function vLog(){const r=logRange(),L=inRange(r),RD=roundsIn(r),days=[...new Set(L.map(e=>dOf(e.at)).concat(RD.map(x=>dOf(x.s))))].sort().reverse();
@@ -537,6 +557,8 @@ function vSetup(){if(EA){const a=areaById(EA);if(a)return vArea(a);EA=null}
 function vArea(a){const i=P().areas.indexOf(a),p=PP()+'.areas.'+i;
  return `<button class="g lback" data-a="eaBack">‹ All areas</button>
  <div class="card"><h2>Area</h2><label class="sec">Name</label>${I(p+'.n','Area name')}<label class="sec" style="margin-top:12px">Floor</label><select data-a="areaFloor">${P().floors.map(f=>`<option value="${f.id}" ${a.fl==f.id?'selected':''}>${esc(f.n)}</option>`).join('')}</select>
+  <label class="sec" style="margin-top:12px">Note <span style="text-transform:none;letter-spacing:0;font-weight:600">(optional)</span></label><textarea class="anotein" data-p="${p}.note" data-t="s" placeholder="e.g. Key is in the office. Mop sink is behind the second door.">${esc(a.note||'')}</textarea>
+  <p class="mu" style="margin:4px 0 0">Shown at the top of this area’s checklist on Rounds.</p>
   <label class="chk" style="margin-top:12px"><input type="checkbox" ${a.useStd?'checked':''} data-p="${p}.useStd" data-t="b">Use the standard tasks</label>
   ${a.useStd?`<div class="sec" style="margin-top:8px">Standard tasks done here</div>${P().std.map(t=>`<label class="chk"><input type="checkbox" ${a.skip.includes(t.id)?'':'checked'} data-a="skip" data-id="${t.id}">${esc(t.n)} <span class="mu">${FN[t.f]}</span></label>`).join('')}`:''}</div>
  <div class="card"><h2>Extra tasks</h2><p class="mu" style="margin:0 0 6px">Only this area gets these.</p>${a.ex.map((t,j)=>`<div class="row ed" data-dl="${p}.ex" data-di="${j}">${DH}${I(`${p}.ex.${j}.n`,'Task')}${freqSel(`${p}.ex.${j}.f`)}<button class="x" data-a="delEx" data-i="${j}" aria-label="Delete">${ICX}</button></div>`).join('')||'<p class="mu">None yet.</p>'}
@@ -627,6 +649,19 @@ document.addEventListener('keydown',e=>{if(e.key=='Escape'&&DLG)closeDlg()});
 function noteDlg(id){const e=S.log.find(x=>x.id==id);if(!e)return;
  openDlg('Note',eTask(e)+' · '+eArea(e)+' · '+tm(e.at),[['Save note','',v=>{v=(v||'').trim();if(v)e.note=v;else delete e.note;save();R();toast(v?'Saved':'Removed note')}],['Cancel','g bd',null]],
   `<textarea id="dlgIn" placeholder="e.g. Out of soap, light out by the door">${esc(e.note||'')}</textarea>`)}
+// The standing note on an area (directions, codes, where things are). Removing one can be undone.
+function areaNoteDlg(id){const a=areaById(id);if(!a)return;const old=a.note||'';
+ openDlg('Area note',a.n||'Untitled area',[['Save note','',v=>{v=(v||'').trim();if(v==old)return;if(v)a.note=v;else delete a.note;save();R();
+  if(v)toast('Saved note');else toast('Removed note',()=>{a.note=old;save();R()})}],['Cancel','g bd',null]],
+  `<textarea id="dlgIn" placeholder="e.g. Key is in the office. Mop sink is behind the second door.">${esc(old)}</textarea>`)}
+// Check a one-time task off (it goes into the history) or uncheck it
+function tickJob(id,on){const j=P().jobs.find(x=>x.id==id);if(!j)return;
+ if(on){const e={id:uid('e'),a:'',t:j.id,p:P().id,at:Date.now(),an:'One-time task',tn:j.n||'Untitled task',...(curHere()?{r:S.cur.id}:{})};
+  S.log.push(e);j.done=e.at;j.e=e.id;save();R();toast('Done: '+(j.n||'task'));return}
+ const k=S.log.findIndex(x=>x.id==j.e),e=k>=0?S.log.splice(k,1)[0]:null,o=[j.done,j.e];j.done=null;delete j.e;save();R();
+ toast('Unchecked '+(j.n||'task'),()=>{if(e)S.log.splice(Math.min(k,S.log.length),0,e);[j.done,j.e]=o;save();R()})}
+function addJob(){const el=document.getElementById('jn'),n=el.value.trim();if(!n){toast('Enter a task first');return}
+ P().jobs.push({id:uid('j'),n,add:Date.now(),done:null});el.value='';save();R();toast('Added '+n);const f=document.getElementById('jn');f&&f.focus()}
 // Backups
 function bkFile(){return new File([JSON.stringify({app:'big-shiny',at:new Date().toISOString(),data:S})],'big-shiny-backup-'+tdy()+'.json',{type:'application/json'})}
 function exportData(){const f=bkFile(),u=URL.createObjectURL(f),a=document.createElement('a');a.href=u;a.download=f.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500);markBk()}
@@ -642,7 +677,7 @@ function switchProp(id){if(id==P().id)return;if(S.cur&&S.cur.p!=id){const c=S.cu
  S.set.prop=id;EA=EL=MS=FV=null;save();R();scrollTo(0,0);toast('Switched to '+(P().n||'property'))}
 function addPropDlg(){openDlg('Add a property','It starts with the same standard tasks as '+(P().n||'this one')+'. Add its floors and areas in Setup.',
  [['Add property','',v=>{v=(v||'').trim();if(!v){toast('Enter a name first');return}
-  const p={id:uid('p'),n:v,floors:[{id:uid('f'),n:'Floor 1',marks:[]}],std:P().std.map(t=>({id:uid('t'),n:t.n,f:t.f})),areas:[],sup:[]};
+  const p={id:uid('p'),n:v,floors:[{id:uid('f'),n:'Floor 1',marks:[]}],std:P().std.map(t=>({id:uid('t'),n:t.n,f:t.f})),areas:[],sup:[],jobs:[]};
   S.props.push(p);switchProp(p.id);goTab('setup')}],['Cancel','g bd',null]],'<input type="text" id="dlgIn" placeholder="Property name" autocomplete="off">')}
 const ACT={
  tab:d=>goTab(d.id), gear:()=>goTab(T=='more'?'today':'more'),
@@ -654,6 +689,10 @@ const ACT={
   save();R();buildIndex();if(all>0&&prog(P().areas).due==0)setTimeout(confetti,80);
   else toast('Done: '+a.n,()=>{S.log=S.log.filter(e=>!ids.includes(e.id));save();R()})},
  note:d=>noteDlg(d.id),
+ areaNote:d=>areaNoteDlg(d.id),
+ // one-time tasks
+ job:(d,el)=>tickJob(d.id,el.checked), addJob,
+ delJob:d=>{const i=+d.i,j=P().jobs[i];if(!j)return;P().jobs.splice(i,1);save();R();toast('Deleted “'+(j.n||'task')+'”',()=>{P().jobs.splice(Math.min(i,P().jobs.length),0,j);save();R()})},
  view:d=>{if(d.v=='floor'){if(FV)return;const fs=mapFloors(),f=fs.find(x=>prog(areasOn(x)).due)||fs[0];if(!f){toast('Add areas in Setup first');return}FV=f.id;MS=null;R();return}VIEW=d.v;FV=null;R()},
  fstep:d=>{const fs=mapFloors(),i=fs.findIndex(x=>x.id==FV),f=fs[i+(+d.d)];if(!f)return;FV=f.id;MS=null;R();scrollTo(0,0);slideIn(+d.d)},
  selArea:d=>{MS=MS==d.id?null:d.id;if(FV&&MS)delete O['a'+MS];R();if(MS)requestAnimationFrame(()=>{const el=FV?document.getElementById('ac-'+MS):document.querySelector('[data-map]');if(FV&&el){el.scrollIntoView({behavior:'smooth',block:'start'});return}el&&el.getBoundingClientRect().bottom>innerHeight-90&&el.scrollIntoView({behavior:'smooth',block:'nearest'})})},
@@ -666,7 +705,9 @@ const ACT={
  range:d=>{LR=d.v;if(LR=='custom'&&!LF){LF=addDays(tdy(),-6);LT=tdy()}R()},
  lf:(d,el)=>{LF=el.value;R()}, lt:(d,el)=>{LT=el.value;R()},
  print:()=>{buildReport();setTimeout(()=>window.print(),50)},
- delEntry:d=>{const j=S.log.findIndex(e=>e.id==d.id);if(j<0)return;const [e]=S.log.splice(j,1);save();R();toast('Deleted “'+eTask(e)+'”',()=>{S.log.splice(Math.min(j,S.log.length),0,e);save();R()})},
+ // Deleting a one-time task's history entry puts it back on the list as not done
+ delEntry:d=>{const j=S.log.findIndex(e=>e.id==d.id);if(j<0)return;const [e]=S.log.splice(j,1),jb=P().jobs.find(x=>x.e==e.id),jd=jb&&jb.done;if(jb){jb.done=null;delete jb.e}save();R();
+  toast('Deleted “'+eTask(e)+'”',()=>{S.log.splice(Math.min(j,S.log.length),0,e);if(jb){jb.done=jd;jb.e=e.id}save();R()})},
  // supplies
  qty:d=>{const s=P().sup[+d.i];if(!s)return;s.q=Math.max(0,(s.q==null?0:s.q)+(+d.d));save();R()},
  addSup:()=>{const el=document.getElementById('sn'),n=el.value.trim();if(!n){toast('Enter a name first');return}const s={id:uid('s'),n,q:null,u:'',low:null,w:''};P().sup.push(s);O['s'+s.id]=1;FL='Added '+n;save();R();FL=''},
@@ -718,6 +759,7 @@ document.addEventListener('change',e=>{const t=e.target,d=t.dataset;
  if(d.p&&d.t)up(d.p,t.type=='checkbox'?t.checked:t.value,d.t);
  else if(d.a&&t.tagName!='BUTTON')ACT[d.a](d,t);
  if(t.type=='checkbox'&&t.checked&&t.isConnected){t.classList.remove('pop');void t.offsetWidth;t.classList.add('pop');setTimeout(()=>t.classList.remove('pop'),320)}});
+document.addEventListener('keydown',e=>{if(e.key=='Enter'&&e.target.id=='jn'){e.preventDefault();addJob()}});
 // Remember sections the person opens or closes (only real taps, so a finished area can still fold itself up)
 document.addEventListener('click',e=>{const sm=e.target.closest('summary');if(!sm||e.target.closest('button'))return;const d=sm.parentElement,k=d.dataset&&d.dataset.o;if(k!=null)O[k]=!d.open},true);
 

@@ -10,6 +10,8 @@ Cleaning rounds that run in your browser. It's part of the Big apps, alongside [
 - One standard task set (sweep, mop, dust, windows and door glass) that every area gets, with per-area extras and the option to turn a standard task off in a specific area
 - Each task has a frequency: every round, daily, weekly, monthly or as needed. Rounds only shows what's due.
 - Start and finish a round; every task you check off is stamped with the date and time
+- One-time tasks for anything you're asked to do once that isn't part of an area ("move boxes out of the lobby"). Add them on Today; they also show on Rounds until they're done. Checking one off stamps it with the time, adds it to History and the printed report, and you can add a note to it like any other task.
+- An optional note on any area (where the key is, which closet has the mop sink), shown at the top of that area's checklist on Rounds. Add it from the area's checklist or under Setup.
 - Notes on any completed task ("out of soap", "light out by the door")
 - Overdue weekly and monthly tasks show on Today
 - History of everything you've done, with a **Print report** button that gives a clean page for a supervisor (or Save as PDF from the print screen)
