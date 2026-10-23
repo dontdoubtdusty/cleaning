@@ -46,7 +46,7 @@ summary{cursor:pointer;list-style:none}summary::-webkit-details-marker{display:n
 .bang{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;margin-right:6px;border-radius:50%;background:var(--wn);color:#fff;font-weight:800;font-size:12px;line-height:1}
 
 /* ===== Inputs & buttons ===== */
-input[type=text],input[type=number],input[type=date],input[type=email],input[type=password],textarea,select{width:100%;padding:9px 10px;border:1px solid transparent;border-radius:12px;background:var(--fld);color:var(--tx);font:inherit;transition:border-color var(--fast),background var(--fast)}
+input[type=text],input[type=number],input[type=date],input[type=time],input[type=email],input[type=password],textarea,select{width:100%;padding:9px 10px;border:1px solid transparent;border-radius:12px;background:var(--fld);color:var(--tx);font:inherit;transition:border-color var(--fast),background var(--fast)}
 .row input[type=text],.row input[type=number],.row input[type=date],.row select{padding:7px 8px}
 input[type=number]{width:80px;flex:none;text-align:right;-moz-appearance:textfield;appearance:textfield}input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 select.f{width:auto;flex:none;max-width:118px}
@@ -133,6 +133,13 @@ nav.drag .hl{transition:none}
 textarea.anotein{height:72px}
 .jobs .row{min-height:44px}.jobs .row+.row,.jobs .nt+.row{border-top:1px solid color-mix(in srgb,var(--bd) 70%,transparent)}.jobs .nt{margin:-2px 0 8px 32px}
 .jobs .row:has(>input[type=checkbox]:checked)>input[type=text]{opacity:.5;text-decoration:line-through}
+
+/* ===== Tours ===== */
+.tbg{display:inline-flex;align-items:center;gap:5px;margin-top:7px;max-width:100%;font-size:12px;font-weight:800;color:var(--wn);background:color-mix(in srgb,var(--wn) 13%,transparent);border-radius:99px;padding:3px 9px}
+.tbg span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tbg svg,.tb svg{flex:none}
+.tours .lrow{align-items:center}.tours .lrow>.tm{line-height:1.25}.tours .lrow>div b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tb{position:absolute;z-index:2;transform:translate(calc(-100% - 3px),3px);display:flex;align-items:center;gap:3px;font-family:inherit;font-weight:800;font-size:9px;line-height:1;color:#3a2600;background:#ffd95e;border-radius:3px;padding:3px 5px;pointer-events:none;white-space:nowrap}
+.dform{display:grid;gap:4px;margin-bottom:14px}.dform .sec{margin:8px 0 2px}.dform .dates{margin-top:4px}
 
 /* ===== Log ===== */
 .lrow{display:flex;gap:10px;align-items:flex-start;padding:8px 0;font-size:14px}.lrow+.lrow{border-top:1px solid var(--bd)}
@@ -307,7 +314,7 @@ function seed(){
   A('Outdoor sidewalks','Building-wide',['Pick up litter'],['Mop','Dust','Windows and door glass'])];
  const sup=['Gloves','All-purpose cleaner','Window cleaner','Floor cleaner','Paper towels','Microfiber cloths','Feather duster','Toilet bowl cleaner','Magic erasers','Microfiber cloths for windows','Trash bags','Disinfectant spray','Mop heads','Dust mop heads']
   .map(n=>({id:uid('s'),n,q:null,u:'',low:null,w:''}));
- const prop={id:uid('p'),n:'Main building',floors,std,areas,sup,jobs:[]};prop.areas.forEach(a=>place(prop,a));
+ const prop={id:uid('p'),n:'Main building',floors,std,areas,sup,jobs:[],tours:[]};prop.areas.forEach(a=>place(prop,a));
  return {v:MIGRATIONS.length,set:{theme:'system',welcome:1,since:Date.now(),who:'',keep:6,prop:prop.id},props:[prop],log:[],rounds:[],cur:null}}
 
 // Schema migrations. S.v records how many have run. To change the data shape later,
@@ -329,14 +336,16 @@ const MIGRATIONS=[
   })},
  // v4: one-time tasks for each property (things asked of you once, not tied to an area). Areas can also hold a note (a.note, optional).
  S=>{S.props.forEach(p=>{if(!Array.isArray(p.jobs))p.jobs=[]})},
+ // v5: tours for each property: {id, a: area id, d: 'YYYY-MM-DD', t: 'HH:MM' or '', n: label like "Unit 312"}
+ S=>{S.props.forEach(p=>{if(!Array.isArray(p.tours))p.tours=[]})},
 ];
 function migrate(){S.set=S.set||{};for(let v=S.v||0;v<MIGRATIONS.length;v++)MIGRATIONS[v](S);S.v=MIGRATIONS.length;if(!S.props.some(p=>p.id==S.set.prop))S.set.prop=S.props[0].id;prune()}
 function load(){try{S=JSON.parse(localStorage.getItem(LS))}catch(e){}if(!S)S=seed();migrate()}
 // History is kept for a set number of months (Settings), so storage never fills up
-// Finished one-time tasks drop off their list the day after (they stay in the history)
-function prune(){const cut=addMonths(tdy(),-(S.set.keep||6)),t=tdy(),cnt=()=>S.log.length+S.rounds.length+S.props.reduce((s,p)=>s+(p.jobs||[]).length,0),n=cnt();
+// Finished one-time tasks drop off their list the day after (they stay in the history), and so do past tours
+function prune(){const cut=addMonths(tdy(),-(S.set.keep||6)),t=tdy(),cnt=()=>S.log.length+S.rounds.length+S.props.reduce((s,p)=>s+(p.jobs||[]).length+(p.tours||[]).length,0),n=cnt();
  S.log=S.log.filter(e=>e&&dOf(e.at)>=cut);S.rounds=S.rounds.filter(r=>r&&dOf(r.s)>=cut);
- S.props.forEach(p=>p.jobs=(p.jobs||[]).filter(j=>!j.done||dOf(j.done)>=t));return cnt()!=n}
+ S.props.forEach(p=>{p.jobs=(p.jobs||[]).filter(j=>!j.done||dOf(j.done)>=t);p.tours=(p.tours||[]).filter(x=>x.d>=t)});return cnt()!=n}
 // Saving: write to storage a moment later (and immediately when the app is hidden or closed)
 let SVT=0,SVFAIL=0;
 function flush(){clearTimeout(SVT);SVT=0;try{const t=JSON.stringify(S);localStorage.setItem(LS,t);SVFAIL=0;window.CloudSync&&CloudSync.saved(t)}catch(e){if(!SVFAIL){SVFAIL=1;setTimeout(()=>toast('Couldn’t save on this device. Download a backup in Settings.'),0)}}}
@@ -424,6 +433,12 @@ function st(a,t){const last=lastOf(a,t),due=isDue(t.f,last),today=!!last&&dOf(la
 function prog(areas){let due=0,done=0;areas.forEach(a=>tasksOf(a).forEach(t=>{if(t.f=='need')return;const s=st(a,t);if(s.due)due++;else if(s.today)done++}));return {due,done,tot:due+done}}
 // Weekly and monthly tasks that came due before today
 function overdue(){const L=[],t0=tdy();P().areas.forEach(a=>tasksOf(a).forEach(t=>{if(t.f!='weekly'&&t.f!='monthly')return;const l=lastOf(a,t);if(!l)return;const nd=nextDue(t.f,l);if(nd<t0)L.push({a,t,l,nd})}));return L.sort((x,y)=>x.nd<y.nd?-1:1)}
+// ---- Tours: someone is being shown a unit or space at a set time. The area gets a badge so you can steer clear or have it ready. ----
+const tmS=t=>t?tm(new Date('2000-01-01T'+t)):'';                  // '12:30' -> "12:30 PM"
+const areaName=a=>a.n||'Untitled';
+const tourKey=x=>x.d+(x.t||'99');                                  // tours with no time sort last in their day
+const toursToday=a=>P().tours.filter(x=>x.a==a.id&&x.d==tdy()).sort((p,q)=>tourKey(p)<tourKey(q)?-1:1);
+const tourTxt=x=>'Tour'+(x.t?' '+tmS(x.t):'')+(x.n?' · '+x.n:'');
 const isLow=s=>s.low!=null&&s.q!=null&&s.q<=s.low;
 // Names for a log entry (falls back to the names saved when an area or task was deleted)
 const eArea=e=>{const a=areaById(e.a);return a?a.n:e.an||'Deleted area'};
@@ -445,6 +460,7 @@ const ICX='<svg class="ic" viewBox="0 0 16 16" width="14" height="14" aria-hidde
 const ICK='<svg class="ic" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const CHEV='<svg class="chev" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const ICN='<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
+const CLK='<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 4.6V8l2.3 1.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
 const DH=`<span class="dh" title="Drag to reorder"><svg viewBox="0 0 10 16" width="10" height="16" aria-hidden="true"><g fill="currentColor"><circle cx="2.5" cy="3" r="1.5"/><circle cx="7.5" cy="3" r="1.5"/><circle cx="2.5" cy="8" r="1.5"/><circle cx="7.5" cy="8" r="1.5"/><circle cx="2.5" cy="13" r="1.5"/><circle cx="7.5" cy="13" r="1.5"/></g></svg></span>`;
 // Inputs bound to a data path save themselves on change
 const I=(p,ph='',t='text')=>{const v=get(p),q=t=='qty';
@@ -467,6 +483,11 @@ function roundCard(){const p=prog(P().areas);
  return `<div class="pcb"><div><b>${p.due?'Ready for a round?':'All caught up'}</b><span>${p.due?plural(p.due,'task')+' due':'Nothing due right now'}${lt}</span></div><button data-a="startRound">Start round</button></div>`}
 // One-time tasks: things you were asked to do once that aren't tied to an area. They stay until checked off,
 // then show crossed out for the rest of that day. Checking one off writes it into the history like any task.
+// Tours today and coming up, soonest first
+function tourCard(){const t=tdy(),xs=P().tours.filter(x=>x.d>=t).sort((p,q)=>tourKey(p)<tourKey(q)?-1:1);
+ return `<div class="card tours"><h2>Tours</h2>${xs.map(x=>{const a=areaById(x.a),f=a&&floorOf(a);
+   return `<div class="lrow"><span class="tm">${x.d==t?'':sd(x.d)+'<br>'}${x.t?tmS(x.t):'Any time'}</span><div><b>${esc(x.n||'Tour')}</b><span class="mu">${esc(a?areaName(a):'Deleted area')}${f?' · '+esc(f.n):''}</span></div><button class="nb" data-a="editTour" data-id="${x.id}" aria-label="Edit tour">${ICN}</button><button class="x" data-a="delTour" data-id="${x.id}" aria-label="Delete">${ICX}</button></div>`}).join('')||'<p class="mu" style="margin:0 0 4px">No tours coming up.</p>'}
+  <div class="row" style="margin-top:8px"><button class="g bd" data-a="addTour">Add tour</button></div></div>`}
 const jobsLeft=()=>P().jobs.filter(j=>!j.done).length;
 function jobCard(){const js=P().jobs.map((j,i)=>[j,i]).filter(([j])=>!j.done||dOf(j.done)==tdy()),left=jobsLeft();
  return `<div class="card wide jobs"><h2>One-time tasks</h2>${js.map(([j,i])=>{const e=j.done&&S.log.find(x=>x.id==j.e),note=e&&e.note;
@@ -486,7 +507,7 @@ function vToday(){const p=prog(P().areas),od=overdue(),low=P().sup.filter(isLow)
   return `<button class="flr" data-a="goFloor" data-id="${f.id}"><span>${esc(f.n)}${bar(q.done,q.tot)}</span><b class="${q.tot&&!q.due?'pos':''}">${q.done}/${q.tot}</b><i>${CHEV}</i></button>`}).join('');
  return hello()+propBar()+welcome+bk+roundCard()
   +`<div class="tiles"><div class="tile"><span class="mu">Done today</span><b>${p.done}</b></div><div class="tile"><span class="mu">Still due</span><b>${p.due}</b></div></div>`
-  +odc+jobCard()+lowc+`<div class="card"><h2>Floors</h2>${floors||'<p class="mu">No areas yet. Add them in Setup.</p>'}</div>`}
+  +odc+tourCard()+jobCard()+lowc+`<div class="card"><h2>Floors</h2>${floors||'<p class="mu">No areas yet. Add them in Setup.</p>'}</div>`}
 
 // ---- Rounds: walk the building and check tasks off ----
 // Due now / All tasks / Map / By floor
@@ -507,7 +528,7 @@ function areaCard(a,map,force){const ts=tasksOf(a).map(t=>({t,s:st(a,t)}));
  let shown=VIEW=='all'?ts:ts.filter(x=>x.s.due||x.s.today);if(map&&!shown.length)shown=ts;if(!shown.length)return '';
  const due=ts.filter(x=>x.s.due).length,cnt=ts.filter(x=>x.t.f!='need'&&(x.s.due||x.s.today)),dn=cnt.filter(x=>!x.s.due).length;
  const open=map||force||(O['a'+a.id]??(due>0));
- return `<details id="ac-${a.id}" class="card area wide${due?'':' done'}"${map?' data-map="1"':` data-o="a${a.id}"`} ${open?'open':''}><summary><div><b>${esc(a.n)}</b>${bar(dn,cnt.length)}</div><em>${due?dn+'/'+cnt.length:'Done'}</em>${CHEV}</summary><div class="tasks">${a.note?`<button class="anote" data-a="areaNote" data-id="${a.id}" aria-label="Edit area note">${ICN}<span>${esc(a.note)}</span></button>`:''}${shown.map(({t,s})=>{
+ return `<details id="ac-${a.id}" class="card area wide${due?'':' done'}"${map?' data-map="1"':` data-o="a${a.id}"`} ${open?'open':''}><summary><div><b>${esc(a.n)}</b>${bar(dn,cnt.length)}${toursToday(a).map(x=>`<span class="tbg">${CLK}<span>${esc(tourTxt(x))}</span></span>`).join('')}</div><em>${due?dn+'/'+cnt.length:'Done'}</em>${CHEV}</summary><div class="tasks">${a.note?`<button class="anote" data-a="areaNote" data-id="${a.id}" aria-label="Edit area note">${ICN}<span>${esc(a.note)}</span></button>`:''}${shown.map(({t,s})=>{
    const note=s.done&&s.last.note;
    return `<div class="task"><label><input type="checkbox" ${s.done?'checked':''} data-a="tick" data-ar="${a.id}" data-tk="${t.id}"><span>${esc(t.n)}</span></label>${t.f!='daily'?`<span class="tag">${FN[t.f]}</span>`:''}${s.done?`<span class="tm">${tm(s.last.at)}</span><button class="nb${note?' has':''}" data-a="note" data-id="${s.last.id}" aria-label="Note">${ICN}</button>`:s.last&&(VIEW=='all'||map)?`<span class="tm">${sd(dOf(s.last.at))}</span>`:''}</div>${note?`<div class="nt">${esc(note)}</div>`:''}`}).join('')}
   <div class="aall">${a.note?'':`<button class="g" data-a="areaNote" data-id="${a.id}">Add area note</button>`}${due>1?`<button class="g bd" data-a="allDone" data-ar="${a.id}">Mark all done</button>`:''}</div></div></details>`}
@@ -583,6 +604,7 @@ function board(f,edit){const as=areasOn(f),marks=f.marks||[];let pg='',sh='',ov=
     if(L.cut){const [nx,ny]=notchOf(L);hd+=`<i class="hd cut" data-hd="cut" data-id="${a.id}" style="left:${pct(nx,COLS)};top:${pct(ny,rows)}" title="Drag to change the L"></i>`}}}
   else{const q=prog([a]),cls=!q.tot?'idle':!q.due?'ok':q.done?'part':'due';
    sh+=`<path d="${d}" style="fill:${RC.get(a.id)}" class="${cls}${MS==a.id?' sel':''}"/>`;
+   const tt=toursToday(a)[0];if(tt)ov+=`<span class="tb" style="left:${pct(lr.x+lr.w,COLS)};top:${pct(lr.y-oy,rows)}">${CLK}${tt.t?tmS(tt.t).replace(/\s?[AP]M$/i,''):'Tour'}</span>`;
    ov+=`<button class="rl ${cls}${tcls}" data-a="selArea" data-id="${a.id}" style="${box};--rc:${RC.get(a.id)}" aria-label="${esc(a.n)}: ${q.done} of ${q.tot} done"><span>${esc(a.n||'Untitled')}</span><em>${!q.tot?'':!q.due?ICK:q.done+'/'+q.tot}</em></button>`}});
  marks.forEach(m=>{const dr=DRAG&&DRAG.mk==m.id,x=dr?DRAG.x:m.x,y=dr?DRAG.y:m.y;
   ov+=`<${edit?'div':'span'} class="mk${dr?' drag':''}" ${edit?`data-mk="${m.id}"`:''} style="left:${pct(x,COLS)};top:${pct(y-oy,rows)}">${esc(m.n||'Label')}</${edit?'div':'span'}>`});
@@ -654,6 +676,15 @@ function areaNoteDlg(id){const a=areaById(id);if(!a)return;const old=a.note||'';
  openDlg('Area note',a.n||'Untitled area',[['Save note','',v=>{v=(v||'').trim();if(v==old)return;if(v)a.note=v;else delete a.note;save();R();
   if(v)toast('Saved note');else toast('Removed note',()=>{a.note=old;save();R()})}],['Cancel','g bd',null]],
   `<textarea id="dlgIn" placeholder="e.g. Key is in the office. Mop sink is behind the second door.">${esc(old)}</textarea>`)}
+// Add or change a tour: which area, the day and time, and an optional label ("Unit 312")
+function tourDlg(id){const x=id?P().tours.find(q=>q.id==id):null;if(id&&!x)return;
+ const opts=P().floors.map(f=>{const as=areasOn(f);return as.length?`<optgroup label="${esc(f.n)}">${as.map(a=>`<option value="${a.id}" ${x&&x.a==a.id?'selected':''}>${esc(areaName(a))}</option>`).join('')}</optgroup>`:''}).join('');
+ if(!opts){toast('Add areas in Setup first');return}
+ openDlg(x?'Edit tour':'Add a tour','',[[x?'Save tour':'Add tour','',(v,k)=>{if(!k.d){toast('Enter a date first');return}
+   const o={a:k.a,d:k.d,t:k.t||'',n:(k.n||'').trim()};if(x)Object.assign(x,o);else P().tours.push({id:uid('o'),...o});save();R();toast(x?'Saved tour':'Added tour')}],['Cancel','g bd',null]],
+  `<div class="dform"><label class="sec">Area</label><select data-k="a">${opts}</select>
+  <div class="dates"><label class="mu">Day<input type="date" data-k="d" value="${x?x.d:tdy()}"></label><label class="mu">Time<input type="time" data-k="t" value="${x?x.t:''}"></label></div>
+  <label class="sec">Label <span style="text-transform:none;letter-spacing:0;font-weight:600">(optional)</span></label><input type="text" id="dlgIn" data-k="n" value="${esc(x?x.n:'')}" placeholder="e.g. Unit 312" autocomplete="off"></div>`)}
 // Check a one-time task off (it goes into the history) or uncheck it
 function tickJob(id,on){const j=P().jobs.find(x=>x.id==id);if(!j)return;
  if(on){const e={id:uid('e'),a:'',t:j.id,p:P().id,at:Date.now(),an:'One-time task',tn:j.n||'Untitled task',...(curHere()?{r:S.cur.id}:{})};
@@ -677,7 +708,7 @@ function switchProp(id){if(id==P().id)return;if(S.cur&&S.cur.p!=id){const c=S.cu
  S.set.prop=id;EA=EL=MS=FV=null;save();R();scrollTo(0,0);toast('Switched to '+(P().n||'property'))}
 function addPropDlg(){openDlg('Add a property','It starts with the same standard tasks as '+(P().n||'this one')+'. Add its floors and areas in Setup.',
  [['Add property','',v=>{v=(v||'').trim();if(!v){toast('Enter a name first');return}
-  const p={id:uid('p'),n:v,floors:[{id:uid('f'),n:'Floor 1',marks:[]}],std:P().std.map(t=>({id:uid('t'),n:t.n,f:t.f})),areas:[],sup:[],jobs:[]};
+  const p={id:uid('p'),n:v,floors:[{id:uid('f'),n:'Floor 1',marks:[]}],std:P().std.map(t=>({id:uid('t'),n:t.n,f:t.f})),areas:[],sup:[],jobs:[],tours:[]};
   S.props.push(p);switchProp(p.id);goTab('setup')}],['Cancel','g bd',null]],'<input type="text" id="dlgIn" placeholder="Property name" autocomplete="off">')}
 const ACT={
  tab:d=>goTab(d.id), gear:()=>goTab(T=='more'?'today':'more'),
@@ -690,6 +721,9 @@ const ACT={
   else toast('Done: '+a.n,()=>{S.log=S.log.filter(e=>!ids.includes(e.id));save();R()})},
  note:d=>noteDlg(d.id),
  areaNote:d=>areaNoteDlg(d.id),
+ // tours
+ addTour:()=>tourDlg(), editTour:d=>tourDlg(d.id),
+ delTour:d=>{const i=P().tours.findIndex(x=>x.id==d.id);if(i<0)return;const [x]=P().tours.splice(i,1);save();R();toast('Deleted tour',()=>{P().tours.splice(Math.min(i,P().tours.length),0,x);save();R()})},
  // one-time tasks
  job:(d,el)=>tickJob(d.id,el.checked), addJob,
  delJob:d=>{const i=+d.i,j=P().jobs[i];if(!j)return;P().jobs.splice(i,1);save();R();toast('Deleted “'+(j.n||'task')+'”',()=>{P().jobs.splice(Math.min(i,P().jobs.length),0,j);save();R()})},
@@ -748,11 +782,12 @@ const ACT={
  reset:()=>{if(confirm('Erase everything on this device and start over? This can’t be undone.')){S=seed();migrate();save();flush();T='today';EA=EL=MS=null;R();toast('All data erased')}},
  bkLater:()=>{S.set.bkSnooze=Date.now()-4*DAY_MS;save();R()},
  welcomeOff:()=>{delete S.set.welcome;save();R()},
- dlgBtn:d=>{const f=DLG&&DLG.b[+d.i],t=document.getElementById('dlgIn'),v=t?t.value:'';closeDlg();f&&f(v)},
+ // v: the main text box; vals: every popup field marked data-k, by name
+ dlgBtn:d=>{const f=DLG&&DLG.b[+d.i],t=document.getElementById('dlgIn'),v=t?t.value:'',vals={};document.querySelectorAll('#dlg [data-k]').forEach(x=>vals[x.dataset.k]=x.value);closeDlg();f&&f(v,vals)},
  undo:()=>{const f=UNDO;UNDO=null;clearTimeout(TT);document.getElementById('toast').classList.remove('on');f&&f()},
 };
 document.addEventListener('click',e=>{
- const di=e.target.closest('input[type=date]');if(di){try{di.showPicker()}catch(_){}}
+ const di=e.target.closest('input[type=date],input[type=time]');if(di){try{di.showPicker()}catch(_){}}
  if(DLG&&e.target.id=='dlg'){closeDlg();return}
  const b=e.target.closest('button[data-a]');if(b){if(b.closest('summary'))e.preventDefault();ACT[b.dataset.a](b.dataset,b)}});
 document.addEventListener('change',e=>{const t=e.target,d=t.dataset;
