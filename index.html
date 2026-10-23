@@ -134,6 +134,9 @@ textarea.anotein{height:72px}
 .jobs .row{min-height:44px}.jobs .row+.row,.jobs .nt+.row{border-top:1px solid color-mix(in srgb,var(--bd) 70%,transparent)}.jobs .nt{margin:-2px 0 8px 32px}
 .jobs .row:has(>input[type=checkbox]:checked)>input[type=text]{opacity:.5;text-decoration:line-through}
 
+.dchip{flex:none;display:inline-flex;align-items:center;gap:4px;background:none;color:var(--mu);box-shadow:none;border-radius:99px;padding:5px 8px;font-size:12px;font-weight:800;white-space:nowrap}
+.dchip.on{background:var(--fld);color:var(--tx)}.dchip.td{color:var(--wn);background:color-mix(in srgb,var(--wn) 13%,transparent)}.dchip.od{color:var(--neg);background:color-mix(in srgb,var(--neg) 12%,transparent)}
+
 /* ===== Sub areas ===== */
 .sub{padding-top:10px}.sub+.sub{margin-top:6px;border-top:1px solid var(--bd)}
 .subh{display:flex;align-items:center;gap:8px;min-height:32px}.subh b{flex:1;min-width:0;font-weight:800;font-size:14px;color:var(--pc);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -502,10 +505,17 @@ function tourCard(){const t=tdy(),xs=P().tours.filter(x=>x.d>=t).sort((p,q)=>tou
    return `<div class="lrow"><span class="tm">${x.d==t?'':sd(x.d)+'<br>'}${x.t?tmS(x.t):'Any time'}</span><div><b>${esc(x.n||'Tour')}</b><span class="mu">${esc(a?areaName(a):'Deleted area')}${f?' · '+esc(f.n):''}</span></div><button class="nb" data-a="editTour" data-id="${x.id}" aria-label="Edit tour">${ICN}</button><button class="x" data-a="delTour" data-id="${x.id}" aria-label="Delete">${ICX}</button></div>`}).join('')||'<p class="mu" style="margin:0 0 4px">No tours coming up.</p>'}
   <div class="row" style="margin-top:8px"><button class="g bd" data-a="addTour">Add tour</button></div></div>`}
 const jobsLeft=()=>P().jobs.filter(j=>!j.done).length;
-function jobCard(){const js=P().jobs.map((j,i)=>[j,i]).filter(([j])=>!j.done||dOf(j.done)==tdy()),left=jobsLeft();
+// Optional due date (j.due 'YYYY-MM-DD') and time (j.dt 'HH:MM'). Overdue once the day, or the time on that day, has passed.
+const jobLate=j=>!j.done&&!!j.due&&(j.due<tdy()||(j.due==tdy()&&!!j.dt&&j.dt<new Date().toTimeString().slice(0,5)));
+const jobSort=j=>(j.done?'2':j.due?'0'+j.due+(j.dt||'99'):'1');   // dated first (soonest on top), then undated, then finished
+const ICD='<svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><rect x="2" y="3" width="12" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M2 6.5h12M5.5 1.8v2.6M10.5 1.8v2.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>';
+function dueChip(j){if(!j.due)return `<button class="dchip" data-a="jobDue" data-id="${j.id}" aria-label="Add a due date">${ICD}</button>`;
+ const late=jobLate(j),txt=late?'Overdue':j.due==tdy()?(j.dt?tmS(j.dt):'Today'):j.due==addDays(tdy(),1)?'Tomorrow':sd(j.due);
+ return `<button class="dchip on${late?' od':j.due==tdy()?' td':''}" data-a="jobDue" data-id="${j.id}" aria-label="Due date">${ICD}${txt}</button>`}
+function jobCard(){const js=P().jobs.map((j,i)=>[j,i]).filter(([j])=>!j.done||dOf(j.done)==tdy()).sort((p,q)=>{const a=jobSort(p[0]),b=jobSort(q[0]);return a<b?-1:a>b?1:p[1]-q[1]}),left=jobsLeft(),late=P().jobs.filter(jobLate).length;
  return `<div class="card wide jobs"><h2>One-time tasks</h2>${js.map(([j,i])=>{const e=j.done&&S.log.find(x=>x.id==j.e),note=e&&e.note;
-   return `<div class="row ed"><input type="checkbox" ${j.done?'checked':''} data-a="job" data-id="${j.id}">${I(`${PP()}.jobs.${i}.n`,'Task')}${j.done?`<span class="tm">${tm(j.done)}</span>${e?`<button class="nb${note?' has':''}" data-a="note" data-id="${e.id}" aria-label="Note">${ICN}</button>`:''}`:`<span class="tm">${sd(dOf(j.add))}</span>`}<button class="x" data-a="delJob" data-i="${i}" aria-label="Delete">${ICX}</button></div>${note?`<div class="nt">${esc(note)}</div>`:''}`}).join('')||'<p class="mu" style="margin:0 0 4px">Nothing extra right now. Add anything you’re asked to do that isn’t part of an area.</p>'}
-  <div class="row" style="margin-top:8px"><input type="text" id="jn" placeholder="e.g. Move boxes out of the lobby" enterkeyhint="done"><button data-a="addJob">Add</button></div>${left?`<p class="mu" style="margin:6px 0 0">${plural(left,'task')} left</p>`:''}</div>`}
+   return `<div class="row ed"><input type="checkbox" ${j.done?'checked':''} data-a="job" data-id="${j.id}">${I(`${PP()}.jobs.${i}.n`,'Task')}${j.done?`<span class="tm">${tm(j.done)}</span>${e?`<button class="nb${note?' has':''}" data-a="note" data-id="${e.id}" aria-label="Note">${ICN}</button>`:''}`:dueChip(j)}<button class="x" data-a="delJob" data-i="${i}" aria-label="Delete">${ICX}</button></div>${note?`<div class="nt">${esc(note)}</div>`:''}`}).join('')||'<p class="mu" style="margin:0 0 4px">Nothing extra right now. Add anything you’re asked to do that isn’t part of an area.</p>'}
+  <div class="row" style="margin-top:8px"><input type="text" id="jn" placeholder="e.g. Move boxes out of the lobby" enterkeyhint="done"><button data-a="addJob">Add</button></div>${left?`<p class="mu" style="margin:6px 0 0">${plural(left,'task')} left${late?` · <b class="neg">${late} overdue</b>`:''}</p>`:''}</div>`}
 
 // =====================================================================
 // 7. VIEWS
@@ -711,6 +721,11 @@ function tourDlg(id){const x=id?P().tours.find(q=>q.id==id):null;if(id&&!x)retur
   `<div class="dform"><label class="sec">Area</label><select data-k="a">${opts}</select>
   <div class="dates"><label class="mu">Day<input type="date" data-k="d" value="${x?x.d:tdy()}"></label><label class="mu">Time<input type="time" data-k="t" value="${x?x.t:''}"></label></div>
   <label class="sec">Label <span style="text-transform:none;letter-spacing:0;font-weight:600">(optional)</span></label><input type="text" id="dlgIn" data-k="n" value="${esc(x?x.n:'')}" placeholder="e.g. Unit 312" autocomplete="off"></div>`)}
+// Set or clear a one-time task's due date and time
+function jobDueDlg(id){const j=P().jobs.find(x=>x.id==id);if(!j)return;
+ openDlg('Due date',j.n||'Untitled task',[['Save','',(v,k)=>{if(!k.d){toast('Enter a date first');return}j.due=k.d;if(k.t)j.dt=k.t;else delete j.dt;save();R();toast('Saved due date')}],
+  ...(j.due?[['Clear date','x bd',()=>{const o=[j.due,j.dt];delete j.due;delete j.dt;save();R();toast('Removed due date',()=>{[j.due,j.dt]=o;if(!j.dt)delete j.dt;save();R()})}]]:[]),['Cancel','g bd',null]],
+  `<div class="dform"><div class="dates"><label class="mu">Day<input type="date" data-k="d" value="${j.due||tdy()}"></label><label class="mu">Time <span style="font-weight:600">(optional)</span><input type="time" data-k="t" value="${j.dt||''}"></label></div></div>`)}
 // Check a one-time task off (it goes into the history) or uncheck it
 function tickJob(id,on){const j=P().jobs.find(x=>x.id==id);if(!j)return;
  if(on){const e={id:uid('e'),a:'',t:j.id,p:P().id,at:Date.now(),an:'One-time task',tn:j.n||'Untitled task',...(curHere()?{r:S.cur.id}:{})};
@@ -755,7 +770,7 @@ const ACT={
  addTour:()=>tourDlg(), editTour:d=>tourDlg(d.id),
  delTour:d=>{const i=P().tours.findIndex(x=>x.id==d.id);if(i<0)return;const [x]=P().tours.splice(i,1);save();R();toast('Deleted tour',()=>{P().tours.splice(Math.min(i,P().tours.length),0,x);save();R()})},
  // one-time tasks
- job:(d,el)=>tickJob(d.id,el.checked), addJob,
+ job:(d,el)=>tickJob(d.id,el.checked), addJob, jobDue:d=>jobDueDlg(d.id),
  delJob:d=>{const i=+d.i,j=P().jobs[i];if(!j)return;P().jobs.splice(i,1);save();R();toast('Deleted “'+(j.n||'task')+'”',()=>{P().jobs.splice(Math.min(i,P().jobs.length),0,j);save();R()})},
  view:d=>{if(d.v=='floor'){if(FV)return;const fs=mapFloors(),f=fs.find(x=>prog(areasOn(x)).due)||fs[0];if(!f){toast('Add areas in Setup first');return}FV=f.id;MS=null;R();return}VIEW=d.v;FV=null;R()},
  fstep:d=>{const fs=mapFloors(),i=fs.findIndex(x=>x.id==FV),f=fs[i+(+d.d)];if(!f)return;FV=f.id;MS=null;R();scrollTo(0,0);slideIn(+d.d)},
