@@ -17,6 +17,7 @@ Cleaning rounds that run in your browser. It's part of the Big apps, alongside [
 - Notes on any completed task ("out of soap", "light out by the door")
 - Overdue weekly and monthly tasks show on Today
 - History of everything you've done, with a **Print report** button that gives a clean page for a supervisor (or Save as PDF from the print screen)
+- Share a plain-text summary of what got done (grouped by floor and area, with notes) by text or email: **Share today's summary** on Today, or **Share** on the Log tab for any date range. Where sharing isn't available it's copied instead.
 - Supplies with counts, units, where they're kept, and a "running low" warning level
 - History is kept for 3, 6 or 12 months (Settings), so storage never fills up
 - Light, dark, automatic and Day/Night themes, haptics, backups, and optional sync across devices, all shared with the other Big apps

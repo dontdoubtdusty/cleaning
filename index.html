@@ -137,6 +137,8 @@ textarea.anotein{height:72px}
 .dchip{flex:none;display:inline-flex;align-items:center;gap:4px;background:none;color:var(--mu);box-shadow:none;border-radius:99px;padding:5px 8px;font-size:12px;font-weight:800;white-space:nowrap}
 .dchip.on{background:var(--fld);color:var(--tx)}.dchip.td{color:var(--wn);background:color-mix(in srgb,var(--wn) 13%,transparent)}.dchip.od{color:var(--neg);background:color-mix(in srgb,var(--neg) 12%,transparent)}
 
+.view>.shr{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--pc);font-weight:800}
+
 /* ===== Sub areas ===== */
 .sub{padding-top:10px}.sub+.sub{margin-top:6px;border-top:1px solid var(--bd)}
 .subh{display:flex;align-items:center;gap:8px;min-height:32px}.subh b{flex:1;min-width:0;font-weight:800;font-size:14px;color:var(--pc);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -476,6 +478,7 @@ const ICX='<svg class="ic" viewBox="0 0 16 16" width="14" height="14" aria-hidde
 const ICK='<svg class="ic" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const CHEV='<svg class="chev" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const ICN='<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
+const ICS='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>';
 const CLK='<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 4.6V8l2.3 1.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
 const DH=`<span class="dh" title="Drag to reorder"><svg viewBox="0 0 10 16" width="10" height="16" aria-hidden="true"><g fill="currentColor"><circle cx="2.5" cy="3" r="1.5"/><circle cx="7.5" cy="3" r="1.5"/><circle cx="2.5" cy="8" r="1.5"/><circle cx="7.5" cy="8" r="1.5"/><circle cx="2.5" cy="13" r="1.5"/><circle cx="7.5" cy="13" r="1.5"/></g></svg></span>`;
 // Inputs bound to a data path save themselves on change
@@ -530,6 +533,7 @@ function vToday(){const p=prog(P().areas),od=overdue(),low=P().sup.filter(isLow)
   return `<button class="flr" data-a="goFloor" data-id="${f.id}"><span>${esc(f.n)}${bar(q.done,q.tot)}</span><b class="${q.tot&&!q.due?'pos':''}">${q.done}/${q.tot}</b><i>${CHEV}</i></button>`}).join('');
  return hello()+propBar()+welcome+bk+roundCard()
   +`<div class="tiles"><div class="tile"><span class="mu">Done today</span><b>${p.done}</b></div><div class="tile"><span class="mu">Still due</span><b>${p.due}</b></div></div>`
+  +(inRange([tdy(),tdy()]).length?`<button class="g bd shr" data-a="shareDay">${ICS}Share today’s summary</button>`:'')
   +odc+tourCard()+jobCard()+lowc+`<div class="card"><h2>Floors</h2>${floors||'<p class="mu">No areas yet. Add them in Setup.</p>'}</div>`}
 
 // ---- Rounds: walk the building and check tasks off ----
@@ -567,11 +571,25 @@ function areaCard(a,map,force){const ks=kids(a),parts=(ks.length?ks:[a]).map(x=>
 function vLog(){const r=logRange(),L=inRange(r),RD=roundsIn(r),days=[...new Set(L.map(e=>dOf(e.at)).concat(RD.map(x=>dOf(x.s))))].sort().reverse();
  let h=propBar()+`<div class="card wide"><h2>History</h2><div class="seg qm wrap">${[['today','Today'],['yest','Yesterday'],['7','7 days'],['30','30 days'],['custom','Custom']].map(([v,l])=>`<button class="${LR==v?'on':''}" data-a="range" data-v="${v}">${l}</button>`).join('')}</div>
   ${LR=='custom'?`<div class="dates"><label class="mu">From<input type="date" value="${r[0]}" data-a="lf"></label><label class="mu">To<input type="date" value="${r[1]}" data-a="lt"></label></div>`:''}
-  <div class="row" style="margin-top:10px"><span style="flex:1"><b>${plural(L.length,'task')}</b> <span class="mu">${r[0]==r[1]?sd(r[0]):sd(r[0])+' to '+sd(r[1])}</span></span><button data-a="print" ${L.length?'':'disabled'}>Print report</button></div></div>`;
+  <div class="row" style="margin-top:10px"><span style="flex:1"><b>${plural(L.length,'task')}</b> <span class="mu">${r[0]==r[1]?sd(r[0]):sd(r[0])+' to '+sd(r[1])}</span></span><button class="g bd" data-a="shareSum" ${L.length?'':'disabled'}>Share</button><button data-a="print" ${L.length?'':'disabled'}>Print report</button></div></div>`;
  if(!days.length)return h+`<div class="card wide"><p class="mu" style="margin:0">Nothing checked off in this range yet.</p></div>`;
  days.forEach(d=>{const es=L.filter(e=>dOf(e.at)==d).reverse(),rs=RD.filter(x=>dOf(x.s)==d);
   h+=`<div class="card"><h3><span>${longDate(d)}</span><span class="mu">${es.length}</span></h3>${rs.map(x=>`<div class="rnd">Round ${tm(x.s)} to ${tm(x.e)}</div>`).join('')}${es.map(e=>`<div class="lrow"><span class="tm">${tm(e.at)}</span><div><b>${esc(eTask(e))}</b><span class="mu">${esc(eArea(e))}${eFloor(e)?' · '+esc(eFloor(e)):''}</span>${e.note?`<div class="nt">${esc(e.note)}</div>`:''}</div><button class="nb${e.note?' has':''}" data-a="note" data-id="${e.id}" aria-label="Note">${ICN}</button><button class="x" data-a="delEntry" data-id="${e.id}" aria-label="Delete">${ICX}</button></div>`).join('')}</div>`});
  return h}
+// A plain-text summary for texting or emailing: per day, the tasks grouped by area, floor by floor, with notes.
+function summaryText([a,b]){const L=inRange([a,b]),RD=roundsIn([a,b]),days=[...new Set(L.map(e=>dOf(e.at)))].sort(),who=(S.set.who||'').trim();
+ const out=[`Cleaning summary: ${P().n||'Big Shiny'}`,a==b?longDate(a):longDate(a)+' to '+longDate(b)];if(who)out.push('Completed by '+who);
+ out.push(plural(L.length,'task')+(L.some(e=>e.a)?' done in '+plural(new Set(L.filter(e=>e.a).map(e=>e.a)).size,'area'):' done')+(RD.length?' · '+(RD.length==1?'Round ':'Rounds ')+RD.map(x=>tm(x.s)+' to '+tm(x.e)).join(', '):''));
+ days.forEach(d=>{if(days.length>1)out.push('',longDate(d).toUpperCase());const es=L.filter(e=>dOf(e.at)==d),groups=new Map();
+  es.forEach(e=>{const sec=e.a?eFloor(e)||'Other':'One-time tasks',k=e.a?eArea(e):'',g=groups.get(sec)||new Map();groups.set(sec,g);const l=g.get(k)||[];g.set(k,l);l.push(eTask(e)+(e.note?' (note: '+e.note+')':''))});
+  const order=P().floors.map(f=>f.n).concat('Other','One-time tasks');[...groups.keys()].sort((x,y)=>order.indexOf(x)-order.indexOf(y)).forEach(sec=>{out.push('',sec);
+   groups.get(sec).forEach((l,k)=>out.push(k?'- '+k+': '+l.join(', '):l.map(x=>'- '+x).join('\n')))})});
+ return out.join('\n')}
+// Share through the phone's share sheet; otherwise copy it; otherwise show it to copy by hand
+async function shareSummary(r){const text=summaryText(r),title='Cleaning summary';
+ try{if(navigator.share){await navigator.share({title,text});return}}catch(e){if(e&&e.name=='AbortError')return}
+ try{await navigator.clipboard.writeText(text);toast('Copied summary');return}catch(e){}
+ openDlg('Summary','Copy this and paste it into a text or email.',[['Close','g bd',null]],`<textarea readonly style="height:220px">${esc(text)}</textarea>`)}
 // The printed page: header, totals, then one table per day
 function buildReport(){const r=logRange(),L=inRange(r),RD=roundsIn(r),days=[...new Set(L.map(e=>dOf(e.at)))].sort(),areas=new Set(L.map(e=>e.a));
  const who=(S.set.who||'').trim(),site=P().n;
@@ -784,6 +802,7 @@ const ACT={
  range:d=>{LR=d.v;if(LR=='custom'&&!LF){LF=addDays(tdy(),-6);LT=tdy()}R()},
  lf:(d,el)=>{LF=el.value;R()}, lt:(d,el)=>{LT=el.value;R()},
  print:()=>{buildReport();setTimeout(()=>window.print(),50)},
+ shareSum:()=>shareSummary(logRange()), shareDay:()=>shareSummary([tdy(),tdy()]),
  // Deleting a one-time task's history entry puts it back on the list as not done
  delEntry:d=>{const j=S.log.findIndex(e=>e.id==d.id);if(j<0)return;const [e]=S.log.splice(j,1),jb=P().jobs.find(x=>x.e==e.id),jd=jb&&jb.done;if(jb){jb.done=null;delete jb.e}save();R();
   toast('Deleted “'+eTask(e)+'”',()=>{S.log.splice(Math.min(j,S.log.length),0,e);if(jb){jb.done=jd;jb.e=e.id}save();R()})},
