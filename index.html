@@ -134,6 +134,12 @@ textarea.anotein{height:72px}
 .jobs .row{min-height:44px}.jobs .row+.row,.jobs .nt+.row{border-top:1px solid color-mix(in srgb,var(--bd) 70%,transparent)}.jobs .nt{margin:-2px 0 8px 32px}
 .jobs .row:has(>input[type=checkbox]:checked)>input[type=text]{opacity:.5;text-decoration:line-through}
 
+/* ===== Sub areas ===== */
+.sub{padding-top:10px}.sub+.sub{margin-top:6px;border-top:1px solid var(--bd)}
+.subh{display:flex;align-items:center;gap:8px;min-height:32px}.subh b{flex:1;min-width:0;font-weight:800;font-size:14px;color:var(--pc);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.subh>span{flex:none;font-weight:800;font-size:12px;color:var(--mu)}.subh>span.pos{color:var(--ac)}.subh button{flex:none;padding:5px 10px;font-size:12px}
+.sub .anote{margin:6px 0 2px}.sub>.tbg{margin:2px 0 4px}
+
 /* ===== Tours ===== */
 .tbg{display:inline-flex;align-items:center;gap:5px;margin-top:7px;max-width:100%;font-size:12px;font-weight:800;color:var(--wn);background:color-mix(in srgb,var(--wn) 13%,transparent);border-radius:99px;padding:3px 9px}
 .tbg span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tbg svg,.tb svg{flex:none}
@@ -415,9 +421,14 @@ function place(prop,a){const want=a.lay?[a.lay.w,a.lay.h]:defSize(a.n||''),cutW=
  for(const [w,h,c] of [[...want,cutW],[...want],[4,2],[2,2],[2,1]])for(let y=0;y+h<=ROWS;y++)for(let x=0;x+w<=COLS;x++){const L={x,y,w,h};if(c)L.cut={...c};if(spotFree(prop,a,L)){a.lay=L;return}}
  a.lay={x:0,y:0,w:2,h:1}}
 const floorOf=a=>P().floors.find(f=>f.id==a.fl);
-// The tasks an area gets: the standard set (minus any turned off there), then its own extras
-const tasksOf=a=>(a.useStd?P().std.filter(t=>!a.skip.includes(t.id)):[]).concat(a.ex);
-const areasOn=f=>P().areas.filter(a=>a.fl==f.id);
+// ---- Sub areas: an area can be split into parts (a hallway and each office), each with its own checklist.
+//      A sub area is an area with par = its parent's id. It has no spot on the map; its parent stands for it there. ----
+const kids=a=>P().areas.filter(x=>x.par==a.id);
+const leaf=a=>{const k=kids(a);return k.length?k:[a]};             // the areas that actually hold tasks
+// The tasks an area gets: the standard set (minus any turned off there), then its own extras.
+// An area split into sub areas has none of its own; its sub areas carry them.
+const tasksOf=a=>kids(a).length?[]:(a.useStd?P().std.filter(t=>!a.skip.includes(t.id)):[]).concat(a.ex);
+const areasOn=f=>P().areas.filter(a=>a.fl==f.id&&!a.par);       // top-level areas on a floor, in order
 function buildIndex(){const m=new Map();for(const e of S.log){const k=e.a+'|'+e.t,p=m.get(k);if(!p||e.at>p.at)m.set(k,e)}LI=m}
 const lastOf=(a,t)=>LI.get(a.id+'|'+t.id);
 const entry=(a,t)=>({id:uid('e'),a:a.id,t:t.id,p:P().id,at:Date.now(),...(curHere()?{r:S.cur.id}:{})});
@@ -430,18 +441,20 @@ function isDue(f,last){if(f=='need')return false;if(!last)return true;
 function st(a,t){const last=lastOf(a,t),due=isDue(t.f,last),today=!!last&&dOf(last.at)==tdy();
  return {last,due,today,done:t.f=='need'?today:!due&&!!last}}
 // Progress for a set of areas: tasks done today vs. still due (as-needed tasks don't count)
-function prog(areas){let due=0,done=0;areas.forEach(a=>tasksOf(a).forEach(t=>{if(t.f=='need')return;const s=st(a,t);if(s.due)due++;else if(s.today)done++}));return {due,done,tot:due+done}}
+// (an area split into sub areas counts its sub areas' tasks)
+function prog(areas){let due=0,done=0;new Set(areas.flatMap(leaf)).forEach(a=>tasksOf(a).forEach(t=>{if(t.f=='need')return;const s=st(a,t);if(s.due)due++;else if(s.today)done++}));return {due,done,tot:due+done}}
 // Weekly and monthly tasks that came due before today
 function overdue(){const L=[],t0=tdy();P().areas.forEach(a=>tasksOf(a).forEach(t=>{if(t.f!='weekly'&&t.f!='monthly')return;const l=lastOf(a,t);if(!l)return;const nd=nextDue(t.f,l);if(nd<t0)L.push({a,t,l,nd})}));return L.sort((x,y)=>x.nd<y.nd?-1:1)}
 // ---- Tours: someone is being shown a unit or space at a set time. The area gets a badge so you can steer clear or have it ready. ----
 const tmS=t=>t?tm(new Date('2000-01-01T'+t)):'';                  // '12:30' -> "12:30 PM"
-const areaName=a=>a.n||'Untitled';
+const areaName=a=>{const p=a.par&&areaById(a.par);return (p?(p.n||'Untitled')+' › ':'')+(a.n||'Untitled')};   // "Office hallway › Office 1"
 const tourKey=x=>x.d+(x.t||'99');                                  // tours with no time sort last in their day
-const toursToday=a=>P().tours.filter(x=>x.a==a.id&&x.d==tdy()).sort((p,q)=>tourKey(p)<tourKey(q)?-1:1);
+// strict: only tours for this exact area; otherwise its sub areas' tours count too
+const toursToday=(a,strict)=>P().tours.filter(x=>x.d==tdy()&&(x.a==a.id||(!strict&&kids(a).some(k=>k.id==x.a)))).sort((p,q)=>tourKey(p)<tourKey(q)?-1:1);
 const tourTxt=x=>'Tour'+(x.t?' '+tmS(x.t):'')+(x.n?' · '+x.n:'');
 const isLow=s=>s.low!=null&&s.q!=null&&s.q<=s.low;
 // Names for a log entry (falls back to the names saved when an area or task was deleted)
-const eArea=e=>{const a=areaById(e.a);return a?a.n:e.an||'Deleted area'};
+const eArea=e=>{const a=areaById(e.a);return a?areaName(a):e.an||'Deleted area'};
 const eFloor=e=>{const a=areaById(e.a),f=a&&floorOf(a);return f?f.n:e.fn||''};
 const eTask=e=>{if(!e.a){const j=P().jobs.find(x=>x.id==e.t);if(j&&j.n)return j.n}const a=areaById(e.a),t=(a?a.ex:[]).concat(P().std).find(x=>x.id==e.t);return t?t.n:e.tn||'Deleted task'};
 // Before deleting, write the names into the history so old entries still read correctly
@@ -501,7 +514,7 @@ function jobCard(){const js=P().jobs.map((j,i)=>[j,i]).filter(([j])=>!j.done||dO
 function vToday(){const p=prog(P().areas),od=overdue(),low=P().sup.filter(isLow);
  const welcome=S.set.welcome?`<div class="card wide"><h3><span>Welcome to Big Shiny</span><button class="g" data-a="welcomeOff" aria-label="Dismiss">${ICX}</button></h3><p class="mu" style="margin:0 0 12px">Your building is loaded from your notes. The extra tasks for the restrooms, fitness center, elevators, trash room and sidewalks are starting guesses, so check them in Setup.</p><div class="row"><button data-a="tab" data-id="setup">Check Setup</button></div></div>`:'';
  const bk=needBk()?`<div class="card wide"><h3><span>Back up your rounds?</span></h3><p class="mu" style="margin:0 0 12px">Your history is only saved in this browser unless sync is on, and some browsers clear site data after a while.</p><div class="row"><button data-a="gear">Back up</button><button class="g bd" data-a="bkLater">Later</button></div></div>`:'';
- const odc=od.length?`<div class="card warn"><h3><span><i class="bang">!</i>Overdue</span><span>${od.length}</span></h3>${od.slice(0,8).map(x=>`<div class="row"><span style="flex:1;min-width:0"><b>${esc(x.t.n)}</b><span class="mu" style="display:block">${esc(x.a.n)} · last done ${sd(dOf(x.l.at))}</span></span><button data-a="tick1" data-ar="${x.a.id}" data-tk="${x.t.id}">Done</button></div>`).join('')}${od.length>8?`<div class="mu">and ${od.length-8} more on the Rounds tab</div>`:''}</div>`:'';
+ const odc=od.length?`<div class="card warn"><h3><span><i class="bang">!</i>Overdue</span><span>${od.length}</span></h3>${od.slice(0,8).map(x=>`<div class="row"><span style="flex:1;min-width:0"><b>${esc(x.t.n)}</b><span class="mu" style="display:block">${esc(areaName(x.a))} · last done ${sd(dOf(x.l.at))}</span></span><button data-a="tick1" data-ar="${x.a.id}" data-tk="${x.t.id}">Done</button></div>`).join('')}${od.length>8?`<div class="mu">and ${od.length-8} more on the Rounds tab</div>`:''}</div>`:'';
  const lowc=low.length?`<div class="card warn"><h3><span><i class="bang">!</i>Running low</span><span>${low.length}</span></h3>${low.map(s=>`<div class="ln"><span>${esc(s.n)}${s.w?` <span class="mu">· ${esc(s.w)}</span>`:''}</span><b class="neg">${s.q} ${esc(s.u)}</b></div>`).join('')}<div class="row" style="margin-top:6px"><button class="g bd" data-a="tab" data-id="sup">Supplies</button></div></div>`:'';
  const floors=P().floors.filter(f=>areasOn(f).length).map(f=>{const q=prog(areasOn(f));
   return `<button class="flr" data-a="goFloor" data-id="${f.id}"><span>${esc(f.n)}${bar(q.done,q.tot)}</span><b class="${q.tot&&!q.due?'pos':''}">${q.done}/${q.tot}</b><i>${CHEV}</i></button>`}).join('');
@@ -524,13 +537,20 @@ function vRounds(){
   h+=`<div class="flh" id="fl-${f.id}"><h2>${esc(f.n)}</h2><span>${q.done}/${q.tot} done</span></div>`+cards});
  if(!any)h+=`<div class="card wide"><div class="allok">${ICK} Everything is done for now.</div><p class="mu" style="margin:6px 0 0">Switch to All tasks to see everything, including as-needed tasks.</p></div>`;
  return h}
-function areaCard(a,map,force){const ts=tasksOf(a).map(t=>({t,s:st(a,t)}));
- let shown=VIEW=='all'?ts:ts.filter(x=>x.s.due||x.s.today);if(map&&!shown.length)shown=ts;if(!shown.length)return '';
- const due=ts.filter(x=>x.s.due).length,cnt=ts.filter(x=>x.t.f!='need'&&(x.s.due||x.s.today)),dn=cnt.filter(x=>!x.s.due).length;
- const open=map||force||(O['a'+a.id]??(due>0));
- return `<details id="ac-${a.id}" class="card area wide${due?'':' done'}"${map?' data-map="1"':` data-o="a${a.id}"`} ${open?'open':''}><summary><div><b>${esc(a.n)}</b>${bar(dn,cnt.length)}${toursToday(a).map(x=>`<span class="tbg">${CLK}<span>${esc(tourTxt(x))}</span></span>`).join('')}</div><em>${due?dn+'/'+cnt.length:'Done'}</em>${CHEV}</summary><div class="tasks">${a.note?`<button class="anote" data-a="areaNote" data-id="${a.id}" aria-label="Edit area note">${ICN}<span>${esc(a.note)}</span></button>`:''}${shown.map(({t,s})=>{
+// The checklist rows for one area or sub area
+function taskRows(a,shown,map){return shown.map(({t,s})=>{
    const note=s.done&&s.last.note;
    return `<div class="task"><label><input type="checkbox" ${s.done?'checked':''} data-a="tick" data-ar="${a.id}" data-tk="${t.id}"><span>${esc(t.n)}</span></label>${t.f!='daily'?`<span class="tag">${FN[t.f]}</span>`:''}${s.done?`<span class="tm">${tm(s.last.at)}</span><button class="nb${note?' has':''}" data-a="note" data-id="${s.last.id}" aria-label="Note">${ICN}</button>`:s.last&&(VIEW=='all'||map)?`<span class="tm">${sd(dOf(s.last.at))}</span>`:''}</div>${note?`<div class="nt">${esc(note)}</div>`:''}`}).join('')}
+const tourBadges=xs=>xs.map(x=>`<span class="tbg">${CLK}<span>${esc(tourTxt(x))}</span></span>`).join('');
+const noteBtn=a=>a.note?`<button class="anote" data-a="areaNote" data-id="${a.id}" aria-label="Edit note">${ICN}<span>${esc(a.note)}</span></button>`:'';
+// One area on Rounds. An area with sub areas shows each sub area's checklist under its own heading.
+function areaCard(a,map,force){const ks=kids(a),parts=(ks.length?ks:[a]).map(x=>{const ts=tasksOf(x).map(t=>({t,s:st(x,t)}));return {x,ts,shown:VIEW=='all'?ts:ts.filter(y=>y.s.due||y.s.today)}});
+ if(map&&!parts.some(q=>q.shown.length))parts.forEach(q=>q.shown=q.ts);if(!parts.some(q=>q.shown.length))return '';
+ const cut=ts=>{const due=ts.filter(y=>y.s.due).length,cnt=ts.filter(y=>y.t.f!='need'&&(y.s.due||y.s.today)).length;return {due,cnt,dn:cnt-due}};
+ const {due,cnt,dn}=cut(parts.flatMap(q=>q.ts)),open=map||force||(O['a'+a.id]??(due>0));
+ const body=ks.length?parts.filter(q=>q.shown.length).map(({x,ts,shown})=>{const c=cut(ts);
+   return `<div class="sub"><div class="subh"><b>${esc(x.n||'Untitled')}</b><span class="${c.due?'':'pos'}">${c.due?c.dn+'/'+c.cnt:'Done'}</span>${c.due>1?`<button class="g bd" data-a="allDone" data-ar="${x.id}">All done</button>`:''}</div>${tourBadges(toursToday(x,1))}${noteBtn(x)}${taskRows(x,shown,map)}</div>`}).join(''):taskRows(a,parts[0].shown,map);
+ return `<details id="ac-${a.id}" class="card area wide${due?'':' done'}"${map?' data-map="1"':` data-o="a${a.id}"`} ${open?'open':''}><summary><div><b>${esc(a.n)}</b>${bar(dn,cnt)}${tourBadges(toursToday(a))}</div><em>${due?dn+'/'+cnt:'Done'}</em>${CHEV}</summary><div class="tasks">${noteBtn(a)}${body}
   <div class="aall">${a.note?'':`<button class="g" data-a="areaNote" data-id="${a.id}">Add area note</button>`}${due>1?`<button class="g bd" data-a="allDone" data-ar="${a.id}">Mark all done</button>`:''}</div></div></details>`}
 
 // ---- Log: history and the printable report ----
@@ -569,22 +589,28 @@ function vSetup(){if(EA){const a=areaById(EA);if(a)return vArea(a);EA=null}
  let h=propBar()+`<div class="card"><h2>Property</h2><label class="sec">Name</label>${I(PP()+'.n','e.g. the building name')}<p class="mu" style="margin:8px 0 0">Shown at the top of printed reports. Each property has its own floors, areas, standard tasks, supplies and history.</p>${S.props.length>1?`<div class="row" style="margin-top:8px"><button class="x bd" data-a="delProp">Delete this property</button></div>`:''}</div>
  <div class="card"><h2>Standard tasks</h2><p class="mu" style="margin:0 0 6px">Every area gets these unless you turn one off in that area.</p>${P().std.map((t,i)=>`<div class="row ed" data-dl="${PP()}.std" data-di="${i}">${DH}${I(`${PP()}.std.${i}.n`,'Task')}${freqSel(`${PP()}.std.${i}.f`)}<button class="x" data-a="delStd" data-i="${i}" aria-label="Delete">${ICX}</button></div>`).join('')}
   <div class="row" style="margin-top:6px"><button class="g bd" data-a="addStd">Add standard task</button></div></div>`;
- P().floors.forEach(f=>{const as=P().areas.map((a,i)=>[a,i]).filter(([a])=>a.fl==f.id);
-  h+=`<div class="card"><h2>${esc(f.n)}</h2>${as.map(([a,i])=>`<div class="row" data-dl="${PP()}.areas" data-di="${i}">${DH}<button class="arow" data-a="editArea" data-id="${a.id}"><span>${esc(a.n||'Untitled')}</span><span class="mu">${plural(tasksOf(a).length,'task')}</span>${CHEV}</button></div>`).join('')||'<p class="mu">No areas on this floor.</p>'}
+ P().floors.forEach(f=>{const as=P().areas.map((a,i)=>[a,i]).filter(([a])=>a.fl==f.id&&!a.par);
+  h+=`<div class="card"><h2>${esc(f.n)}</h2>${as.map(([a,i])=>`<div class="row" data-dl="${PP()}.areas" data-di="${i}">${DH}<button class="arow" data-a="editArea" data-id="${a.id}"><span>${esc(a.n||'Untitled')}</span><span class="mu">${kids(a).length?plural(kids(a).length,'sub area'):plural(tasksOf(a).length,'task')}</span>${CHEV}</button></div>`).join('')||'<p class="mu">No areas on this floor.</p>'}
   <div class="row" style="margin-top:6px"><button class="g bd" data-a="addArea" data-fl="${f.id}">Add area</button>${as.length?`<button class="g bd" data-a="editLay" data-id="${f.id}">Edit map</button>`:''}</div></div>`});
  h+=`<div class="card"><h2>Floors</h2><p class="mu" style="margin:0 0 6px">Drag to match the order you walk them. Rounds and Today follow this order.</p>${P().floors.map((f,i)=>`<div class="row ed" data-dl="${PP()}.floors" data-di="${i}">${DH}${I(`${PP()}.floors.${i}.n`,'Floor name')}<button class="x" data-a="delFloor" data-i="${i}" aria-label="Delete">${ICX}</button></div>`).join('')}
   <div class="row" style="margin-top:6px"><input type="text" id="fn" placeholder="New floor or section"><button data-a="addFloor">Add</button></div></div>`;
  return h}
-function vArea(a){const i=P().areas.indexOf(a),p=PP()+'.areas.'+i;
- return `<button class="g lback" data-a="eaBack">‹ All areas</button>
- <div class="card"><h2>Area</h2><label class="sec">Name</label>${I(p+'.n','Area name')}<label class="sec" style="margin-top:12px">Floor</label><select data-a="areaFloor">${P().floors.map(f=>`<option value="${f.id}" ${a.fl==f.id?'selected':''}>${esc(f.n)}</option>`).join('')}</select>
+function vArea(a){const i=P().areas.indexOf(a),p=PP()+'.areas.'+i,par=a.par&&areaById(a.par),ks=par?[]:kids(a);
+ return `<button class="g lback" data-a="eaBack">‹ ${par?esc(par.n||'Untitled'):'All areas'}</button>
+ <div class="card"><h2>${par?'Sub area':'Area'}</h2>${par?`<p class="mu" style="margin:0 0 8px">Part of ${esc(par.n||'Untitled')}</p>`:''}<label class="sec">Name</label>${I(p+'.n',par?'e.g. Office 1':'Area name')}
+  ${par?'':`<label class="sec" style="margin-top:12px">Floor</label><select data-a="areaFloor">${P().floors.map(f=>`<option value="${f.id}" ${a.fl==f.id?'selected':''}>${esc(f.n)}</option>`).join('')}</select>`}
   <label class="sec" style="margin-top:12px">Note <span style="text-transform:none;letter-spacing:0;font-weight:600">(optional)</span></label><textarea class="anotein" data-p="${p}.note" data-t="s" placeholder="e.g. Key is in the office. Mop sink is behind the second door.">${esc(a.note||'')}</textarea>
-  <p class="mu" style="margin:4px 0 0">Shown at the top of this area’s checklist on Rounds.</p>
-  <label class="chk" style="margin-top:12px"><input type="checkbox" ${a.useStd?'checked':''} data-p="${p}.useStd" data-t="b">Use the standard tasks</label>
-  ${a.useStd?`<div class="sec" style="margin-top:8px">Standard tasks done here</div>${P().std.map(t=>`<label class="chk"><input type="checkbox" ${a.skip.includes(t.id)?'':'checked'} data-a="skip" data-id="${t.id}">${esc(t.n)} <span class="mu">${FN[t.f]}</span></label>`).join('')}`:''}</div>
- <div class="card"><h2>Extra tasks</h2><p class="mu" style="margin:0 0 6px">Only this area gets these.</p>${a.ex.map((t,j)=>`<div class="row ed" data-dl="${p}.ex" data-di="${j}">${DH}${I(`${p}.ex.${j}.n`,'Task')}${freqSel(`${p}.ex.${j}.f`)}<button class="x" data-a="delEx" data-i="${j}" aria-label="Delete">${ICX}</button></div>`).join('')||'<p class="mu">None yet.</p>'}
-  <div class="row" style="margin-top:6px"><button class="g bd" data-a="addEx">Add extra task</button></div></div>
- <div class="card"><h2>Remove</h2><p class="mu" style="margin:0 0 8px">History for this area stays in the log.</p><button class="x bd" data-a="delArea">Delete this area</button></div>`}
+  <p class="mu" style="margin:4px 0 0">Shown at the top of this ${par?'sub area':'area'}’s checklist on Rounds.</p>
+  ${ks.length?'':`<label class="chk" style="margin-top:12px"><input type="checkbox" ${a.useStd?'checked':''} data-p="${p}.useStd" data-t="b">Use the standard tasks</label>
+  ${a.useStd?`<div class="sec" style="margin-top:8px">Standard tasks done here</div>${P().std.map(t=>`<label class="chk"><input type="checkbox" ${a.skip.includes(t.id)?'':'checked'} data-a="skip" data-id="${t.id}">${esc(t.n)} <span class="mu">${FN[t.f]}</span></label>`).join('')}`:''}`}</div>
+ ${par?'':subCard(ks)}
+ ${ks.length?'':`<div class="card"><h2>Extra tasks</h2><p class="mu" style="margin:0 0 6px">Only this ${par?'sub area':'area'} gets these.</p>${a.ex.map((t,j)=>`<div class="row ed" data-dl="${p}.ex" data-di="${j}">${DH}${I(`${p}.ex.${j}.n`,'Task')}${freqSel(`${p}.ex.${j}.f`)}<button class="x" data-a="delEx" data-i="${j}" aria-label="Delete">${ICX}</button></div>`).join('')||'<p class="mu">None yet.</p>'}
+  <div class="row" style="margin-top:6px"><button class="g bd" data-a="addEx">Add extra task</button></div></div>`}
+ <div class="card"><h2>Remove</h2><p class="mu" style="margin:0 0 8px">${ks.length?'Its sub areas are deleted with it. ':''}History stays in the log.</p><button class="x bd" data-a="delArea">Delete this ${par?'sub area':'area'}</button></div>`}
+// The sub areas of the area being edited
+function subCard(ks){return `<div class="card"><h2>Sub areas</h2><p class="mu" style="margin:0 0 6px">${ks.length?'Each has its own checklist, shown together under this area on Rounds. A new one starts with a copy of the last one’s tasks, so set up one and add the rest.':'Optional. Split this area into parts with their own checklists, like a hallway and each office. The first one starts with this area’s tasks.'}</p>
+ ${ks.map(k=>`<div class="row" data-dl="${PP()}.areas" data-di="${P().areas.indexOf(k)}">${DH}<button class="arow" data-a="editArea" data-id="${k.id}"><span>${esc(k.n||'Untitled')}</span><span class="mu">${plural(tasksOf(k).length,'task')}</span>${CHEV}</button></div>`).join('')}
+ <div class="row" style="margin-top:6px"><input type="text" id="subn" placeholder="${ks.length?'e.g. Office 2':'e.g. Hallway'}" enterkeyhint="done" autocomplete="off"><button data-a="addSub">Add</button></div></div>`}
 
 // ---- Floor map: the pegboard with each area drawn as a shape. On Rounds it's colored by what's left; in Setup you arrange it. ----
 let DRAG=null;                            // UI-only: shape or label being dragged in the editor {id, L, bad} / {mk, x, y}
@@ -678,7 +704,7 @@ function areaNoteDlg(id){const a=areaById(id);if(!a)return;const old=a.note||'';
   `<textarea id="dlgIn" placeholder="e.g. Key is in the office. Mop sink is behind the second door.">${esc(old)}</textarea>`)}
 // Add or change a tour: which area, the day and time, and an optional label ("Unit 312")
 function tourDlg(id){const x=id?P().tours.find(q=>q.id==id):null;if(id&&!x)return;
- const opts=P().floors.map(f=>{const as=areasOn(f);return as.length?`<optgroup label="${esc(f.n)}">${as.map(a=>`<option value="${a.id}" ${x&&x.a==a.id?'selected':''}>${esc(areaName(a))}</option>`).join('')}</optgroup>`:''}).join('');
+ const opts=P().floors.map(f=>{const as=areasOn(f);return as.length?`<optgroup label="${esc(f.n)}">${as.flatMap(a=>[a,...kids(a)]).map(a=>`<option value="${a.id}" ${x&&x.a==a.id?'selected':''}>${a.par?'\u00a0\u00a0\u00a0› '+esc(a.n||'Untitled'):esc(areaName(a))}</option>`).join('')}</optgroup>`:''}).join('');
  if(!opts){toast('Add areas in Setup first');return}
  openDlg(x?'Edit tour':'Add a tour','',[[x?'Save tour':'Add tour','',(v,k)=>{if(!k.d){toast('Enter a date first');return}
    const o={a:k.a,d:k.d,t:k.t||'',n:(k.n||'').trim()};if(x)Object.assign(x,o);else P().tours.push({id:uid('o'),...o});save();R();toast(x?'Saved tour':'Added tour')}],['Cancel','g bd',null]],
@@ -691,6 +717,10 @@ function tickJob(id,on){const j=P().jobs.find(x=>x.id==id);if(!j)return;
   S.log.push(e);j.done=e.at;j.e=e.id;save();R();toast('Done: '+(j.n||'task'));return}
  const k=S.log.findIndex(x=>x.id==j.e),e=k>=0?S.log.splice(k,1)[0]:null,o=[j.done,j.e];j.done=null;delete j.e;save();R();
  toast('Unchecked '+(j.n||'task'),()=>{if(e)S.log.splice(Math.min(k,S.log.length),0,e);[j.done,j.e]=o;save();R()})}
+// Add a sub area to the area being edited. It copies the last sub area's tasks (or the area's own, for the first one).
+function addSub(){const a=ea(),el=document.getElementById('subn'),n=el?el.value.trim():'';if(!a||a.par)return;if(!n){toast('Enter a name first');return}
+ const ks=kids(a),src=ks[ks.length-1]||a,k={id:uid('a'),n,fl:a.fl,par:a.id,useStd:src.useStd,skip:[...src.skip],ex:src.ex.map(t=>({id:uid('t'),n:t.n,f:t.f}))};
+ P().areas.splice(P().areas.indexOf(src)+1,0,k);el.value='';save();R();toast('Added '+n);const f=document.getElementById('subn');f&&f.focus()}
 function addJob(){const el=document.getElementById('jn'),n=el.value.trim();if(!n){toast('Enter a task first');return}
  P().jobs.push({id:uid('j'),n,add:Date.now(),done:null});el.value='';save();R();toast('Added '+n);const f=document.getElementById('jn');f&&f.focus()}
 // Backups
@@ -716,7 +746,7 @@ const ACT={
  tick:(d,el)=>tick(d.ar,d.tk,el.checked),
  tick1:d=>{tick(d.ar,d.tk,true,true);R();toast('Done: '+eTask({a:d.ar,t:d.tk}))},
  allDone:d=>{const a=areaById(d.ar);if(!a)return;buildIndex();const ids=[],all=prog(P().areas).due;
-  tasksOf(a).forEach(t=>{if(st(a,t).due){const e=entry(a,t);S.log.push(e);ids.push(e.id)}});
+  leaf(a).forEach(x=>tasksOf(x).forEach(t=>{if(st(x,t).due){const e=entry(x,t);S.log.push(e);ids.push(e.id)}}));
   save();R();buildIndex();if(all>0&&prog(P().areas).due==0)setTimeout(confetti,80);
   else toast('Done: '+a.n,()=>{S.log=S.log.filter(e=>!ids.includes(e.id));save();R()})},
  note:d=>noteDlg(d.id),
@@ -750,13 +780,14 @@ const ACT={
  addStd:()=>{P().std.push({id:uid('t'),n:'',f:'daily'});save();R();const ins=document.querySelectorAll('[data-dl$=".std"] input');ins.length&&ins[ins.length-1].focus()},
  delStd:d=>{const i=+d.i,t=P().std[i];if(!t)return;snap(e=>e.t==t.id);P().std.splice(i,1);save();R();toast('Deleted “'+(t.n||'task')+'”',()=>{P().std.splice(i,0,t);save();R()})},
  addArea:d=>{const a={id:uid('a'),n:'',fl:d.fl,useStd:true,skip:[],ex:[]};P().areas.push(a);place(P(),a);EA=a.id;save();R();scrollTo(0,0);const n=document.querySelector('[data-p$=".n"]');n&&n.focus()},
- editArea:d=>{EA=d.id;R();scrollTo(0,0)}, eaBack:()=>{EA=null;R();scrollTo(0,0)},
- areaFloor:(d,el)=>{const a=ea();if(!a)return;a.fl=el.value;place(P(),a);save();R()},
+ editArea:d=>{EA=d.id;R();scrollTo(0,0)}, eaBack:()=>{const a=ea();EA=a&&a.par?a.par:null;R();scrollTo(0,0)},
+ addSub,
+ areaFloor:(d,el)=>{const a=ea();if(!a)return;a.fl=el.value;kids(a).forEach(k=>k.fl=a.fl);place(P(),a);save();R()},
  editLay:d=>{EL=d.id;LSEL=null;R();scrollTo(0,0)}, elBack:()=>{EL=null;LSEL=null;R();scrollTo(0,0)},
  shape:d=>{const a=areaById(LSEL);if(!a||!a.lay)return;const L={...a.lay};delete L.cut;
   if(d.v!='none'){if(L.w<2||L.h<2){toast('Make the room at least 2 by 2 pegs first');return}const o=a.lay.cut;L.cut={c:d.v,w:o?Math.min(o.w,L.w-1):Math.max(1,Math.floor(L.w/2)),h:o?Math.min(o.h,L.h-1):Math.max(1,Math.floor(L.h/2))}}
   if(!spotFree(P(),a,L)){toast('There’s no room for that shape here');return}a.lay=L;save();R()},
- layAuto:()=>{const f=EL;openDlg('Arrange automatically?','Every room on this floor is put back in a simple stack, in list order. Labels stay where they are.',[['Arrange','',()=>{const as=P().areas.filter(a=>a.fl==f);as.forEach(a=>a.lay=null);as.forEach(a=>place(P(),a));save();R();toast('Done: rooms rearranged')}],['Cancel','g bd',null]])},
+ layAuto:()=>{const f=EL;openDlg('Arrange automatically?','Every room on this floor is put back in a simple stack, in list order. Labels stay where they are.',[['Arrange','',()=>{const as=P().areas.filter(a=>a.fl==f&&!a.par);as.forEach(a=>a.lay=null);as.forEach(a=>place(P(),a));save();R();toast('Done: rooms rearranged')}],['Cancel','g bd',null]])},
  // Center map: slide every room and label on the floor together so the layout sits in the middle of the board
  layCenter:()=>{const f=P().floors.find(x=>x.id==EL);if(!f)return;const as=P().areas.filter(a=>a.fl==f.id&&a.lay),ms=f.marks||[];if(!as.length&&!ms.length)return;
   const xs=as.flatMap(a=>[a.lay.x,a.lay.x+a.lay.w]).concat(ms.map(m=>m.x)),ys=as.flatMap(a=>[a.lay.y,a.lay.y+a.lay.h]).concat(ms.map(m=>m.y));
@@ -772,7 +803,12 @@ const ACT={
  skip:(d,el)=>{const a=ea();if(!a)return;a.skip=a.skip.filter(x=>x!=d.id);if(!el.checked)a.skip.push(d.id);save();R()},
  addEx:()=>{const a=ea();if(!a)return;a.ex.push({id:uid('t'),n:'',f:'daily'});save();R();const ins=document.querySelectorAll('[data-dl$=".ex"] input');ins.length&&ins[ins.length-1].focus()},
  delEx:d=>{const a=ea();if(!a)return;const i=+d.i,t=a.ex[i];snap(e=>e.a==a.id&&e.t==t.id);a.ex.splice(i,1);save();R();toast('Deleted “'+(t.n||'task')+'”',()=>{a.ex.splice(i,0,t);save();R()})},
- delArea:()=>{const a=ea();if(!a)return;openDlg('Delete '+(a.n||'this area')+'?','Its history stays in the log and on reports.',[['Delete area','x bd',()=>{const i=P().areas.indexOf(a);snap(e=>e.a==a.id);P().areas.splice(i,1);EA=null;save();R();scrollTo(0,0);toast('Deleted “'+(a.n||'area')+'”',()=>{P().areas.splice(i,0,a);save();R()})}],['Cancel','g bd',null]])},
+ // Deleting an area takes its sub areas with it; history keeps their names
+ delArea:()=>{const a=ea();if(!a)return;const ks=kids(a),par=a.par,what=par?'sub area':'area';
+  openDlg('Delete '+(a.n||'this '+what)+'?',(ks.length?'Its '+plural(ks.length,'sub area')+' go with it. ':'')+'Its history stays in the log and on reports.',[['Delete '+what,'x bd',()=>{
+   const gone=[a,...ks],at=gone.map(x=>[x,P().areas.indexOf(x)]).sort((p,q)=>p[1]-q[1]);snap(e=>gone.some(x=>x.id==e.a));
+   P().areas=P().areas.filter(x=>!gone.includes(x));EA=par||null;save();R();scrollTo(0,0);
+   toast('Deleted “'+(a.n||what)+'”',()=>{at.forEach(([x,i])=>P().areas.splice(Math.min(i,P().areas.length),0,x));save();R()})}],['Cancel','g bd',null]])},
  addFloor:()=>{const el=document.getElementById('fn'),n=el.value.trim();if(!n){toast('Enter a name first');return}P().floors.push({id:uid('f'),n,marks:[]});save();R();toast('Added '+n)},
  delFloor:d=>{const i=+d.i,f=P().floors[i];if(areasOn(f).length){alert('Move or delete the areas on '+f.n+' first.');return}P().floors.splice(i,1);save();R();toast('Deleted “'+f.n+'”',()=>{P().floors.splice(i,0,f);save();R()})},
  // settings
@@ -794,7 +830,7 @@ document.addEventListener('change',e=>{const t=e.target,d=t.dataset;
  if(d.p&&d.t)up(d.p,t.type=='checkbox'?t.checked:t.value,d.t);
  else if(d.a&&t.tagName!='BUTTON')ACT[d.a](d,t);
  if(t.type=='checkbox'&&t.checked&&t.isConnected){t.classList.remove('pop');void t.offsetWidth;t.classList.add('pop');setTimeout(()=>t.classList.remove('pop'),320)}});
-document.addEventListener('keydown',e=>{if(e.key=='Enter'&&e.target.id=='jn'){e.preventDefault();addJob()}});
+document.addEventListener('keydown',e=>{if(e.key!='Enter')return;const id=e.target.id;if(id=='jn'){e.preventDefault();addJob()}else if(id=='subn'){e.preventDefault();addSub()}});
 // Remember sections the person opens or closes (only real taps, so a finished area can still fold itself up)
 document.addEventListener('click',e=>{const sm=e.target.closest('summary');if(!sm||e.target.closest('button'))return;const d=sm.parentElement,k=d.dataset&&d.dataset.o;if(k!=null)O[k]=!d.open},true);
 
@@ -855,8 +891,8 @@ function slideIn(dir){const m=APP(),w=innerWidth;m.style.willChange='transform,o
  m.style.transition=`transform .22s ${EZ_IN},opacity .16s ease-out`;m.style.transform='translate3d(0,0,0)';m.style.opacity='1';
  setTimeout(()=>{m.style.transition='';m.style.transform='';m.style.opacity='';m.style.willChange=''},240)}
 // Levels below Today: any other tab (or Settings) 1; an area or floor map open in Setup and an open popup each add one
-function navDepth(){return (T=='today'?0:1)+(T=='setup'&&(EA||EL)?1:0)+(T=='rounds'&&FV?1:0)+(DLG?1:0)}
-function navUp(){if(DLG)return closeDlg();if(T=='setup'&&(EA||EL)){EA=EL=null;R();return}if(T=='rounds'&&FV){FV=null;MS=null;R();return}if(T!='today')goTab('today')}
+function navDepth(){const sa=T=='setup'&&EA&&areaById(EA);return (T=='today'?0:1)+(T=='setup'&&(EA||EL)?1:0)+(sa&&sa.par?1:0)+(T=='rounds'&&FV?1:0)+(DLG?1:0)}
+function navUp(){if(DLG)return closeDlg();if(T=='setup'&&(EA||EL)){const a=EA&&areaById(EA);EA=a&&a.par?a.par:null;EL=null;R();return}if(T=='rounds'&&FV){FV=null;MS=null;R();return}if(T!='today')goTab('today')}
 // ---- Phone back button (the same block as the other Big apps) ----
 let HD=0,HPOP=0;
 function navSync(){if(HPOP)return;const d=navDepth();
