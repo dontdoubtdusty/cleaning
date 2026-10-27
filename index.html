@@ -157,7 +157,6 @@ textarea.anotein{height:72px}
 .lrow{display:flex;gap:10px;align-items:flex-start;padding:8px 0;font-size:14px}.lrow+.lrow{border-top:1px solid var(--bd)}
 .lrow>.tm{width:66px;padding-top:2px}.lrow>div{flex:1;min-width:0}.lrow>div b{font-weight:700}.lrow>div .mu{display:block}
 .lrow .nt{margin:6px 0 0}.lrow button.x{padding:2px 6px}
-.rnd{font-size:13px;font-weight:700;color:var(--pc);background:color-mix(in srgb,var(--pc) 10%,transparent);border-radius:10px;padding:6px 10px;margin-bottom:8px}
 .dates{display:flex;gap:8px;margin-top:10px}.dates label{flex:1}.dates input{margin-top:4px}
 
 /* ===== Supplies ===== */
@@ -251,7 +250,7 @@ body.dragmode{user-select:none;-webkit-user-select:none;cursor:grabbing}
  #rep .sum{display:flex;gap:24px;border:1px solid #bbb;border-radius:8px;padding:8px 12px;margin-bottom:14px}
  #rep .sum b{display:block;font-size:15pt}
  #rep h2{font:600 13pt 'Fredoka',Arial,sans-serif;margin:16px 0 4px;border-bottom:2px solid #2f8fff;padding-bottom:2px;break-after:avoid}
- #rep .rl{color:#333;font-size:10pt;margin:2px 0 6px}
+
  #rep table{width:100%;border-collapse:collapse}#rep th,#rep td{text-align:left;padding:4px 6px;border-bottom:1px solid #ddd;vertical-align:top}
  #rep th{font-size:9pt;text-transform:uppercase;letter-spacing:.5px;color:#555}#rep tr{break-inside:avoid}
  #rep td.t{white-space:nowrap;width:70px}#rep td.n{color:#333;font-style:italic}
@@ -266,7 +265,7 @@ body.dragmode{user-select:none;-webkit-user-select:none;cursor:grabbing}
 // 1. CONSTANTS
 // =====================================================================
 const LS='cleaning-v1';                    // localStorage key (don't change: it holds your data)
-const FREQ=[['round','Every round'],['daily','Daily'],['weekly','Weekly'],['monthly','Monthly'],['need','As needed']];
+const FREQ=[['daily','Daily'],['weekly','Weekly'],['monthly','Monthly'],['need','As needed']];
 const FN=Object.fromEntries(FREQ);
 const TC={today:['#2f8fff','#5ec4ff'],rounds:['#1f7ae0','#3fb3ff'],log:['#3a6df0','#5ea8ff'],sup:['#0e9fc2','#4fd1e8'],setup:['#4a7bd8','#7fb0ff'],more:['#2f8fff','#5ec4ff']}; // tab colors
 const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -329,7 +328,7 @@ function seed(){
  const sup=['Gloves','All-purpose cleaner','Window cleaner','Floor cleaner','Paper towels','Microfiber cloths','Feather duster','Toilet bowl cleaner','Magic erasers','Microfiber cloths for windows','Trash bags','Disinfectant spray','Mop heads','Dust mop heads']
   .map(n=>({id:uid('s'),n,q:null,u:'',low:null,w:''}));
  const prop={id:uid('p'),n:'Main building',floors,std,areas,sup,jobs:[],tours:[]};prop.areas.forEach(a=>place(prop,a));
- return {v:MIGRATIONS.length,set:{theme:'system',welcome:1,since:Date.now(),who:'',keep:6,prop:prop.id},props:[prop],log:[],rounds:[],cur:null}}
+ return {v:MIGRATIONS.length,set:{theme:'system',welcome:1,since:Date.now(),who:'',keep:6,prop:prop.id},props:[prop],log:[]}}
 
 // Schema migrations. S.v records how many have run. To change the data shape later,
 // ADD a new function to the end of this list; never edit an old one.
@@ -355,13 +354,17 @@ const MIGRATIONS=[
  // v6: standard tasks no longer have one frequency for the whole building. Each area sets its own in a.sf {std task id: frequency};
  // anything not listed there is daily. Every area keeps the schedule it had.
  S=>{S.props.forEach(p=>{p.areas.forEach(a=>{a.sf=a.sf||{};p.std.forEach(t=>{if(t.f&&t.f!='daily'&&!(t.id in a.sf))a.sf[t.id]=t.f})});p.std.forEach(t=>delete t.f)})},
+ // v7: no more starting and finishing rounds (one round is the whole shift). Saved rounds go, and every
+ // "Every round" task becomes daily, which is what it already meant outside a running round.
+ S=>{delete S.cur;delete S.rounds;S.log.forEach(e=>delete e.r);S.props.forEach(p=>p.areas.forEach(a=>{a.ex.forEach(t=>{if(t.f=='round')t.f='daily'});
+  for(const k in a.sf||{})if(a.sf[k]=='round')delete a.sf[k]}))},
 ];
 function migrate(){S.set=S.set||{};for(let v=S.v||0;v<MIGRATIONS.length;v++)MIGRATIONS[v](S);S.v=MIGRATIONS.length;if(!S.props.some(p=>p.id==S.set.prop))S.set.prop=S.props[0].id;prune()}
 function load(){try{S=JSON.parse(localStorage.getItem(LS))}catch(e){}if(!S)S=seed();migrate()}
 // History is kept for a set number of months (Settings), so storage never fills up
 // Finished one-time tasks drop off their list the day after (they stay in the history), and so do past tours
-function prune(){const cut=addMonths(tdy(),-(S.set.keep||6)),t=tdy(),cnt=()=>S.log.length+S.rounds.length+S.props.reduce((s,p)=>s+(p.jobs||[]).length+(p.tours||[]).length,0),n=cnt();
- S.log=S.log.filter(e=>e&&dOf(e.at)>=cut);S.rounds=S.rounds.filter(r=>r&&dOf(r.s)>=cut);
+function prune(){const cut=addMonths(tdy(),-(S.set.keep||6)),t=tdy(),cnt=()=>S.log.length+S.props.reduce((s,p)=>s+(p.jobs||[]).length+(p.tours||[]).length,0),n=cnt();
+ S.log=S.log.filter(e=>e&&dOf(e.at)>=cut);
  S.props.forEach(p=>{p.jobs=(p.jobs||[]).filter(j=>!j.done||dOf(j.done)>=t);p.tours=(p.tours||[]).filter(x=>x.d>=t)});return cnt()!=n}
 // Saving: write to storage a moment later (and immediately when the app is hidden or closed)
 let SVT=0,SVFAIL=0;
@@ -388,7 +391,6 @@ const markBk=()=>{S.set.lastBk=Date.now();save();R()};
 // The property you're looking at, and its data path ('props.0')
 const P=()=>S.props.find(p=>p.id==S.set.prop)||S.props[0];
 const PP=()=>'props.'+S.props.indexOf(P());
-const curHere=()=>!!S.cur&&S.cur.p==P().id;              // a round is running at this property
 const areaById=id=>{for(const p of S.props){const a=p.areas.find(a=>a.id==id);if(a)return a}};
 // ---- Floor map: a pegboard 12 pegs across and 18 down. Each area is a shape on it: a rectangle
 //      {x, y, w, h} in pegs, optionally with one corner cut out to make an L ({cut: {c: 'tl'|'tr'|'bl'|'br', w, h}}). ----
@@ -443,18 +445,17 @@ const tasksOf=a=>kids(a).length?[]:(a.useStd?P().std.filter(t=>!a.skip.includes(
 const areasOn=f=>P().areas.filter(a=>a.fl==f.id&&!a.par);       // top-level areas on a floor, in order
 function buildIndex(){const m=new Map();for(const e of S.log){const k=e.a+'|'+e.t,p=m.get(k);if(!p||e.at>p.at)m.set(k,e)}LI=m}
 const lastOf=(a,t)=>LI.get(a.id+'|'+t.id);
-const entry=(a,t)=>({id:uid('e'),a:a.id,t:t.id,p:P().id,at:Date.now(),...(curHere()?{r:S.cur.id}:{})});
+const entry=(a,t)=>({id:uid('e'),a:a.id,t:t.id,p:P().id,at:Date.now()});
 // When a task done on `last` comes due again
-function nextDue(f,last){const d=dOf(last.at);return f=='daily'||f=='round'?addDays(d,1):f=='weekly'?addDays(d,7):f=='monthly'?addMonths(d,1):null}
+function nextDue(f,last){const d=dOf(last.at);return f=='daily'?addDays(d,1):f=='weekly'?addDays(d,7):f=='monthly'?addMonths(d,1):null}
 function isDue(f,last){if(f=='need')return false;if(!last)return true;
- if(f=='round')return curHere()?last.at<S.cur.s:dOf(last.at)<tdy();
  return tdy()>=nextDue(f,last)}
 // State of one task in one area right now
 // An area marked clean for the day: a log entry with t 'fin' and sk = names of the tasks skipped then.
-// Whatever was still due in it (or in its parent area) stops being due until tomorrow, or the next round for per-round tasks.
+// Whatever was still due in it (or in its parent area) stops being due until tomorrow.
 const finOf=a=>[a.id,a.par].map(id=>id&&LI.get(id+'|fin')).filter(e=>e&&dOf(e.at)==tdy()).sort((x,y)=>y.at-x.at)[0];
 function st(a,t){const last=lastOf(a,t),today=!!last&&dOf(last.at)==tdy();let due=isDue(t.f,last);
- const f=due&&finOf(a),skip=!!f&&(!last||f.at>last.at)&&(t.f!='round'||!curHere()||f.at>=S.cur.s);if(skip)due=false;
+ const f=due&&finOf(a),skip=!!f&&(!last||f.at>last.at);if(skip)due=false;
  return {last,due,today,skip,done:t.f=='need'?today:!due&&!skip&&!!last}}
 // Progress for a set of areas: tasks done today vs. still due (as-needed tasks don't count)
 // (an area split into sub areas counts its sub areas' tasks)
@@ -482,7 +483,6 @@ function logRange(){const t=tdy();
  if(LR=='7')return [addDays(t,-6),t];if(LR=='30')return [addDays(t,-29),t];
  const a=LF||addDays(t,-6),b=LT||t;return a<=b?[a,b]:[b,a]}
 const inRange=([a,b])=>S.log.filter(e=>{const d=dOf(e.at);return e.p==P().id&&d>=a&&d<=b}).sort((x,y)=>x.at-y.at);
-const roundsIn=([a,b])=>S.rounds.filter(r=>{const d=dOf(r.s);return r.p==P().id&&d>=a&&d<=b}).sort((x,y)=>x.s-y.s);
 
 // =====================================================================
 // 6. SHARED UI PIECES
@@ -505,14 +505,9 @@ function hello(){const h=new Date().getHours(),g=h<12?'Good morning':h<17?'Good 
 // Which property you're on; tap to switch or add one
 const CHD='<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const propBar=()=>`<div class="pbar"><button data-a="props"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16M15 9h4a1 1 0 0 1 1 1v11M3 21h18M8 8h3M8 12h3M8 16h3"/></svg><span>${esc(P().n||'Untitled property')}</span>${S.props.length>1?CHD:'<em>+</em>'}</button></div>`;
-// The round card at the top of Today and Rounds
+// The progress card at the top of Today and Rounds
 function roundCard(){const p=prog(P().areas);
- if(S.cur&&!curHere()){const o=S.props.find(p=>p.id==S.cur.p);
-  return `<div class="pcb"><div><b>Round running elsewhere</b><span>Started ${tm(S.cur.s)} at ${esc(o?o.n:'another property')}</span></div><button data-a="endRound">Finish</button></div>`}
- if(S.cur){const n=S.log.filter(e=>e.r==S.cur.id&&isTask(e)).length;
-  return `<div class="pcb"><div><b>Round in progress</b><span>Started ${tm(S.cur.s)} · ${plural(n,'task')} checked</span></div><button data-a="endRound">Finish</button></div>`}
- const last=S.rounds[S.rounds.length-1],lt=last&&dOf(last.s)==tdy()?` · Last round ${tm(last.s)} to ${tm(last.e)}`:'';
- return `<div class="pcb"><div><b>${p.due?'Ready for a round?':'All caught up'}</b><span>${p.due?plural(p.due,'task')+' due':'Nothing due right now'}${lt}</span></div><button data-a="startRound">Start round</button></div>`}
+ return `<div class="pcb"><div><b>${p.due?plural(p.due,'task')+' due':'All caught up'}</b><span>${p.done?plural(p.done,'task')+' done today':p.due?'Nothing checked off yet today':'Nothing due right now'}</span></div></div>`}
 // One-time tasks: things you were asked to do once that aren't tied to an area. They stay until checked off,
 // then show crossed out for the rest of that day. Checking one off writes it into the history like any task.
 // Tours today and coming up, soonest first
@@ -581,20 +576,20 @@ function areaCard(a,map,force){const ks=kids(a),parts=(ks.length?ks:[a]).map(x=>
   <div class="aall">${a.note?'':`<button class="g" data-a="areaNote" data-id="${a.id}">Add area note</button>`}<button class="g bd" data-a="editArea" data-id="${a.id}">Edit area</button>${due?`<button class="g bd" data-a="finArea" data-ar="${a.id}">Mark clean</button>`:''}${due>1?`<button class="g bd" data-a="allDone" data-ar="${a.id}">Mark all done</button>`:''}</div></div></details>`}
 
 // ---- Log: history and the printable report ----
-function vLog(){const r=logRange(),L=inRange(r),RD=roundsIn(r),days=[...new Set(L.map(e=>dOf(e.at)).concat(RD.map(x=>dOf(x.s))))].sort().reverse();
+function vLog(){const r=logRange(),L=inRange(r),days=[...new Set(L.map(e=>dOf(e.at)))].sort().reverse();
  let h=propBar()+`<div class="card wide"><h2>History</h2><div class="seg qm wrap">${[['today','Today'],['yest','Yesterday'],['7','7 days'],['30','30 days'],['custom','Custom']].map(([v,l])=>`<button class="${LR==v?'on':''}" data-a="range" data-v="${v}">${l}</button>`).join('')}</div>
   ${LR=='custom'?`<div class="dates"><label class="mu">From<input type="date" value="${r[0]}" data-a="lf"></label><label class="mu">To<input type="date" value="${r[1]}" data-a="lt"></label></div>`:''}
   <div class="row" style="margin-top:10px"><span style="flex:1"><b>${plural(L.filter(isTask).length,'task')}</b> <span class="mu">${r[0]==r[1]?sd(r[0]):sd(r[0])+' to '+sd(r[1])}</span></span><button class="g bd" data-a="shareSum" ${L.length?'':'disabled'}>Share</button><button data-a="print" ${L.length?'':'disabled'}>Print report</button></div></div>`;
  if(!days.length)return h+`<div class="card wide"><p class="mu" style="margin:0">Nothing checked off in this range yet.</p></div>`;
- days.forEach(d=>{const es=L.filter(e=>dOf(e.at)==d).reverse(),rs=RD.filter(x=>dOf(x.s)==d);
-  h+=`<div class="card"><h3><span>${longDate(d)}</span><span class="mu">${es.filter(isTask).length}</span></h3>${rs.map(x=>`<div class="rnd">Round ${tm(x.s)} to ${tm(x.e)}</div>`).join('')}${es.map(e=>`<div class="lrow"><span class="tm">${tm(e.at)}</span><div><b>${e.t=='fin'?'Area marked clean':esc(eTask(e))}</b>${e.t=='fin'&&e.sk&&e.sk.length?`<span class="mu">Skipped: ${esc(e.sk.join(', '))}</span>`:''}<span class="mu">${esc(eArea(e))}${eFloor(e)?' · '+esc(eFloor(e)):''}</span>${e.note?`<div class="nt">${esc(e.note)}</div>`:''}</div><button class="nb${e.note?' has':''}" data-a="note" data-id="${e.id}" aria-label="Note">${ICN}</button><button class="x" data-a="delEntry" data-id="${e.id}" aria-label="Delete">${ICX}</button></div>`).join('')}</div>`});
+ days.forEach(d=>{const es=L.filter(e=>dOf(e.at)==d).reverse();
+  h+=`<div class="card"><h3><span>${longDate(d)}</span><span class="mu">${es.filter(isTask).length}</span></h3>${es.map(e=>`<div class="lrow"><span class="tm">${tm(e.at)}</span><div><b>${e.t=='fin'?'Area marked clean':esc(eTask(e))}</b>${e.t=='fin'&&e.sk&&e.sk.length?`<span class="mu">Skipped: ${esc(e.sk.join(', '))}</span>`:''}<span class="mu">${esc(eArea(e))}${eFloor(e)?' · '+esc(eFloor(e)):''}</span>${e.note?`<div class="nt">${esc(e.note)}</div>`:''}</div><button class="nb${e.note?' has':''}" data-a="note" data-id="${e.id}" aria-label="Note">${ICN}</button><button class="x" data-a="delEntry" data-id="${e.id}" aria-label="Delete">${ICX}</button></div>`).join('')}</div>`});
  return h}
 // A plain-text summary for texting or emailing: per day, the tasks grouped by area, floor by floor, with notes.
 // The summary and printed report show areas marked clean but not what was skipped there (that stays in the app's Log).
 // Task totals count only real tasks; an area marked clean counts as cleaned.
-function summaryText([a,b]){const L=inRange([a,b]),RD=roundsIn([a,b]),days=[...new Set(L.map(e=>dOf(e.at)))].sort(),who=(S.set.who||'').trim();
+function summaryText([a,b]){const L=inRange([a,b]),days=[...new Set(L.map(e=>dOf(e.at)))].sort(),who=(S.set.who||'').trim();
  const out=[`Cleaning summary: ${P().n||'Big Shiny'}`,a==b?longDate(a):longDate(a)+' to '+longDate(b)];if(who)out.push('Completed by '+who);
- out.push(plural(L.filter(isTask).length,'task')+(L.some(e=>e.a)?' done in '+plural(new Set(L.filter(e=>e.a).map(e=>e.a)).size,'area'):' done')+(RD.length?' · '+(RD.length==1?'Round ':'Rounds ')+RD.map(x=>tm(x.s)+' to '+tm(x.e)).join(', '):''));
+ out.push(plural(L.filter(isTask).length,'task')+(L.some(e=>e.a)?' done in '+plural(new Set(L.filter(e=>e.a).map(e=>e.a)).size,'area'):' done'));
  days.forEach(d=>{if(days.length>1)out.push('',longDate(d).toUpperCase());const es=L.filter(e=>dOf(e.at)==d),groups=new Map();
   es.forEach(e=>{const sec=e.a?eFloor(e)||'Other':'One-time tasks',k=e.a?eArea(e):'',g=groups.get(sec)||new Map();groups.set(sec,g);const l=g.get(k)||[];g.set(k,l);l.push(eTask(e)+(e.note?' (note: '+e.note+')':''))});
   const order=P().floors.map(f=>f.n).concat('Other','One-time tasks');[...groups.keys()].sort((x,y)=>order.indexOf(x)-order.indexOf(y)).forEach(sec=>{out.push('',sec);
@@ -606,13 +601,13 @@ async function shareSummary(r){const text=summaryText(r),title='Cleaning summary
  try{await navigator.clipboard.writeText(text);toast('Copied summary');return}catch(e){}
  openDlg('Summary','Copy this and paste it into a text or email.',[['Close','g bd',null]],`<textarea readonly style="height:220px">${esc(text)}</textarea>`)}
 // The printed page: header, totals, then one table per day
-function buildReport(){const r=logRange(),L=inRange(r),RD=roundsIn(r),days=[...new Set(L.map(e=>dOf(e.at)))].sort(),areas=new Set(L.map(e=>e.a));
+function buildReport(){const r=logRange(),L=inRange(r),days=[...new Set(L.map(e=>dOf(e.at)))].sort(),areas=new Set(L.map(e=>e.a));
  const who=(S.set.who||'').trim(),site=P().n;
  document.getElementById('rep').innerHTML=`<h1>Cleaning report${site?': '+esc(site):''}</h1>
   <p class="meta">${who?'Completed by '+esc(who)+' · ':''}${r[0]==r[1]?longDate(r[0]):longDate(r[0])+' to '+longDate(r[1])}</p>
-  <div class="sum"><div><b>${L.filter(isTask).length}</b>Tasks completed</div><div><b>${areas.size}</b>Areas cleaned</div><div><b>${days.length}</b>${days.length==1?'Day':'Days'}</div>${RD.length?`<div><b>${RD.length}</b>${RD.length==1?'Round':'Rounds'}</div>`:''}</div>
-  ${days.map(d=>{const es=L.filter(e=>dOf(e.at)==d),rs=RD.filter(x=>dOf(x.s)==d);
-   return `<h2>${longDate(d)}</h2>${rs.length?`<div class="rl">Rounds: ${rs.map(x=>tm(x.s)+' to '+tm(x.e)).join(', ')}</div>`:''}<table><thead><tr><th>Time</th><th>Area</th><th>Task</th><th>Note</th></tr></thead><tbody>${es.map(e=>`<tr><td class="t">${tm(e.at)}</td><td>${esc(eArea(e))}${eFloor(e)?'<br><small>'+esc(eFloor(e))+'</small>':''}</td><td>${esc(eTask(e))}</td><td class="n">${esc(e.note||'')}</td></tr>`).join('')}</tbody></table>`}).join('')}
+  <div class="sum"><div><b>${L.filter(isTask).length}</b>Tasks completed</div><div><b>${areas.size}</b>Areas cleaned</div><div><b>${days.length}</b>${days.length==1?'Day':'Days'}</div></div>
+  ${days.map(d=>{const es=L.filter(e=>dOf(e.at)==d);
+   return `<h2>${longDate(d)}</h2><table><thead><tr><th>Time</th><th>Area</th><th>Task</th><th>Note</th></tr></thead><tbody>${es.map(e=>`<tr><td class="t">${tm(e.at)}</td><td>${esc(eArea(e))}${eFloor(e)?'<br><small>'+esc(eFloor(e))+'</small>':''}</td><td>${esc(eTask(e))}</td><td class="n">${esc(e.note||'')}</td></tr>`).join('')}</tbody></table>`}).join('')}
   <p class="foot">Printed ${new Date().toLocaleString()} from Big Shiny Rounds</p>`}
 
 // ---- Supplies ----
@@ -762,7 +757,7 @@ function jobDueDlg(id){const j=P().jobs.find(x=>x.id==id);if(!j)return;
   `<div class="dform"><div class="dates"><label class="mu">Day<input type="date" data-k="d" value="${j.due||tdy()}"></label><label class="mu">Time <span style="font-weight:600">(optional)</span><input type="time" data-k="t" value="${j.dt||''}"></label></div></div>`)}
 // Check a one-time task off (it goes into the history) or uncheck it
 function tickJob(id,on){const j=P().jobs.find(x=>x.id==id);if(!j)return;
- if(on){const e={id:uid('e'),a:'',t:j.id,p:P().id,at:Date.now(),an:'One-time task',tn:j.n||'Untitled task',...(curHere()?{r:S.cur.id}:{})};
+ if(on){const e={id:uid('e'),a:'',t:j.id,p:P().id,at:Date.now(),an:'One-time task',tn:j.n||'Untitled task'};
   S.log.push(e);j.done=e.at;j.e=e.id;save();R();toast('Done: '+(j.n||'task'));return}
  const k=S.log.findIndex(x=>x.id==j.e),e=k>=0?S.log.splice(k,1)[0]:null,o=[j.done,j.e];j.done=null;delete j.e;save();R();
  toast('Unchecked '+(j.n||'task'),()=>{if(e)S.log.splice(Math.min(k,S.log.length),0,e);[j.done,j.e]=o;save();R()})}
@@ -782,8 +777,7 @@ let LSEL=null;                            // UI-only: room picked in the map edi
 // Tap a label in the map editor: rename or remove it
 function markDlg(fid,mid){const f=P().floors.find(x=>x.id==fid),m=f&&(f.marks||[]).find(x=>x.id==mid);if(!m)return;
  openDlg('Label','',[['Save','',v=>{v=(v||'').trim();if(v){m.n=v;save();R()}}],['Remove label','x bd',()=>{const i=f.marks.indexOf(m);f.marks.splice(i,1);save();R();toast('Removed label',()=>{f.marks.splice(i,0,m);save();R()})}],['Cancel','g bd',null]],`<input type="text" id="dlgIn" value="${esc(m.n)}" autocomplete="off">`)}
-// Switching property finishes a round that's running at the old one
-function switchProp(id){if(id==P().id)return;if(S.cur&&S.cur.p!=id){const c=S.cur,n=S.log.filter(e=>e.r==c.id).length;if(n)S.rounds.push({id:c.id,s:c.s,e:Date.now(),p:c.p});S.cur=null}
+function switchProp(id){if(id==P().id)return;
  S.set.prop=id;EA=EL=MS=FV=null;save();R();scrollTo(0,0);toast('Switched to '+(P().n||'property'))}
 function addPropDlg(){openDlg('Add a property','It starts with the same standard tasks as '+(P().n||'this one')+'. Add its floors and areas in Setup.',
  [['Add property','',v=>{v=(v||'').trim();if(!v){toast('Enter a name first');return}
@@ -815,10 +809,6 @@ const ACT={
  fstep:d=>{const fs=mapFloors(),i=fs.findIndex(x=>x.id==FV),f=fs[i+(+d.d)];if(!f)return;FV=f.id;MS=null;R();scrollTo(0,0);slideIn(+d.d)},
  selArea:d=>{MS=MS==d.id?null:d.id;if(FV&&MS)delete O['a'+MS];R();if(MS)requestAnimationFrame(()=>{const el=FV?document.getElementById('ac-'+MS):document.querySelector('[data-map]');if(FV&&el){el.scrollIntoView({behavior:'smooth',block:'start'});return}el&&el.getBoundingClientRect().bottom>innerHeight-90&&el.scrollIntoView({behavior:'smooth',block:'nearest'})})},
  goFloor:d=>{const dir=FV?Math.sign(mapFloors().findIndex(x=>x.id==d.id)-mapFloors().findIndex(x=>x.id==FV)):0;if(d.id==FV)return;FV=d.id;MS=null;if(T=='rounds'){R();scrollTo(0,0);if(dir)slideIn(dir)}else goTab('rounds')},
- startRound:()=>{S.cur={id:uid('r'),s:Date.now(),p:P().id};save();R();toast('Started a round');if(T=='today')goTab('rounds')},
- endRound:()=>{const c=S.cur;if(!c)return;const n=S.log.filter(e=>e.r==c.id).length;
-  if(!n){openDlg('Finish this round?','Nothing was checked off, so it won’t be saved in the log.',[['Finish without saving','x bd',()=>{S.cur=null;save();R()}],['Keep going','g bd',null]]);return}
-  const r={id:c.id,s:c.s,e:Date.now(),p:c.p};S.rounds.push(r);S.cur=null;save();R();toast('Round finished: '+plural(n,'task'),()=>{S.rounds=S.rounds.filter(x=>x!==r);S.cur=c;save();R()});window.Feedback&&Feedback.hap('success')},
  // log
  range:d=>{LR=d.v;if(LR=='custom'&&!LF){LF=addDays(tdy(),-6);LT=tdy()}R()},
  lf:(d,el)=>{LF=el.value;R()}, lt:(d,el)=>{LT=el.value;R()},
@@ -855,7 +845,7 @@ const ACT={
  addMark:()=>{const f=P().floors.find(x=>x.id==EL);if(!f)return;openDlg('Add a label','It goes in the middle of the map. Drag it into place.',[['Add label','',v=>{v=(v||'').trim();if(!v){toast('Enter a name first');return}(f.marks=f.marks||[]).push({id:uid('m'),n:v,x:COLS/2,y:ROWS/2});save();R();toast('Added '+v)}],['Cancel','g bd',null]],'<input type="text" id="dlgIn" placeholder="e.g. Entrance, Closet, Office" autocomplete="off">')},
  // properties
  props:()=>{openDlg('Properties','',[...S.props.map(p=>[p.n||'Untitled property',p.id==P().id?'':'g bd',()=>switchProp(p.id)]),['Add a property','g bd',addPropDlg],['Cancel','g bd',null]])},
- delProp:()=>{const p=P();openDlg('Delete '+(p.n||'this property')+'?','Its floors, areas, supplies and history are removed from this device. This can’t be undone.',[['Delete property','x bd',()=>{const id=p.id;if(S.cur&&S.cur.p==id)S.cur=null;S.props=S.props.filter(x=>x!==p);S.log=S.log.filter(e=>e.p!=id);S.rounds=S.rounds.filter(r=>r.p!=id);S.set.prop=S.props[0].id;EA=EL=MS=null;save();R();scrollTo(0,0);toast('Deleted '+(p.n||'property'))}],['Cancel','g bd',null]])},
+ delProp:()=>{const p=P();openDlg('Delete '+(p.n||'this property')+'?','Its floors, areas, supplies and history are removed from this device. This can’t be undone.',[['Delete property','x bd',()=>{const id=p.id;S.props=S.props.filter(x=>x!==p);S.log=S.log.filter(e=>e.p!=id);S.set.prop=S.props[0].id;EA=EL=MS=null;save();R();scrollTo(0,0);toast('Deleted '+(p.n||'property'))}],['Cancel','g bd',null]])},
  sfreq:(d,el)=>{const a=ea();if(!a)return;a.sf=a.sf||{};if(el.value=='daily')delete a.sf[d.id];else a.sf[d.id]=el.value;save();R()},
  skip:(d,el)=>{const a=ea();if(!a)return;a.skip=a.skip.filter(x=>x!=d.id);if(!el.checked)a.skip.push(d.id);save();R()},
  addEx:()=>{const a=ea();if(!a)return;a.ex.push({id:uid('t'),n:'',f:'daily'});save();R();const ins=document.querySelectorAll('[data-dl$=".ex"] input');ins.length&&ins[ins.length-1].focus()},
