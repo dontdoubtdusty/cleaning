@@ -468,7 +468,7 @@ const isLow=s=>s.low!=null&&s.q!=null&&s.q<=s.low;
 const eArea=e=>{const a=areaById(e.a);return a?areaName(a):e.an||'Deleted area'};
 const eFloor=e=>{const a=areaById(e.a),f=a&&floorOf(a);return f?f.n:e.fn||''};
 const isTask=e=>e.t!='fin';                                       // a real task, not an area marked finished
-const eTask=e=>{if(e.t=='fin')return 'Finished for today';   // what was skipped shows only in the app's Log, not the report or summary
+const eTask=e=>{if(e.t=='fin')return 'Finished for today';
  if(!e.a){const j=P().jobs.find(x=>x.id==e.t);if(j&&j.n)return j.n}const a=areaById(e.a),t=(a?a.ex:[]).concat(P().std).find(x=>x.id==e.t);return t?t.n:e.tn||'Deleted task'};
 // Before deleting, write the names into the history so old entries still read correctly
 function snap(pred){S.log.forEach(e=>{if(pred(e)){e.an=eArea(e);e.tn=eTask(e);e.fn=eFloor(e)}})}
@@ -579,15 +579,16 @@ function areaCard(a,map,force){const ks=kids(a),parts=(ks.length?ks:[a]).map(x=>
 function vLog(){const r=logRange(),L=inRange(r),RD=roundsIn(r),days=[...new Set(L.map(e=>dOf(e.at)).concat(RD.map(x=>dOf(x.s))))].sort().reverse();
  let h=propBar()+`<div class="card wide"><h2>History</h2><div class="seg qm wrap">${[['today','Today'],['yest','Yesterday'],['7','7 days'],['30','30 days'],['custom','Custom']].map(([v,l])=>`<button class="${LR==v?'on':''}" data-a="range" data-v="${v}">${l}</button>`).join('')}</div>
   ${LR=='custom'?`<div class="dates"><label class="mu">From<input type="date" value="${r[0]}" data-a="lf"></label><label class="mu">To<input type="date" value="${r[1]}" data-a="lt"></label></div>`:''}
-  <div class="row" style="margin-top:10px"><span style="flex:1"><b>${plural(L.filter(isTask).length,'task')}</b> <span class="mu">${r[0]==r[1]?sd(r[0]):sd(r[0])+' to '+sd(r[1])}</span></span><button class="g bd" data-a="shareSum" ${L.length?'':'disabled'}>Share</button><button data-a="print" ${L.length?'':'disabled'}>Print report</button></div></div>`;
+  <div class="row" style="margin-top:10px"><span style="flex:1"><b>${plural(L.filter(isTask).length,'task')}</b> <span class="mu">${r[0]==r[1]?sd(r[0]):sd(r[0])+' to '+sd(r[1])}</span></span><button class="g bd" data-a="shareSum" ${L.some(isTask)?'':'disabled'}>Share</button><button data-a="print" ${L.some(isTask)?'':'disabled'}>Print report</button></div></div>`;
  if(!days.length)return h+`<div class="card wide"><p class="mu" style="margin:0">Nothing checked off in this range yet.</p></div>`;
  days.forEach(d=>{const es=L.filter(e=>dOf(e.at)==d).reverse(),rs=RD.filter(x=>dOf(x.s)==d);
   h+=`<div class="card"><h3><span>${longDate(d)}</span><span class="mu">${es.filter(isTask).length}</span></h3>${rs.map(x=>`<div class="rnd">Round ${tm(x.s)} to ${tm(x.e)}</div>`).join('')}${es.map(e=>`<div class="lrow"><span class="tm">${tm(e.at)}</span><div><b>${e.t=='fin'?'Finished for today':esc(eTask(e))}</b>${e.t=='fin'&&e.sk&&e.sk.length?`<span class="mu">Skipped: ${esc(e.sk.join(', '))}</span>`:''}<span class="mu">${esc(eArea(e))}${eFloor(e)?' · '+esc(eFloor(e)):''}</span>${e.note?`<div class="nt">${esc(e.note)}</div>`:''}</div><button class="nb${e.note?' has':''}" data-a="note" data-id="${e.id}" aria-label="Note">${ICN}</button><button class="x" data-a="delEntry" data-id="${e.id}" aria-label="Delete">${ICX}</button></div>`).join('')}</div>`});
  return h}
 // A plain-text summary for texting or emailing: per day, the tasks grouped by area, floor by floor, with notes.
-function summaryText([a,b]){const L=inRange([a,b]),RD=roundsIn([a,b]),days=[...new Set(L.map(e=>dOf(e.at)))].sort(),who=(S.set.who||'').trim();
+// The summary and printed report list only tasks done; areas marked finished (and what they skipped) stay in the app's Log
+function summaryText([a,b]){const L=inRange([a,b]).filter(isTask),RD=roundsIn([a,b]),days=[...new Set(L.map(e=>dOf(e.at)))].sort(),who=(S.set.who||'').trim();
  const out=[`Cleaning summary: ${P().n||'Big Shiny'}`,a==b?longDate(a):longDate(a)+' to '+longDate(b)];if(who)out.push('Completed by '+who);
- out.push(plural(L.filter(isTask).length,'task')+(L.some(e=>e.a&&isTask(e))?' done in '+plural(new Set(L.filter(e=>e.a&&isTask(e)).map(e=>e.a)).size,'area'):' done')+(RD.length?' · '+(RD.length==1?'Round ':'Rounds ')+RD.map(x=>tm(x.s)+' to '+tm(x.e)).join(', '):''));
+ out.push(plural(L.length,'task')+(L.some(e=>e.a)?' done in '+plural(new Set(L.filter(e=>e.a).map(e=>e.a)).size,'area'):' done')+(RD.length?' · '+(RD.length==1?'Round ':'Rounds ')+RD.map(x=>tm(x.s)+' to '+tm(x.e)).join(', '):''));
  days.forEach(d=>{if(days.length>1)out.push('',longDate(d).toUpperCase());const es=L.filter(e=>dOf(e.at)==d),groups=new Map();
   es.forEach(e=>{const sec=e.a?eFloor(e)||'Other':'One-time tasks',k=e.a?eArea(e):'',g=groups.get(sec)||new Map();groups.set(sec,g);const l=g.get(k)||[];g.set(k,l);l.push(eTask(e)+(e.note?' (note: '+e.note+')':''))});
   const order=P().floors.map(f=>f.n).concat('Other','One-time tasks');[...groups.keys()].sort((x,y)=>order.indexOf(x)-order.indexOf(y)).forEach(sec=>{out.push('',sec);
@@ -599,7 +600,7 @@ async function shareSummary(r){const text=summaryText(r),title='Cleaning summary
  try{await navigator.clipboard.writeText(text);toast('Copied summary');return}catch(e){}
  openDlg('Summary','Copy this and paste it into a text or email.',[['Close','g bd',null]],`<textarea readonly style="height:220px">${esc(text)}</textarea>`)}
 // The printed page: header, totals, then one table per day
-function buildReport(){const r=logRange(),L=inRange(r),RD=roundsIn(r),days=[...new Set(L.map(e=>dOf(e.at)))].sort(),areas=new Set(L.map(e=>e.a));
+function buildReport(){const r=logRange(),L=inRange(r).filter(isTask),RD=roundsIn(r),days=[...new Set(L.map(e=>dOf(e.at)))].sort(),areas=new Set(L.map(e=>e.a));
  const who=(S.set.who||'').trim(),site=P().n;
  document.getElementById('rep').innerHTML=`<h1>Cleaning report${site?': '+esc(site):''}</h1>
   <p class="meta">${who?'Completed by '+esc(who)+' · ':''}${r[0]==r[1]?longDate(r[0]):longDate(r[0])+' to '+longDate(r[1])}</p>
