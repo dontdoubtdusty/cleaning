@@ -445,7 +445,7 @@ function isDue(f,last){if(f=='need')return false;if(!last)return true;
  if(f=='round')return curHere()?last.at<S.cur.s:dOf(last.at)<tdy();
  return tdy()>=nextDue(f,last)}
 // State of one task in one area right now
-// An area finished for the day: a log entry with t 'fin' and sk = names of the tasks skipped then.
+// An area marked clean for the day: a log entry with t 'fin' and sk = names of the tasks skipped then.
 // Whatever was still due in it (or in its parent area) stops being due until tomorrow, or the next round for per-round tasks.
 const finOf=a=>[a.id,a.par].map(id=>id&&LI.get(id+'|fin')).filter(e=>e&&dOf(e.at)==tdy()).sort((x,y)=>y.at-x.at)[0];
 function st(a,t){const last=lastOf(a,t),today=!!last&&dOf(last.at)==tdy();let due=isDue(t.f,last);
@@ -467,8 +467,8 @@ const isLow=s=>s.low!=null&&s.q!=null&&s.q<=s.low;
 // Names for a log entry (falls back to the names saved when an area or task was deleted)
 const eArea=e=>{const a=areaById(e.a);return a?areaName(a):e.an||'Deleted area'};
 const eFloor=e=>{const a=areaById(e.a),f=a&&floorOf(a);return f?f.n:e.fn||''};
-const isTask=e=>e.t!='fin';                                       // a real task, not an area marked finished
-const eTask=e=>{if(e.t=='fin')return 'Finished for today';
+const isTask=e=>e.t!='fin';                                       // a real task, not an area marked clean
+const eTask=e=>{if(e.t=='fin')return 'Area marked clean';
  if(!e.a){const j=P().jobs.find(x=>x.id==e.t);if(j&&j.n)return j.n}const a=areaById(e.a),t=(a?a.ex:[]).concat(P().std).find(x=>x.id==e.t);return t?t.n:e.tn||'Deleted task'};
 // Before deleting, write the names into the history so old entries still read correctly
 function snap(pred){S.log.forEach(e=>{if(pred(e)){e.an=eArea(e);e.tn=eTask(e);e.fn=eFloor(e)}})}
@@ -573,7 +573,7 @@ function areaCard(a,map,force){const ks=kids(a),parts=(ks.length?ks:[a]).map(x=>
  const body=ks.length?parts.filter(q=>q.shown.length).map(({x,ts,shown})=>{const c=cut(ts);
    return `<div class="sub"><div class="subh"><b>${esc(x.n||'Untitled')}</b><span class="${c.due?'':'pos'}">${c.due?c.dn+'/'+c.cnt:'Done'}</span>${c.due>1?`<button class="g bd" data-a="allDone" data-ar="${x.id}">All done</button>`:''}</div>${tourBadges(toursToday(x,1))}${noteBtn(x)}${taskRows(x,shown,map)}</div>`}).join(''):taskRows(a,parts[0].shown,map);
  return `<details id="ac-${a.id}" class="card area wide${due?'':' done'}"${map?' data-map="1"':` data-o="a${a.id}"`} ${open?'open':''}><summary><div><b>${esc(a.n)}</b>${bar(dn,cnt)}${tourBadges(toursToday(a))}</div><em>${due?dn+'/'+cnt:'Done'}</em>${CHEV}</summary><div class="tasks">${noteBtn(a)}${body}
-  <div class="aall">${a.note?'':`<button class="g" data-a="areaNote" data-id="${a.id}">Add area note</button>`}<button class="g bd" data-a="editArea" data-id="${a.id}">Edit area</button>${due?`<button class="g bd" data-a="finArea" data-ar="${a.id}">Finish for today</button>`:''}${due>1?`<button class="g bd" data-a="allDone" data-ar="${a.id}">Mark all done</button>`:''}</div></div></details>`}
+  <div class="aall">${a.note?'':`<button class="g" data-a="areaNote" data-id="${a.id}">Add area note</button>`}<button class="g bd" data-a="editArea" data-id="${a.id}">Edit area</button>${due?`<button class="g bd" data-a="finArea" data-ar="${a.id}">Mark clean</button>`:''}${due>1?`<button class="g bd" data-a="allDone" data-ar="${a.id}">Mark all done</button>`:''}</div></div></details>`}
 
 // ---- Log: history and the printable report ----
 function vLog(){const r=logRange(),L=inRange(r),RD=roundsIn(r),days=[...new Set(L.map(e=>dOf(e.at)).concat(RD.map(x=>dOf(x.s))))].sort().reverse();
@@ -582,10 +582,10 @@ function vLog(){const r=logRange(),L=inRange(r),RD=roundsIn(r),days=[...new Set(
   <div class="row" style="margin-top:10px"><span style="flex:1"><b>${plural(L.filter(isTask).length,'task')}</b> <span class="mu">${r[0]==r[1]?sd(r[0]):sd(r[0])+' to '+sd(r[1])}</span></span><button class="g bd" data-a="shareSum" ${L.some(isTask)?'':'disabled'}>Share</button><button data-a="print" ${L.some(isTask)?'':'disabled'}>Print report</button></div></div>`;
  if(!days.length)return h+`<div class="card wide"><p class="mu" style="margin:0">Nothing checked off in this range yet.</p></div>`;
  days.forEach(d=>{const es=L.filter(e=>dOf(e.at)==d).reverse(),rs=RD.filter(x=>dOf(x.s)==d);
-  h+=`<div class="card"><h3><span>${longDate(d)}</span><span class="mu">${es.filter(isTask).length}</span></h3>${rs.map(x=>`<div class="rnd">Round ${tm(x.s)} to ${tm(x.e)}</div>`).join('')}${es.map(e=>`<div class="lrow"><span class="tm">${tm(e.at)}</span><div><b>${e.t=='fin'?'Finished for today':esc(eTask(e))}</b>${e.t=='fin'&&e.sk&&e.sk.length?`<span class="mu">Skipped: ${esc(e.sk.join(', '))}</span>`:''}<span class="mu">${esc(eArea(e))}${eFloor(e)?' · '+esc(eFloor(e)):''}</span>${e.note?`<div class="nt">${esc(e.note)}</div>`:''}</div><button class="nb${e.note?' has':''}" data-a="note" data-id="${e.id}" aria-label="Note">${ICN}</button><button class="x" data-a="delEntry" data-id="${e.id}" aria-label="Delete">${ICX}</button></div>`).join('')}</div>`});
+  h+=`<div class="card"><h3><span>${longDate(d)}</span><span class="mu">${es.filter(isTask).length}</span></h3>${rs.map(x=>`<div class="rnd">Round ${tm(x.s)} to ${tm(x.e)}</div>`).join('')}${es.map(e=>`<div class="lrow"><span class="tm">${tm(e.at)}</span><div><b>${e.t=='fin'?'Area marked clean':esc(eTask(e))}</b>${e.t=='fin'&&e.sk&&e.sk.length?`<span class="mu">Skipped: ${esc(e.sk.join(', '))}</span>`:''}<span class="mu">${esc(eArea(e))}${eFloor(e)?' · '+esc(eFloor(e)):''}</span>${e.note?`<div class="nt">${esc(e.note)}</div>`:''}</div><button class="nb${e.note?' has':''}" data-a="note" data-id="${e.id}" aria-label="Note">${ICN}</button><button class="x" data-a="delEntry" data-id="${e.id}" aria-label="Delete">${ICX}</button></div>`).join('')}</div>`});
  return h}
 // A plain-text summary for texting or emailing: per day, the tasks grouped by area, floor by floor, with notes.
-// The summary and printed report list only tasks done; areas marked finished (and what they skipped) stay in the app's Log
+// The summary and printed report list only tasks done; areas marked clean (and what they skipped) stay in the app's Log
 function summaryText([a,b]){const L=inRange([a,b]).filter(isTask),RD=roundsIn([a,b]),days=[...new Set(L.map(e=>dOf(e.at)))].sort(),who=(S.set.who||'').trim();
  const out=[`Cleaning summary: ${P().n||'Big Shiny'}`,a==b?longDate(a):longDate(a)+' to '+longDate(b)];if(who)out.push('Completed by '+who);
  out.push(plural(L.length,'task')+(L.some(e=>e.a)?' done in '+plural(new Set(L.filter(e=>e.a).map(e=>e.a)).size,'area'):' done')+(RD.length?' · '+(RD.length==1?'Round ':'Rounds ')+RD.map(x=>tm(x.s)+' to '+tm(x.e)).join(', '):''));
@@ -791,11 +791,11 @@ const ACT={
   leaf(a).forEach(x=>tasksOf(x).forEach(t=>{if(st(x,t).due){const e=entry(x,t);S.log.push(e);ids.push(e.id)}}));
   save();R();buildIndex();if(all>0&&prog(P().areas).due==0)setTimeout(confetti,80);
   else toast('Done: '+a.n,()=>{S.log=S.log.filter(e=>!ids.includes(e.id));save();R()})},
- // Finish an area without checking the rest: only what was checked goes in the history as done, plus one entry naming what was skipped
+ // Mark an area clean without checking the rest: only what was checked goes in the history as done, plus one entry naming what was skipped
  finArea:d=>{const a=areaById(d.ar);if(!a)return;buildIndex();const all=prog(P().areas).due,ks=kids(a).length;
   const sk=leaf(a).flatMap(x=>tasksOf(x).filter(t=>st(x,t).due).map(t=>(ks?(x.n||'Untitled')+': ':'')+t.n));if(!sk.length)return;
   const e={...entry(a,{id:'fin'}),sk};S.log.push(e);save();buildIndex();R();if(all>0&&prog(P().areas).due==0)setTimeout(confetti,80);
-  else toast('Finished '+(a.n||'area')+', skipped '+sk.length,()=>{S.log=S.log.filter(x=>x.id!=e.id);save();R()})},
+  else toast((a.n||'Area')+' marked clean, skipped '+sk.length,()=>{S.log=S.log.filter(x=>x.id!=e.id);save();R()})},
  note:d=>noteDlg(d.id),
  areaNote:d=>areaNoteDlg(d.id),
  // tours
