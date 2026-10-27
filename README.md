@@ -5,7 +5,7 @@ Cleaning rounds that run in your browser. It's part of the Big apps, alongside [
 ## Features
 
 - More than one property: tap the property name at the top to switch or add one. Each has its own floors, areas, tasks, supplies and history.
-- Your building set up as floors and areas, in the order you walk them
+- Your building set up as floors and areas, in the order you walk them. Tap **Edit area** on any area's checklist in Rounds to change it right there, and the back button takes you straight back to where you were.
 - A map of each floor (Rounds > Map): every room is drawn where it sits in real life, colored by what's left to do. Tap one for its checklist. Lay it out under Setup > Edit map on a pegboard 12 pegs across: drag rooms onto the pegs (drop one on another to swap them), drag a corner peg to resize, make L-shaped rooms, and add labels like Entrance or Closet.
 - Sub areas: split an area into parts with their own checklists, like a hallway and each of four offices (Setup > the area > Sub areas). Each sub area gets the standard tasks and its own extras, and a new one starts with a copy of the last one's tasks. On Rounds they show together under the area, each with its own heading and "All done" button; on the map the area stays one room.
 - One standard task set (sweep, mop, dust, windows and door glass) that every area gets, with per-area extras and the option to turn a standard task off in a specific area

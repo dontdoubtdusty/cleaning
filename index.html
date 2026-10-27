@@ -110,7 +110,7 @@ nav.drag .hl{transition:none}
 /* ===== Rounds ===== */
 .view>.flh{display:flex;justify-content:space-between;align-items:baseline;margin:10px 4px -2px;scroll-margin-top:80px}
 .flh h2{margin:0;color:var(--tx)}.flh span{font-weight:800;font-size:13px;color:var(--mu)}
-.area{padding:0}.view>.area{padding-top:5px}
+.area{padding:0}.view>.area{padding-top:5px;scroll-margin-top:80px}
 .area>summary{display:flex;align-items:center;gap:12px;padding:14px 16px}
 .area>summary>div{flex:1;min-width:0}.area>summary b{display:block;font-weight:700;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.area>summary .bar{margin-top:7px;height:6px}
 .area>summary>em{flex:none;font-style:normal;font-weight:800;font-size:13px;color:var(--mu)}
@@ -124,7 +124,7 @@ nav.drag .hl{transition:none}
 .tm{flex:none;font-size:12px;font-weight:700;color:var(--mu)}
 .nb{flex:none;background:none;color:var(--mu);width:36px;height:36px;padding:0;display:grid;place-items:center;border-radius:10px}.nb.has{color:var(--pc);background:color-mix(in srgb,var(--pc) 12%,transparent)}
 .nt{margin:-4px 0 8px 38px;font-size:13px;color:var(--tx);background:var(--fld);border-radius:10px;padding:6px 10px}
-.aall{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding-top:6px}.aall button{padding:7px 14px;font-size:13px}.aall button.g:not(.bd){margin-right:auto;padding:7px 4px}
+.aall{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px;padding-top:6px}.aall button{padding:7px 14px;font-size:13px}.aall button.g:not(.bd){margin-right:auto;padding:7px 4px}
 .aall:empty{display:none}
 
 /* ===== Area notes and one-time tasks ===== */
@@ -296,6 +296,7 @@ function addMonths(d,n){const x=new Date(d+'T00:00'),day=x.getDate();x.setDate(1
 // =====================================================================
 let S,T='today';                          // data, current tab
 let FV=null;                              // UI-only: floor opened from Today (Rounds shows just that floor)
+let ERET=null;                            // UI-only: where an area editor opened from Rounds returns to {fv: floor shown, a: area}
 let O={},EA=null,EL=null,DLG=null,VIEW='due',MS=null,FL='';// UI-only: open <details>, area / floor map being edited in Setup, open popup, Rounds view (due/all/map), area picked on the map, flash message
 let LR='today',LF='',LT='';               // UI-only: log range and custom dates
 let LI=new Map();                         // UI-only: latest log entry for each "area|task", rebuilt on every draw
@@ -565,7 +566,7 @@ function areaCard(a,map,force){const ks=kids(a),parts=(ks.length?ks:[a]).map(x=>
  const body=ks.length?parts.filter(q=>q.shown.length).map(({x,ts,shown})=>{const c=cut(ts);
    return `<div class="sub"><div class="subh"><b>${esc(x.n||'Untitled')}</b><span class="${c.due?'':'pos'}">${c.due?c.dn+'/'+c.cnt:'Done'}</span>${c.due>1?`<button class="g bd" data-a="allDone" data-ar="${x.id}">All done</button>`:''}</div>${tourBadges(toursToday(x,1))}${noteBtn(x)}${taskRows(x,shown,map)}</div>`}).join(''):taskRows(a,parts[0].shown,map);
  return `<details id="ac-${a.id}" class="card area wide${due?'':' done'}"${map?' data-map="1"':` data-o="a${a.id}"`} ${open?'open':''}><summary><div><b>${esc(a.n)}</b>${bar(dn,cnt)}${tourBadges(toursToday(a))}</div><em>${due?dn+'/'+cnt:'Done'}</em>${CHEV}</summary><div class="tasks">${noteBtn(a)}${body}
-  <div class="aall">${a.note?'':`<button class="g" data-a="areaNote" data-id="${a.id}">Add area note</button>`}${due>1?`<button class="g bd" data-a="allDone" data-ar="${a.id}">Mark all done</button>`:''}</div></div></details>`}
+  <div class="aall">${a.note?'':`<button class="g" data-a="areaNote" data-id="${a.id}">Add area note</button>`}<button class="g bd" data-a="editArea" data-id="${a.id}">Edit area</button>${due>1?`<button class="g bd" data-a="allDone" data-ar="${a.id}">Mark all done</button>`:''}</div></div></details>`}
 
 // ---- Log: history and the printable report ----
 function vLog(){const r=logRange(),L=inRange(r),RD=roundsIn(r),days=[...new Set(L.map(e=>dOf(e.at)).concat(RD.map(x=>dOf(x.s))))].sort().reverse();
@@ -624,7 +625,7 @@ function vSetup(){if(EA){const a=areaById(EA);if(a)return vArea(a);EA=null}
   <div class="row" style="margin-top:6px"><input type="text" id="fn" placeholder="New floor or section"><button data-a="addFloor">Add</button></div></div>`;
  return h}
 function vArea(a){const i=P().areas.indexOf(a),p=PP()+'.areas.'+i,par=a.par&&areaById(a.par),ks=par?[]:kids(a);
- return `<button class="g lback" data-a="eaBack">‹ ${par?esc(par.n||'Untitled'):'All areas'}</button>
+ return `<button class="g lback" data-a="eaBack">‹ ${par?esc(par.n||'Untitled'):ERET?'Rounds':'All areas'}</button>
  <div class="card"><h2>${par?'Sub area':'Area'}</h2>${par?`<p class="mu" style="margin:0 0 8px">Part of ${esc(par.n||'Untitled')}</p>`:''}<label class="sec">Name</label>${I(p+'.n',par?'e.g. Office 1':'Area name')}
   ${par?'':`<label class="sec" style="margin-top:12px">Floor</label><select data-a="areaFloor">${P().floors.map(f=>`<option value="${f.id}" ${a.fl==f.id?'selected':''}>${esc(f.n)}</option>`).join('')}</select>`}
   <label class="sec" style="margin-top:12px">Note <span style="text-transform:none;letter-spacing:0;font-weight:600">(optional)</span></label><textarea class="anotein" data-p="${p}.note" data-t="s" placeholder="e.g. Key is in the office. Mop sink is behind the second door.">${esc(a.note||'')}</textarea>
@@ -814,7 +815,8 @@ const ACT={
  addStd:()=>{P().std.push({id:uid('t'),n:'',f:'daily'});save();R();const ins=document.querySelectorAll('[data-dl$=".std"] input');ins.length&&ins[ins.length-1].focus()},
  delStd:d=>{const i=+d.i,t=P().std[i];if(!t)return;snap(e=>e.t==t.id);P().std.splice(i,1);save();R();toast('Deleted “'+(t.n||'task')+'”',()=>{P().std.splice(i,0,t);save();R()})},
  addArea:d=>{const a={id:uid('a'),n:'',fl:d.fl,useStd:true,skip:[],ex:[]};P().areas.push(a);place(P(),a);EA=a.id;save();R();scrollTo(0,0);const n=document.querySelector('[data-p$=".n"]');n&&n.focus()},
- editArea:d=>{EA=d.id;R();scrollTo(0,0)}, eaBack:()=>{const a=ea();EA=a&&a.par?a.par:null;R();scrollTo(0,0)},
+ // From Rounds, the editor opens in Setup and its back button returns to the same spot on Rounds
+ editArea:d=>{if(T=='rounds'){ERET={fv:FV,a:d.id};EA=d.id;goTab('setup');return}EA=d.id;R();scrollTo(0,0)}, eaBack:()=>{const a=ea();if(!(a&&a.par)&&ERET)return backRounds();EA=a&&a.par?a.par:null;R();scrollTo(0,0)},
  addSub,
  areaFloor:(d,el)=>{const a=ea();if(!a)return;a.fl=el.value;kids(a).forEach(k=>k.fl=a.fl);place(P(),a);save();R()},
  editLay:d=>{EL=d.id;LSEL=null;R();scrollTo(0,0)}, elBack:()=>{EL=null;LSEL=null;R();scrollTo(0,0)},
@@ -905,7 +907,7 @@ let DAY='';document.addEventListener('visibilitychange',()=>{if(!document.hidden
 let RK='';
 function R(){const de=document.documentElement;de.dataset.theme=themeOf(S.set.theme||'system');dnTimer();DAY=tdy();buildIndex();
  const c=TC[T]||TC.today;de.style.setProperty('--pc',c[0]);de.style.setProperty('--pc2',c[1]);
- if(T!='setup'){EA=EL=null;DRAG=null}if(T!='rounds')FV=null;
+ if(T!='setup'){EA=EL=ERET=null;DRAG=null}if(T!='rounds')FV=null;
  const key=T+'|'+(EA||'')+'|'+(EL||'')+'|'+(FV||'')+'|'+P().id,full=key!==RK;RK=key;
  patch(APP(),(T=='more'?SETTINGS:TABS.find(t=>t[0]==T))[2](),full);
  document.getElementById('gear').classList.toggle('on',T=='more');
@@ -926,7 +928,7 @@ function slideIn(dir){const m=APP(),w=innerWidth;m.style.willChange='transform,o
  setTimeout(()=>{m.style.transition='';m.style.transform='';m.style.opacity='';m.style.willChange=''},240)}
 // Levels below Today: any other tab (or Settings) 1; an area or floor map open in Setup and an open popup each add one
 function navDepth(){const sa=T=='setup'&&EA&&areaById(EA);return (T=='today'?0:1)+(T=='setup'&&(EA||EL)?1:0)+(sa&&sa.par?1:0)+(T=='rounds'&&FV?1:0)+(DLG?1:0)}
-function navUp(){if(DLG)return closeDlg();if(T=='setup'&&(EA||EL)){const a=EA&&areaById(EA);EA=a&&a.par?a.par:null;EL=null;R();return}if(T=='rounds'&&FV){FV=null;MS=null;R();return}if(T!='today')goTab('today')}
+function navUp(){if(DLG)return closeDlg();if(T=='setup'&&EA&&ERET&&!(areaById(EA)||{}).par)return backRounds();if(T=='setup'&&(EA||EL)){const a=EA&&areaById(EA);EA=a&&a.par?a.par:null;EL=null;R();return}if(T=='rounds'&&FV){FV=null;MS=null;R();return}if(T!='today')goTab('today')}
 // ---- Phone back button (the same block as the other Big apps) ----
 let HD=0,HPOP=0;
 function navSync(){if(HPOP)return;const d=navDepth();
@@ -936,6 +938,10 @@ addEventListener('popstate',e=>{if(HPOP){HPOP=0;navSync();return}
  const to=Math.max(0,(e.state&&e.state.nav)||0);if(to>HD){HD=to;navSync();return}
  let n=HD-to;HD=to;while(n-->0&&navDepth()>0)navUp();navSync()});
 ['pointerup','touchend','keydown'].forEach(t=>addEventListener(t,()=>setTimeout(navSync),true));
+// Back from an area editor opened on Rounds: the same floor view, scrolled to that area's card
+function backRounds(){const r=ERET;ERET=null;EA=null;FV=r.fv&&P().floors.some(f=>f.id==r.fv)?r.fv:null;goTab('rounds');
+ // after the Back step in history settles, since the browser restores its own scroll spot then
+ setTimeout(()=>{const el=document.getElementById('ac-'+r.a);if(el)el.scrollIntoView({block:'start'})},60)}
 function goTab(id){if(id==T){scrollTo({top:0,behavior:'smooth'});return}const o=TABS.map(t=>t[0]),dir=o.indexOf(id)>o.indexOf(T)?1:-1;T=id;R();scrollTo(0,0);slideIn(T=='more'?1:dir)}
 
 // =====================================================================
