@@ -468,7 +468,8 @@ const isLow=s=>s.low!=null&&s.q!=null&&s.q<=s.low;
 const eArea=e=>{const a=areaById(e.a);return a?areaName(a):e.an||'Deleted area'};
 const eFloor=e=>{const a=areaById(e.a),f=a&&floorOf(a);return f?f.n:e.fn||''};
 const isTask=e=>e.t!='fin';                                       // a real task, not an area marked finished
-const eTask=e=>{if(e.t=='fin')return 'Finished for today'+(e.sk&&e.sk.length?', skipped '+e.sk.join(', '):'');if(!e.a){const j=P().jobs.find(x=>x.id==e.t);if(j&&j.n)return j.n}const a=areaById(e.a),t=(a?a.ex:[]).concat(P().std).find(x=>x.id==e.t);return t?t.n:e.tn||'Deleted task'};
+const eTask=e=>{if(e.t=='fin')return 'Finished for today';   // what was skipped shows only in the app's Log, not the report or summary
+ if(!e.a){const j=P().jobs.find(x=>x.id==e.t);if(j&&j.n)return j.n}const a=areaById(e.a),t=(a?a.ex:[]).concat(P().std).find(x=>x.id==e.t);return t?t.n:e.tn||'Deleted task'};
 // Before deleting, write the names into the history so old entries still read correctly
 function snap(pred){S.log.forEach(e=>{if(pred(e)){e.an=eArea(e);e.tn=eTask(e);e.fn=eFloor(e)}})}
 function logRange(){const t=tdy();
