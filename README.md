@@ -1,6 +1,6 @@
 # Big Shiny Rounds
 
-Cleaning rounds that run in your browser. It's part of the Big apps, alongside [Big Minty Finances](https://github.com/dontdoubtdusty/budget), [Big Skinny Health](https://github.com/dontdoubtdusty/diet) and [Big Saucy Recipes](https://github.com/dontdoubtdusty/cooking). It's one file (`index.html`) with no build step and no server.
+Cleaning rounds that run in your browser. It's part of the Big apps, alongside [Big Minty Finances](https://github.com/dontdoubtdusty/budget), [Big Saucy Recipes](https://github.com/dontdoubtdusty/cooking), [Big Skinny Health](https://github.com/dontdoubtdusty/diet) and [Big Tidy Reminders](https://github.com/dontdoubtdusty/reminders). It's one file (`index.html`) with no build step and no server.
 
 ## Features
 
