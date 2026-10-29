@@ -364,6 +364,9 @@ const MIGRATIONS=[
   for(const k in a.sf||{})if(a.sf[k]=='round')delete a.sf[k]}))},
  // v8: an area can have a wet floor sign out (a.wet: when it went out, in ms). It stays until it's picked up.
  S=>{S.props.forEach(p=>p.areas.forEach(a=>{if(a.wet!=null&&typeof a.wet!='number')delete a.wet}))},
+ // v9: end of the work day. S.off is today's stamp {d: 'YYYY-MM-DD', at: ms, k: 'out' (clocked out) or 'day' (day off)}, or null.
+ // Only today's counts, so it clears itself the next morning.
+ S=>{if(!S.off||typeof S.off!='object'||!S.off.d)S.off=null},
 ];
 function migrate(){S.set=S.set||{};for(let v=S.v||0;v<MIGRATIONS.length;v++)MIGRATIONS[v](S);S.v=MIGRATIONS.length;if(!S.props.some(p=>p.id==S.set.prop))S.set.prop=S.props[0].id;prune()}
 function load(){try{S=JSON.parse(localStorage.getItem(LS))}catch(e){}if(!S)S=seed();migrate()}
@@ -513,7 +516,10 @@ function hello(){const h=new Date().getHours(),g=h<12?'Good morning':h<17?'Good 
 const CHD='<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const propBar=()=>`<div class="pbar"><button data-a="props"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16M15 9h4a1 1 0 0 1 1 1v11M3 21h18M8 8h3M8 12h3M8 16h3"/></svg><span>${esc(P().n||'Untitled property')}</span>${S.props.length>1?CHD:'<em>+</em>'}</button></div>`;
 // The progress card at the top of Today and Rounds
-function roundCard(){const p=prog(P().areas);
+// Today's clock-out or day off, if there is one
+const offToday=()=>S.off&&S.off.d==tdy()?S.off:null;
+function roundCard(){const p=prog(P().areas),o=offToday();
+ if(o)return `<div class="pcb"><div><b>${o.k=='day'?'Day off':'Done for the day'}</b><span>${o.k=='day'?'Enjoy it. Nothing here is counting on you today.':'Clocked out at '+tm(o.at)}</span></div><button data-a="clockIn">${o.k=='day'?'Back to work':'Clock back in'}</button></div>`;
  return `<div class="pcb"><div><b>${p.due?plural(p.due,'task')+' due':'All caught up'}</b><span>${p.done?plural(p.done,'task')+' done today':p.due?'Nothing checked off yet today':'Nothing due right now'}</span></div></div>`}
 // One-time tasks: things you were asked to do once that aren't tied to an area. They stay until checked off,
 // then show crossed out for the rest of that day. Checking one off writes it into the history like any task.
@@ -551,7 +557,8 @@ function vToday(){const p=prog(P().areas),od=overdue(),low=P().sup.filter(isLow)
  return hello()+propBar()+welcome+bk+roundCard()
   +`<div class="tiles"><div class="tile"><span class="mu">Done today</span><b>${p.done}</b></div><div class="tile"><span class="mu">Still due</span><b>${p.due}</b></div></div>`
   +(inRange([tdy(),tdy()]).length?`<button class="g bd shr" data-a="shareDay">${ICS}Share today’s summary</button>`:'')
-  +wetc+odc+tourCard()+jobCard()+lowc+`<div class="card"><h2>Floors</h2>${floors||'<p class="mu">No areas yet. Add them in Setup.</p>'}</div>`}
+  +wetc+odc+tourCard()+jobCard()+lowc+`<div class="card"><h2>Floors</h2>${floors||'<p class="mu">No areas yet. Add them in Setup.</p>'}</div>`
+  +(offToday()?'':`<div class="card"><h2>End of the day</h2><p class="mu" style="margin:0 0 12px">Clock out when you’re done working, or mark today as a day off. Anything left stays due for tomorrow.</p><div class="row"><button data-a="clockOut" data-k="out">Clock out</button><button class="g bd" data-a="clockOut" data-k="day">Day off</button></div></div>`)}
 
 // ---- Rounds: walk the building and check tasks off ----
 // Due now / All tasks / Map / By floor
@@ -878,6 +885,10 @@ const ACT={
  theme:d=>{S.set.theme=d.v;save();R()},
  share:shareData, export:exportData, pickFile:()=>document.getElementById('bkf').click(), importFile:(d,el)=>importFile(el),
  reset:()=>{if(confirm('Erase everything on this device and start over? This can’t be undone.')){S=seed();migrate();save();flush();T='today';EA=EL=MS=null;R();toast('All data erased')}},
+ // end of the work day (Undo puts back whatever was there before)
+ clockOut:d=>{const was=S.off;S.off={d:tdy(),at:Date.now(),k:d.k=='day'?'day':'out'};save();R();scrollTo({top:0,behavior:'smooth'});
+  toast(d.k=='day'?'Saved today as a day off':'Done for the day at '+tm(S.off.at),()=>{S.off=was;save();R()})},
+ clockIn:()=>{const was=S.off;S.off=null;save();R();toast('Started your day again',()=>{S.off=was;save();R()})},
  bkLater:()=>{S.set.bkSnooze=Date.now()-4*DAY_MS;save();R()},
  welcomeOff:()=>{delete S.set.welcome;save();R()},
  // v: the main text box; vals: every popup field marked data-k, by name
