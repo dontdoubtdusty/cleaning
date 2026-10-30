@@ -41,6 +41,7 @@ summary{cursor:pointer;list-style:none}summary::-webkit-details-marker{display:n
 .row{display:flex;gap:8px;align-items:center;margin:2px 0;min-height:38px}.row>*{min-width:0}.row>.mu{flex:none}
 .ln{display:flex;justify-content:space-between;gap:8px;font-size:14px;padding:3px 0}.ln span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ln b{font-weight:600;white-space:nowrap}
 .tag.wh{color:var(--mu);background:color-mix(in srgb,var(--mu) 13%,transparent)}.tag.wh.lt{color:var(--wn);background:color-mix(in srgb,var(--wn) 15%,transparent)}
+.tag.vr{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tag.sk{color:var(--mu);background:color-mix(in srgb,var(--mu) 15%,transparent)}
 .tag{flex:none;font-size:10px;font-weight:800;letter-spacing:.4px;color:var(--pc);background:color-mix(in srgb,var(--pc) 13%,transparent);border-radius:99px;padding:3px 8px;text-transform:uppercase}
 .tag.low{color:var(--neg);background:color-mix(in srgb,var(--neg) 13%,transparent)}
@@ -178,7 +179,7 @@ textarea.anotein{height:72px}
 .sfr{min-height:0;flex-wrap:wrap}.sfr .chk{flex:1 1 100%;min-width:0}
 /* How often and time of day: two pickers on their own line under the task name */
 .wsel{display:flex;gap:6px;flex:1 1 100%;padding-left:32px;margin-bottom:4px}.wsel select.f{flex:1;max-width:150px}
-.exw{flex:1;min-width:0;display:flex;flex-wrap:wrap}.exw .wsel{padding-left:8px}
+.exw{flex:1;min-width:0;display:flex;flex-wrap:wrap}.wsel.vw{flex-wrap:wrap}.wsel.vw select.f{flex:none;width:auto}.ed .wsel input[type=text]{flex:1 1 140px;min-width:0;background:var(--fld)}.vtg{white-space:normal;line-height:1.3;font-size:13px;color:var(--mu);font-weight:600}.vtg input[type=checkbox]{width:20px;height:20px;border-radius:6px}.exw .wsel{padding-left:8px}
 .chk{display:flex;align-items:center;gap:12px;padding:6px 0;cursor:pointer;font-weight:600}
 .view>.lback{justify-self:start;grid-column:1/-1}
 .dh{flex:none;display:flex;align-items:center;justify-content:center;width:22px;height:34px;margin-left:-6px;color:var(--mu);opacity:.45;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
@@ -320,7 +321,7 @@ function seed(){
  const sid=n=>std.find(t=>t.n==n).id;
  const floors=['Floor 1','Floor 2','Floor 3','Floor 4','Building-wide'].map(n=>({id:uid('f'),n,marks:[]}));
  const fl=n=>floors.find(f=>f.n==n).id;
- const A=(n,f,ex=[],skip=[])=>({id:uid('a'),n,fl:fl(f),useStd:true,skip:skip.map(sid),sf:{},st:{},ex:ex.map(x=>Array.isArray(x)?tk(...x):tk(x))});
+ const A=(n,f,ex=[],skip=[])=>({id:uid('a'),n,fl:fl(f),useStd:true,skip:skip.map(sid),sf:{},st:{},vo:[],ex:ex.map(x=>Array.isArray(x)?tk(...x):tk(x))});
  const RR=['Clean toilets and urinals','Clean sinks and mirrors','Restock paper and soap','Empty trash'];
  const areas=[
   A('Trash room','Floor 1',['Empty and change bins','Wipe down bins and walls'],['Windows and door glass']),
@@ -377,6 +378,10 @@ const MIGRATIONS=[
  // v10: time of day. Each area sets it for standard tasks in a.st {std task id: 'early'|'late'} (anything not listed is anytime);
  // extra tasks carry their own (t.w). S.set.tsw is when early ends ('HH:MM').
  S=>{S.props.forEach(p=>p.areas.forEach(a=>{if(!a.st||typeof a.st!='object')a.st={}}));if(!S.set.tsw)S.set.tsw='12:00'},
+ // v11: every few times, a different version of a task (a hot water only mop every 4th time). A task can carry
+ // t.v {n: every nth time, x: what's different, from: ms it was set up}. Areas can turn a standard task's off: a.vo [std task ids].
+ // Log entries done as that version keep its text in e.v.
+ S=>{S.props.forEach(p=>p.areas.forEach(a=>{if(!Array.isArray(a.vo))a.vo=[]}))},
 ];
 function migrate(){S.set=S.set||{};for(let v=S.v||0;v<MIGRATIONS.length;v++)MIGRATIONS[v](S);S.v=MIGRATIONS.length;if(!S.props.some(p=>p.id==S.set.prop))S.set.prop=S.props[0].id;prune()}
 function load(){try{S=JSON.parse(localStorage.getItem(LS))}catch(e){}if(!S)S=seed();migrate()}
@@ -463,11 +468,16 @@ const stdFreq=(a,t)=>(a.sf||{})[t.id]||'daily';
 const stdWhen=(a,t)=>(a.st||{})[t.id]||'';
 // Past the time early tasks should be done by (Settings)
 const pastEarly=()=>new Date().toTimeString().slice(0,5)>=(S.set.tsw||'12:00');
-const tasksOf=a=>kids(a).length?[]:(a.useStd?P().std.filter(t=>!a.skip.includes(t.id)).map(t=>({id:t.id,n:t.n,f:stdFreq(a,t),w:stdWhen(a,t)})):[]).concat(a.ex);
+const tasksOf=a=>kids(a).length?[]:(a.useStd?P().std.filter(t=>!a.skip.includes(t.id)).map(t=>({id:t.id,n:t.n,f:stdFreq(a,t),w:stdWhen(a,t),v:t.v&&!(a.vo||[]).includes(t.id)?t.v:null})):[]).concat(a.ex);
 const areasOn=f=>P().areas.filter(a=>a.fl==f.id&&!a.par);       // top-level areas on a floor, in order
 function buildIndex(){const m=new Map();for(const e of S.log){const k=e.a+'|'+e.t,p=m.get(k);if(!p||e.at>p.at)m.set(k,e)}LI=m}
 const lastOf=(a,t)=>LI.get(a.id+'|'+t.id);
-const entry=(a,t)=>({id:uid('e'),a:a.id,t:t.id,p:P().id,at:Date.now()});
+// Every few times: how many more regular times until the different version (0 = this one is it), counted from the history
+// since it was set up or since the last time it was done that way. Null when the task has none (or it's off in this area).
+function varNext(a,t){const v=t.v;if(!v)return null;let k=0;
+ for(const e of S.log)if(e.a==a.id&&e.t==t.id&&e.at>=(v.from||0))k=e.v?0:k+1;
+ return {left:Math.max(0,(+v.n||4)-1-k),x:v.x||'Different this time'}}
+const entry=(a,t)=>{const e={id:uid('e'),a:a.id,t:t.id,p:P().id,at:Date.now()},vn=t.id!='fin'&&varNext(a,t);if(vn&&!vn.left)e.v=vn.x;return e};
 // When a task done on `last` comes due again
 function nextDue(f,last){const d=dOf(last.at);return f=='daily'?addDays(d,1):f=='weekly'?addDays(d,7):f=='monthly'?addMonths(d,1):null}
 function isDue(f,last){if(f=='need')return false;if(!last)return true;
@@ -497,7 +507,7 @@ const eArea=e=>{const a=areaById(e.a);return a?areaName(a):e.an||'Deleted area'}
 const eFloor=e=>{const a=areaById(e.a),f=a&&floorOf(a);return f?f.n:e.fn||''};
 const isTask=e=>e.t!='fin';                                       // a real task, not an area marked clean
 const eTask=e=>{if(e.t=='fin')return 'Area marked clean';
- if(!e.a){const j=P().jobs.find(x=>x.id==e.t);if(j&&j.n)return j.n}const a=areaById(e.a),t=(a?a.ex:[]).concat(P().std).find(x=>x.id==e.t);return t?t.n:e.tn||'Deleted task'};
+ if(!e.a){const j=P().jobs.find(x=>x.id==e.t);if(j&&j.n)return j.n}const a=areaById(e.a),t=(a?a.ex:[]).concat(P().std).find(x=>x.id==e.t);return (t?t.n:e.tn||'Deleted task')+(e.v?' ('+e.v+')':'')};
 // Before deleting, write the names into the history so old entries still read correctly
 function snap(pred){S.log.forEach(e=>{if(pred(e)){e.an=eArea(e);e.tn=eTask(e);e.fn=eFloor(e)}})}
 function logRange(){const t=tdy();
@@ -590,10 +600,12 @@ function vRounds(){
  return h}
 // The checklist rows for one area or sub area
 // Early tasks first, then anytime, then later ones (otherwise in their saved order)
+// The different version: on a task when this time is the one, or on one already done that way today
+const varTag=(a,t,s)=>{const x=s.done?s.last.v:(vn=>vn&&!vn.left&&vn.x)(varNext(a,t));return x?`<span class="tag vr">${esc(x)}</span>`:''};
 const whenTag=(t,s)=>t.w&&!s.done?`<span class="tag wh${t.w=='early'&&s.due&&pastEarly()?' lt':''}">${WN[t.w]}</span>`:'';
 function taskRows(a,shown,map){return [...shown].sort((x,y)=>WO[x.t.w||'']-WO[y.t.w||'']).map(({t,s})=>{
    const note=s.done&&s.last.note;
-   return `<div class="task"><label><input type="checkbox" ${s.done?'checked':''} data-a="tick" data-ar="${a.id}" data-tk="${t.id}"><span>${esc(t.n)}</span></label>${whenTag(t,s)}${s.skip?'<span class="tag sk">Skipped</span>':t.f!='daily'?`<span class="tag">${FN[t.f]}</span>`:''}${s.done?`<span class="tm">${tm(s.last.at)}</span><button class="nb${note?' has':''}" data-a="note" data-id="${s.last.id}" aria-label="Note">${ICN}</button>`:s.last&&(VIEW=='all'||map)?`<span class="tm">${sd(dOf(s.last.at))}</span>`:''}</div>${note?`<div class="nt">${esc(note)}</div>`:''}`}).join('')}
+   return `<div class="task"><label><input type="checkbox" ${s.done?'checked':''} data-a="tick" data-ar="${a.id}" data-tk="${t.id}"><span>${esc(t.n)}</span></label>${varTag(a,t,s)}${whenTag(t,s)}${s.skip?'<span class="tag sk">Skipped</span>':t.f!='daily'?`<span class="tag">${FN[t.f]}</span>`:''}${s.done?`<span class="tm">${tm(s.last.at)}</span><button class="nb${note?' has':''}" data-a="note" data-id="${s.last.id}" aria-label="Note">${ICN}</button>`:s.last&&(VIEW=='all'||map)?`<span class="tm">${sd(dOf(s.last.at))}</span>`:''}</div>${note?`<div class="nt">${esc(note)}</div>`:''}`}).join('')}
 const wetWhen=a=>dOf(a.wet)==tdy()?tm(a.wet):sd(dOf(a.wet));
 const wetBadge=a=>a.wet?`<span class="tbg wbg">${WET}<span>Wet floor sign out since ${wetWhen(a)}</span></span>`:'';
 const tourBadges=xs=>xs.map(x=>`<span class="tbg">${CLK}<span>${esc(tourTxt(x))}</span></span>`).join('');
@@ -655,10 +667,13 @@ function vSup(){const low=P().sup.filter(isLow);
 
 // ---- Setup: standard tasks, floors, areas ----
 const freqSel=p=>SEL(p,FREQ,'f');
+// Every few times, set on the task at path p: Off or every 2nd to 10th time, and what's different that time
+const NTH=n=>'Every '+n+(n==2?'nd':n==3?'rd':'th')+' time';
+const varEdit=(p,t)=>`<div class="wsel vw"><select class="f" data-a="vset" data-p="${p}" aria-label="Every few times"><option value="">${t.v?'Off':'Every few times'}</option>${[2,3,4,5,6,7,8,9,10].map(n=>`<option value="${n}" ${t.v&&+t.v.n==n?'selected':''}>${NTH(n)}</option>`).join('')}</select>${t.v?I(p+'.v.x','e.g. Hot water only'):''}</div>`;
 function vSetup(){if(EA){const a=areaById(EA);if(a)return vArea(a);EA=null}
  if(EL){const f=P().floors.find(x=>x.id==EL);if(f)return vLayout(f);EL=null}
  let h=propBar()+`<div class="card"><h2>Property</h2><label class="sec">Name</label>${I(PP()+'.n','e.g. the building name')}<p class="mu" style="margin:8px 0 0">Shown at the top of printed reports. Each property has its own floors, areas, standard tasks, supplies and history.</p>${S.props.length>1?`<div class="row" style="margin-top:8px"><button class="x bd" data-a="delProp">Delete this property</button></div>`:''}</div>
- <div class="card"><h2>Standard tasks</h2><p class="mu" style="margin:0 0 6px">Every area gets these unless you turn one off in that area. Set how often each one is done in the area itself.</p>${P().std.map((t,i)=>`<div class="row ed" data-dl="${PP()}.std" data-di="${i}">${DH}${I(`${PP()}.std.${i}.n`,'Task')}<button class="x" data-a="delStd" data-i="${i}" aria-label="Delete">${ICX}</button></div>`).join('')}
+ <div class="card"><h2>Standard tasks</h2><p class="mu" style="margin:0 0 6px">Every area gets these unless you turn one off in that area. Set how often each one is done in the area itself. Every few times can make some of them different, like a hot water only mop every 4th time; an area can switch that off.</p>${P().std.map((t,i)=>`<div class="row ed" data-dl="${PP()}.std" data-di="${i}">${DH}<div class="exw">${I(`${PP()}.std.${i}.n`,'Task')}${varEdit(`${PP()}.std.${i}`,t)}</div><button class="x" data-a="delStd" data-i="${i}" aria-label="Delete">${ICX}</button></div>`).join('')}
   <div class="row" style="margin-top:6px"><button class="g bd" data-a="addStd">Add standard task</button></div></div>`;
  P().floors.forEach(f=>{const as=P().areas.map((a,i)=>[a,i]).filter(([a])=>a.fl==f.id&&!a.par);
   h+=`<div class="card"><h2>${esc(f.n)}</h2>${as.map(([a,i])=>`<div class="row" data-dl="${PP()}.areas" data-di="${i}">${DH}<button class="arow" data-a="editArea" data-id="${a.id}"><span>${esc(a.n||'Untitled')}</span><span class="mu">${kids(a).length?plural(kids(a).length,'sub area'):plural(tasksOf(a).length,'task')}</span>${CHEV}</button></div>`).join('')||'<p class="mu">No areas on this floor.</p>'}
@@ -674,11 +689,14 @@ function vArea(a){const i=P().areas.indexOf(a),p=PP()+'.areas.'+i,par=a.par&&are
   <p class="mu" style="margin:4px 0 0">Shown at the top of this ${par?'sub area':'area'}’s checklist on Rounds.</p>
   ${ks.length?'':`<label class="chk" style="margin-top:12px"><input type="checkbox" ${a.useStd?'checked':''} data-p="${p}.useStd" data-t="b">Use the standard tasks</label>
   ${a.useStd?`<div class="sec" style="margin-top:8px">Standard tasks done here</div>${P().std.map(t=>{const on=!a.skip.includes(t.id),f=stdFreq(a,t);
-   return `<div class="row sfr"><label class="chk"><input type="checkbox" ${on?'checked':''} data-a="skip" data-id="${t.id}">${esc(t.n||'Untitled task')}</label>${on?`<div class="wsel"><select class="f" data-a="sfreq" data-id="${t.id}" aria-label="How often">${FREQ.map(([v,l])=>`<option value="${v}" ${f==v?'selected':''}>${l}</option>`).join('')}</select><select class="f" data-a="swhen" data-id="${t.id}" aria-label="Time of day">${WHEN.map(([v,l])=>`<option value="${v}" ${stdWhen(a,t)==v?'selected':''}>${l}</option>`).join('')}</select></div>`:''}</div>`}).join('')}`:''}`}</div>
+   return `<div class="row sfr"><label class="chk"><input type="checkbox" ${on?'checked':''} data-a="skip" data-id="${t.id}">${esc(t.n||'Untitled task')}</label>${on?`<div class="wsel"><select class="f" data-a="sfreq" data-id="${t.id}" aria-label="How often">${FREQ.map(([v,l])=>`<option value="${v}" ${f==v?'selected':''}>${l}</option>`).join('')}</select><select class="f" data-a="swhen" data-id="${t.id}" aria-label="Time of day">${WHEN.map(([v,l])=>`<option value="${v}" ${stdWhen(a,t)==v?'selected':''}>${l}</option>`).join('')}</select></div>${t.v?varSwitch(a,t):''}`:''}</div>`}).join('')}`:''}`}</div>
  ${par?'':subCard(ks)}
- ${ks.length?'':`<div class="card"><h2>Extra tasks</h2><p class="mu" style="margin:0 0 6px">Only this ${par?'sub area':'area'} gets these.</p>${a.ex.map((t,j)=>`<div class="row ed" data-dl="${p}.ex" data-di="${j}">${DH}<div class="exw">${I(`${p}.ex.${j}.n`,'Task')}<div class="wsel">${freqSel(`${p}.ex.${j}.f`)}${SEL(`${p}.ex.${j}.w`,WHEN,'f')}</div></div><button class="x" data-a="delEx" data-i="${j}" aria-label="Delete">${ICX}</button></div>`).join('')||'<p class="mu">None yet.</p>'}
+ ${ks.length?'':`<div class="card"><h2>Extra tasks</h2><p class="mu" style="margin:0 0 6px">Only this ${par?'sub area':'area'} gets these.</p>${a.ex.map((t,j)=>`<div class="row ed" data-dl="${p}.ex" data-di="${j}">${DH}<div class="exw">${I(`${p}.ex.${j}.n`,'Task')}<div class="wsel">${freqSel(`${p}.ex.${j}.f`)}${SEL(`${p}.ex.${j}.w`,WHEN,'f')}</div>${varEdit(`${p}.ex.${j}`,t)}${t.v?(vn=>`<span class="mu" style="padding-left:8px">${vn.left?'Next one after '+vn.left+' more':'Next time is the one'}.</span>`)(varNext(a,t)):''}</div><button class="x" data-a="delEx" data-i="${j}" aria-label="Delete">${ICX}</button></div>`).join('')||'<p class="mu">None yet.</p>'}
   <div class="row" style="margin-top:6px"><button class="g bd" data-a="addEx">Add extra task</button></div></div>`}
  <div class="card"><h2>Remove</h2><p class="mu" style="margin:0 0 8px">${ks.length?'Its sub areas are deleted with it. ':''}History stays in the log.</p><button class="x bd" data-a="delArea">Delete this ${par?'sub area':'area'}</button></div>`}
+// A standard task's every few times in one area: on unless switched off here, with how many to go
+function varSwitch(a,t){const on=!(a.vo||[]).includes(t.id),vn=on&&varNext(a,tasksOf(a).find(x=>x.id==t.id)||{});
+ return `<div class="wsel"><label class="chk vtg"><input type="checkbox" ${on?'checked':''} data-a="voff" data-id="${t.id}">${esc(t.v.x||'Different this time')}, ${NTH(+t.v.n||4).toLowerCase()}${vn?' · '+(vn.left?'after '+vn.left+' more':'next time'):''}</label></div>`}
 // The sub areas of the area being edited
 function subCard(ks){return `<div class="card"><h2>Sub areas</h2><p class="mu" style="margin:0 0 6px">${ks.length?'Each has its own checklist, shown together under this area on Rounds. A new one starts with a copy of the last one’s tasks, so set up one and add the rest.':'Optional. Split this area into parts with their own checklists, like a hallway and each office. The first one starts with this area’s tasks.'}</p>
  ${ks.map(k=>`<div class="row" data-dl="${PP()}.areas" data-di="${P().areas.indexOf(k)}">${DH}<button class="arow" data-a="editArea" data-id="${k.id}"><span>${esc(k.n||'Untitled')}</span><span class="mu">${plural(tasksOf(k).length,'task')}</span>${CHEV}</button></div>`).join('')}
@@ -799,7 +817,7 @@ function tickJob(id,on){const j=P().jobs.find(x=>x.id==id);if(!j)return;
  toast('Unchecked '+(j.n||'task'),()=>{if(e)S.log.splice(Math.min(k,S.log.length),0,e);[j.done,j.e]=o;save();R()})}
 // Add a sub area to the area being edited. It copies the last sub area's tasks (or the area's own, for the first one).
 function addSub(){const a=ea(),el=document.getElementById('subn'),n=el?el.value.trim():'';if(!a||a.par)return;if(!n){toast('Enter a name first');return}
- const ks=kids(a),src=ks[ks.length-1]||a,k={id:uid('a'),n,fl:a.fl,par:a.id,useStd:src.useStd,skip:[...src.skip],sf:{...(src.sf||{})},st:{...(src.st||{})},ex:src.ex.map(t=>({id:uid('t'),n:t.n,f:t.f,...(t.w?{w:t.w}:{})}))};
+ const ks=kids(a),src=ks[ks.length-1]||a,k={id:uid('a'),n,fl:a.fl,par:a.id,useStd:src.useStd,skip:[...src.skip],sf:{...(src.sf||{})},st:{...(src.st||{})},vo:[...(src.vo||[])],ex:src.ex.map(t=>({id:uid('t'),n:t.n,f:t.f,...(t.w?{w:t.w}:{}),...(t.v?{v:{...t.v,from:Date.now()}}:{})}))};
  P().areas.splice(P().areas.indexOf(src)+1,0,k);el.value='';save();R();toast('Added '+n);const f=document.getElementById('subn');f&&f.focus()}
 function addJob(){const el=document.getElementById('jn'),n=el.value.trim();if(!n){toast('Enter a task first');return}
  P().jobs.push({id:uid('j'),n,add:Date.now(),done:null});el.value='';save();R();toast('Added '+n);const f=document.getElementById('jn');f&&f.focus()}
@@ -863,7 +881,7 @@ const ACT={
  // setup
  addStd:()=>{P().std.push({id:uid('t'),n:''});save();R();const ins=document.querySelectorAll('[data-dl$=".std"] input');ins.length&&ins[ins.length-1].focus()},
  delStd:d=>{const i=+d.i,t=P().std[i];if(!t)return;snap(e=>e.t==t.id);P().std.splice(i,1);save();R();toast('Deleted “'+(t.n||'task')+'”',()=>{P().std.splice(i,0,t);save();R()})},
- addArea:d=>{const a={id:uid('a'),n:'',fl:d.fl,useStd:true,skip:[],sf:{},st:{},ex:[]};P().areas.push(a);place(P(),a);EA=a.id;save();R();scrollTo(0,0);const n=document.querySelector('[data-p$=".n"]');n&&n.focus()},
+ addArea:d=>{const a={id:uid('a'),n:'',fl:d.fl,useStd:true,skip:[],sf:{},st:{},vo:[],ex:[]};P().areas.push(a);place(P(),a);EA=a.id;save();R();scrollTo(0,0);const n=document.querySelector('[data-p$=".n"]');n&&n.focus()},
  // From Rounds, the editor opens in Setup and its back button returns to the same spot on Rounds
  editArea:d=>{if(T=='rounds'){ERET={fv:FV,a:d.id};EA=d.id;goTab('setup');return}EA=d.id;R();scrollTo(0,0)}, eaBack:()=>{const a=ea();if(!(a&&a.par)&&ERET)return backRounds();EA=a&&a.par?a.par:null;R();scrollTo(0,0)},
  addSub,
@@ -885,6 +903,9 @@ const ACT={
  // properties
  props:()=>{openDlg('Properties','',[...S.props.map(p=>[p.n||'Untitled property',p.id==P().id?'':'g bd',()=>switchProp(p.id)]),['Add a property','g bd',addPropDlg],['Cancel','g bd',null]])},
  delProp:()=>{const p=P();openDlg('Delete '+(p.n||'this property')+'?','Its floors, areas, supplies and history are removed from this device. This can’t be undone.',[['Delete property','x bd',()=>{const id=p.id;S.props=S.props.filter(x=>x!==p);S.log=S.log.filter(e=>e.p!=id);S.set.prop=S.props[0].id;EA=EL=MS=null;save();R();scrollTo(0,0);toast('Deleted '+(p.n||'property'))}],['Cancel','g bd',null]])},
+ vset:(d,el)=>{const t=get(d.p);if(!t)return;if(!el.value){const o=t.v;delete t.v;save();R();toast('Removed every few times',()=>{t.v=o;save();R()});return}
+  if(t.v)t.v.n=el.value;else t.v={n:el.value,x:'',from:Date.now()};save();R();if(!t.v.x){const i=document.querySelector(`[data-p="${d.p}.v.x"]`);i&&i.focus()}},
+ voff:(d,el)=>{const a=ea();if(!a)return;a.vo=(a.vo||[]).filter(x=>x!=d.id);if(!el.checked)a.vo.push(d.id);save();R()},
  swhen:(d,el)=>{const a=ea();if(!a)return;a.st=a.st||{};if(!el.value)delete a.st[d.id];else a.st[d.id]=el.value;save();R()},
  sfreq:(d,el)=>{const a=ea();if(!a)return;a.sf=a.sf||{};if(el.value=='daily')delete a.sf[d.id];else a.sf[d.id]=el.value;save();R()},
  skip:(d,el)=>{const a=ea();if(!a)return;a.skip=a.skip.filter(x=>x!=d.id);if(!el.checked)a.skip.push(d.id);save();R()},
