@@ -338,7 +338,7 @@ function seed(){
   A('Outdoor sidewalks','Building-wide',['Pick up litter'],['Mop','Dust','Windows and door glass'])];
  const sup=['Gloves','All-purpose cleaner','Window cleaner','Floor cleaner','Paper towels','Microfiber cloths','Feather duster','Toilet bowl cleaner','Magic erasers','Microfiber cloths for windows','Trash bags','Disinfectant spray','Mop heads','Dust mop heads']
   .map(n=>({id:uid('s'),n,q:null,u:'',low:null,w:''}));
- const prop={id:uid('p'),n:'Main building',floors,std,areas,sup,jobs:[],tours:[]};prop.areas.forEach(a=>place(prop,a));
+ const prop={id:uid('p'),n:'Main building',floors,std,areas,sup,jobs:[],tours:[],pw:{on:false,n:4,from:0}};prop.areas.forEach(a=>place(prop,a));
  return {v:MIGRATIONS.length,set:{theme:'system',welcome:1,since:Date.now(),who:'',keep:6,tsw:'12:00',prop:prop.id},props:[prop],log:[]}}
 
 // Schema migrations. S.v records how many have run. To change the data shape later,
@@ -377,6 +377,11 @@ const MIGRATIONS=[
  // v10: time of day. Each area sets it for standard tasks in a.st {std task id: 'early'|'late'} (anything not listed is anytime);
  // extra tasks carry their own (t.w). S.set.tsw is when early ends ('HH:MM').
  S=>{S.props.forEach(p=>p.areas.forEach(a=>{if(!a.st||typeof a.st!='object')a.st={}}));if(!S.set.tsw)S.set.tsw='12:00'},
+ // v11: briefly added "every few times" on any task; it was taken out again. Nothing to do (any leftover a.vo / t.v is ignored).
+ S=>{},
+ // v12: plain water mop for each property: p.pw {on, n: every nth mop, from: ms it was first turned on}.
+ // Any task with "mop" in its name counts, per area. A mop done as the plain water one keeps e.v = 'Plain water' in the log.
+ S=>{S.props.forEach(p=>{if(!p.pw||typeof p.pw!='object')p.pw={on:false,n:4,from:0}})},
 ];
 function migrate(){S.set=S.set||{};for(let v=S.v||0;v<MIGRATIONS.length;v++)MIGRATIONS[v](S);S.v=MIGRATIONS.length;if(!S.props.some(p=>p.id==S.set.prop))S.set.prop=S.props[0].id;prune()}
 function load(){try{S=JSON.parse(localStorage.getItem(LS))}catch(e){}if(!S)S=seed();migrate()}
@@ -467,7 +472,13 @@ const tasksOf=a=>kids(a).length?[]:(a.useStd?P().std.filter(t=>!a.skip.includes(
 const areasOn=f=>P().areas.filter(a=>a.fl==f.id&&!a.par);       // top-level areas on a floor, in order
 function buildIndex(){const m=new Map();for(const e of S.log){const k=e.a+'|'+e.t,p=m.get(k);if(!p||e.at>p.at)m.set(k,e)}LI=m}
 const lastOf=(a,t)=>LI.get(a.id+'|'+t.id);
-const entry=(a,t)=>({id:uid('e'),a:a.id,t:t.id,p:P().id,at:Date.now()});
+// Plain water mop: which tasks count as mopping, and how many more regular mops in this area before the plain water one
+// (0 = this one is it). Counted from the history since it was turned on, or since the last plain water mop. Null when off.
+const isMop=t=>/\bmop/i.test(t.n||'');
+function pwNext(a,t){const w=P().pw;if(!w||!w.on||!isMop(t))return null;let k=0;
+ for(const e of S.log)if(e.a==a.id&&e.t==t.id&&e.at>=(w.from||0))k=e.v?0:k+1;
+ return Math.max(0,(+w.n||4)-1-k)}
+const entry=(a,t)=>{const e={id:uid('e'),a:a.id,t:t.id,p:P().id,at:Date.now()};if(t.id!='fin'&&pwNext(a,t)===0)e.v='Plain water';return e};
 // When a task done on `last` comes due again
 function nextDue(f,last){const d=dOf(last.at);return f=='daily'?addDays(d,1):f=='weekly'?addDays(d,7):f=='monthly'?addMonths(d,1):null}
 function isDue(f,last){if(f=='need')return false;if(!last)return true;
@@ -497,7 +508,7 @@ const eArea=e=>{const a=areaById(e.a);return a?areaName(a):e.an||'Deleted area'}
 const eFloor=e=>{const a=areaById(e.a),f=a&&floorOf(a);return f?f.n:e.fn||''};
 const isTask=e=>e.t!='fin';                                       // a real task, not an area marked clean
 const eTask=e=>{if(e.t=='fin')return 'Area marked clean';
- if(!e.a){const j=P().jobs.find(x=>x.id==e.t);if(j&&j.n)return j.n}const a=areaById(e.a),t=(a?a.ex:[]).concat(P().std).find(x=>x.id==e.t);return t?t.n:e.tn||'Deleted task'};
+ if(!e.a){const j=P().jobs.find(x=>x.id==e.t);if(j&&j.n)return j.n}const a=areaById(e.a),t=(a?a.ex:[]).concat(P().std).find(x=>x.id==e.t);return (t?t.n:e.tn||'Deleted task')+(e.v?' ('+e.v.toLowerCase()+')':'')};
 // Before deleting, write the names into the history so old entries still read correctly
 function snap(pred){S.log.forEach(e=>{if(pred(e)){e.an=eArea(e);e.tn=eTask(e);e.fn=eFloor(e)}})}
 function logRange(){const t=tdy();
@@ -590,10 +601,12 @@ function vRounds(){
  return h}
 // The checklist rows for one area or sub area
 // Early tasks first, then anytime, then later ones (otherwise in their saved order)
+// "Plain water" on a mop when this one is it, or on one already done that way today
+const pwTag=(a,t,s)=>(s.done?!!s.last.v:pwNext(a,t)===0)?'<span class="tag">Plain water</span>':'';
 const whenTag=(t,s)=>t.w&&!s.done?`<span class="tag wh${t.w=='early'&&s.due&&pastEarly()?' lt':''}">${WN[t.w]}</span>`:'';
 function taskRows(a,shown,map){return [...shown].sort((x,y)=>WO[x.t.w||'']-WO[y.t.w||'']).map(({t,s})=>{
    const note=s.done&&s.last.note;
-   return `<div class="task"><label><input type="checkbox" ${s.done?'checked':''} data-a="tick" data-ar="${a.id}" data-tk="${t.id}"><span>${esc(t.n)}</span></label>${whenTag(t,s)}${s.skip?'<span class="tag sk">Skipped</span>':t.f!='daily'?`<span class="tag">${FN[t.f]}</span>`:''}${s.done?`<span class="tm">${tm(s.last.at)}</span><button class="nb${note?' has':''}" data-a="note" data-id="${s.last.id}" aria-label="Note">${ICN}</button>`:s.last&&(VIEW=='all'||map)?`<span class="tm">${sd(dOf(s.last.at))}</span>`:''}</div>${note?`<div class="nt">${esc(note)}</div>`:''}`}).join('')}
+   return `<div class="task"><label><input type="checkbox" ${s.done?'checked':''} data-a="tick" data-ar="${a.id}" data-tk="${t.id}"><span>${esc(t.n)}</span></label>${pwTag(a,t,s)}${whenTag(t,s)}${s.skip?'<span class="tag sk">Skipped</span>':t.f!='daily'?`<span class="tag">${FN[t.f]}</span>`:''}${s.done?`<span class="tm">${tm(s.last.at)}</span><button class="nb${note?' has':''}" data-a="note" data-id="${s.last.id}" aria-label="Note">${ICN}</button>`:s.last&&(VIEW=='all'||map)?`<span class="tm">${sd(dOf(s.last.at))}</span>`:''}</div>${note?`<div class="nt">${esc(note)}</div>`:''}`}).join('')}
 const wetWhen=a=>dOf(a.wet)==tdy()?tm(a.wet):sd(dOf(a.wet));
 const wetBadge=a=>a.wet?`<span class="tbg wbg">${WET}<span>Wet floor sign out since ${wetWhen(a)}</span></span>`:'';
 const tourBadges=xs=>xs.map(x=>`<span class="tbg">${CLK}<span>${esc(tourTxt(x))}</span></span>`).join('');
@@ -655,11 +668,16 @@ function vSup(){const low=P().sup.filter(isLow);
 
 // ---- Setup: standard tasks, floors, areas ----
 const freqSel=p=>SEL(p,FREQ,'f');
+// Plain water mop setting, under the standard tasks
+function pwSet(){const w=P().pw||{},has=P().areas.some(a=>tasksOf(a).some(isMop));
+ return `<div class="sec" style="margin-top:16px">Plain water mop</div><label class="chk"><input type="checkbox" ${w.on?'checked':''} data-a="pwOn">Every few mops, mop with plain water</label>
+ ${w.on?`<div class="row"><span>Every</span><input type="number" min="2" max="20" step="1" inputmode="numeric" value="${+w.n||4}" data-a="pwN" aria-label="How many mops"><span>mops</span></div>`:''}
+ <p class="mu" style="margin:6px 0 0">${has?'Each area counts its own mops. That time, the mop task shows a Plain water tag on Rounds.':'No task here has “mop” in its name, so this won’t show anywhere yet.'}</p>`}
 function vSetup(){if(EA){const a=areaById(EA);if(a)return vArea(a);EA=null}
  if(EL){const f=P().floors.find(x=>x.id==EL);if(f)return vLayout(f);EL=null}
  let h=propBar()+`<div class="card"><h2>Property</h2><label class="sec">Name</label>${I(PP()+'.n','e.g. the building name')}<p class="mu" style="margin:8px 0 0">Shown at the top of printed reports. Each property has its own floors, areas, standard tasks, supplies and history.</p>${S.props.length>1?`<div class="row" style="margin-top:8px"><button class="x bd" data-a="delProp">Delete this property</button></div>`:''}</div>
  <div class="card"><h2>Standard tasks</h2><p class="mu" style="margin:0 0 6px">Every area gets these unless you turn one off in that area. Set how often each one is done in the area itself.</p>${P().std.map((t,i)=>`<div class="row ed" data-dl="${PP()}.std" data-di="${i}">${DH}${I(`${PP()}.std.${i}.n`,'Task')}<button class="x" data-a="delStd" data-i="${i}" aria-label="Delete">${ICX}</button></div>`).join('')}
-  <div class="row" style="margin-top:6px"><button class="g bd" data-a="addStd">Add standard task</button></div></div>`;
+  <div class="row" style="margin-top:6px"><button class="g bd" data-a="addStd">Add standard task</button></div>${pwSet()}</div>`;
  P().floors.forEach(f=>{const as=P().areas.map((a,i)=>[a,i]).filter(([a])=>a.fl==f.id&&!a.par);
   h+=`<div class="card"><h2>${esc(f.n)}</h2>${as.map(([a,i])=>`<div class="row" data-dl="${PP()}.areas" data-di="${i}">${DH}<button class="arow" data-a="editArea" data-id="${a.id}"><span>${esc(a.n||'Untitled')}</span><span class="mu">${kids(a).length?plural(kids(a).length,'sub area'):plural(tasksOf(a).length,'task')}</span>${CHEV}</button></div>`).join('')||'<p class="mu">No areas on this floor.</p>'}
   <div class="row" style="margin-top:6px"><button class="g bd" data-a="addArea" data-fl="${f.id}">Add area</button>${as.length?`<button class="g bd" data-a="editLay" data-id="${f.id}">Edit map</button>`:''}</div></div>`});
@@ -885,6 +903,8 @@ const ACT={
  // properties
  props:()=>{openDlg('Properties','',[...S.props.map(p=>[p.n||'Untitled property',p.id==P().id?'':'g bd',()=>switchProp(p.id)]),['Add a property','g bd',addPropDlg],['Cancel','g bd',null]])},
  delProp:()=>{const p=P();openDlg('Delete '+(p.n||'this property')+'?','Its floors, areas, supplies and history are removed from this device. This can’t be undone.',[['Delete property','x bd',()=>{const id=p.id;S.props=S.props.filter(x=>x!==p);S.log=S.log.filter(e=>e.p!=id);S.set.prop=S.props[0].id;EA=EL=MS=null;save();R();scrollTo(0,0);toast('Deleted '+(p.n||'property'))}],['Cancel','g bd',null]])},
+ pwOn:(d,el)=>{const p=P();p.pw=p.pw||{n:4,from:0};p.pw.on=el.checked;if(el.checked&&!p.pw.from)p.pw.from=Date.now();save();R()},
+ pwN:(d,el)=>{const n=Math.max(2,Math.min(20,parseInt(el.value)||4));P().pw.n=n;save();R()},
  swhen:(d,el)=>{const a=ea();if(!a)return;a.st=a.st||{};if(!el.value)delete a.st[d.id];else a.st[d.id]=el.value;save();R()},
  sfreq:(d,el)=>{const a=ea();if(!a)return;a.sf=a.sf||{};if(el.value=='daily')delete a.sf[d.id];else a.sf[d.id]=el.value;save();R()},
  skip:(d,el)=>{const a=ea();if(!a)return;a.skip=a.skip.filter(x=>x!=d.id);if(!el.checked)a.skip.push(d.id);save();R()},
