@@ -85,6 +85,13 @@ nav.drag .hl{transition:none}
 #peek>.view{max-width:1100px;margin:0 auto;padding:12px}
 
 /* ===== Toast & popup ===== */
+/* ===== Pick tasks to remove ===== */
+.task{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.task label .pk{flex:none;width:24px;height:24px;border-radius:50%;border:2px solid color-mix(in srgb,var(--mu) 45%,transparent);display:grid;place-items:center;color:#fff;transition:background var(--fast),border-color var(--fast)}
+.task.pkd .pk{background:var(--neg);border-color:transparent}.task.pkd{background:color-mix(in srgb,var(--neg) 8%,transparent);margin:0 -16px;padding-left:16px;padding-right:16px}
+.task.pkm label{cursor:pointer}
+#pickbar{position:fixed;z-index:7;left:12px;right:12px;bottom:calc(80px + env(safe-area-inset-bottom,0px));max-width:520px;margin:0 auto;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:10px 10px 10px 16px;box-shadow:0 12px 30px rgba(0,0,0,.22);animation:dup .24s cubic-bezier(.16,1,.3,1)}
+#pickbar[hidden]{display:none}body.picking main{padding-bottom:84px}#pickbar>span{flex:1;font-weight:700}#pickbar .x.bd{background:var(--neg);color:#fff;border-color:transparent}
 #toast{position:fixed;z-index:30;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translate(-50%,16px);opacity:0;pointer-events:none;display:flex;align-items:center;gap:14px;max-width:calc(100vw - 32px);background:var(--tst);color:#fff;border-radius:18px;padding:10px 10px 10px 16px;font-size:14px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.25);transition:transform .22s cubic-bezier(.2,.8,.2,1),opacity .18s}
 #toast.on{transform:translate(-50%,0);opacity:1;pointer-events:auto}#toast span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #toast button{background:none;color:#7fd3ff;padding:6px 10px;font-weight:800}
@@ -265,7 +272,7 @@ body.dragmode{user-select:none;-webkit-user-select:none;cursor:grabbing}
  #rep .foot{margin-top:24px;color:#666;font-size:9pt}
 }
 @media(prefers-reduced-motion:reduce){*,*:after{transition-duration:.01ms!important;animation-duration:.01ms!important}}
-</style></head><body><header class="top"><span class="tt"><svg class="logo" viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#1f7ae0"/><circle cx="16" cy="16" r="12.2" fill="#dcefff"/><circle cx="16" cy="16" r="10.6" fill="#4aa8ff"/><path d="M16 6v20M6 16h20M8.6 8.6l14.8 14.8M23.4 8.6 8.6 23.4" stroke="#dcefff" stroke-width="1.7" stroke-linecap="round"/><circle cx="16" cy="16" r="2.2" fill="#dcefff"/></svg><span><span class="jz">Big Shiny</span> Rounds</span></span><button id="gear" class="gear" aria-label="Settings" data-a="gear"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></header><div class="vclip"><main id="app" class="view"></main></div><nav id="nav"></nav><div id="toast" role="status" aria-live="polite"></div><div id="dlg" hidden></div><div id="rep"></div>
+</style></head><body><header class="top"><span class="tt"><svg class="logo" viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#1f7ae0"/><circle cx="16" cy="16" r="12.2" fill="#dcefff"/><circle cx="16" cy="16" r="10.6" fill="#4aa8ff"/><path d="M16 6v20M6 16h20M8.6 8.6l14.8 14.8M23.4 8.6 8.6 23.4" stroke="#dcefff" stroke-width="1.7" stroke-linecap="round"/><circle cx="16" cy="16" r="2.2" fill="#dcefff"/></svg><span><span class="jz">Big Shiny</span> Rounds</span></span><button id="gear" class="gear" aria-label="Settings" data-a="gear"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></header><div class="vclip"><main id="app" class="view"></main></div><nav id="nav"></nav><div id="pickbar" hidden></div><div id="toast" role="status" aria-live="polite"></div><div id="dlg" hidden></div><div id="rep"></div>
 <script src="feedback.js"></script>
 <script src="sync.js"></script>
 <script>
@@ -311,6 +318,7 @@ let FV=null;                              // UI-only: floor opened from Today (R
 let ERET=null;                            // UI-only: where an area editor opened from Rounds returns to {fv: floor shown, a: area}
 let O={},EA=null,EL=null,DLG=null,VIEW='due',MS=null,FL='';// UI-only: open <details>, area / floor map being edited in Setup, open popup, Rounds view (due/all/map), area picked on the map, flash message
 let LR='today',LF='',LT='';               // UI-only: log range and custom dates
+let PICK=null;                            // UI-only: tasks picked on Rounds to remove (a Set of 'area id|task id'), or null
 let LI=new Map();                         // UI-only: latest log entry for each "area|task", rebuilt on every draw
 
 // A brand-new install starts with the building from the notebook pages
@@ -606,7 +614,9 @@ const pwTag=(a,t,s)=>(s.done?!!s.last.v:pwNext(a,t)===0)?'<span class="tag">Plai
 const whenTag=(t,s)=>t.w&&!s.done?`<span class="tag wh${t.w=='early'&&s.due&&pastEarly()?' lt':''}">${WN[t.w]}</span>`:'';
 function taskRows(a,shown,map){return [...shown].sort((x,y)=>WO[x.t.w||'']-WO[y.t.w||'']).map(({t,s})=>{
    const note=s.done&&s.last.note;
-   return `<div class="task"><label><input type="checkbox" ${s.done?'checked':''} data-a="tick" data-ar="${a.id}" data-tk="${t.id}"><span>${esc(t.n)}</span></label>${pwTag(a,t,s)}${whenTag(t,s)}${s.skip?'<span class="tag sk">Skipped</span>':t.f!='daily'?`<span class="tag">${FN[t.f]}</span>`:''}${s.done?`<span class="tm">${tm(s.last.at)}</span><button class="nb${note?' has':''}" data-a="note" data-id="${s.last.id}" aria-label="Note">${ICN}</button>`:s.last&&(VIEW=='all'||map)?`<span class="tm">${sd(dOf(s.last.at))}</span>`:''}</div>${note?`<div class="nt">${esc(note)}</div>`:''}`}).join('')}
+   if(PICK){const on=PICK.has(a.id+'|'+t.id);   // picking tasks to remove: a round marker instead of the checkbox, no note button
+    return `<div class="task pkm${on?' pkd':''}" data-ar="${a.id}" data-tk="${t.id}"><label><span class="pk">${on?ICK:''}</span><span>${esc(t.n)}</span></label>${pwTag(a,t,s)}${whenTag(t,s)}</div>`}
+   return `<div class="task" data-ar="${a.id}" data-tk="${t.id}"><label><input type="checkbox" ${s.done?'checked':''} data-a="tick" data-ar="${a.id}" data-tk="${t.id}"><span>${esc(t.n)}</span></label>${pwTag(a,t,s)}${whenTag(t,s)}${s.skip?'<span class="tag sk">Skipped</span>':t.f!='daily'?`<span class="tag">${FN[t.f]}</span>`:''}${s.done?`<span class="tm">${tm(s.last.at)}</span><button class="nb${note?' has':''}" data-a="note" data-id="${s.last.id}" aria-label="Note">${ICN}</button>`:s.last&&(VIEW=='all'||map)?`<span class="tm">${sd(dOf(s.last.at))}</span>`:''}</div>${note?`<div class="nt">${esc(note)}</div>`:''}`}).join('')}
 const wetWhen=a=>dOf(a.wet)==tdy()?tm(a.wet):sd(dOf(a.wet));
 const wetBadge=a=>a.wet?`<span class="tbg wbg">${WET}<span>Wet floor sign out since ${wetWhen(a)}</span></span>`:'';
 const tourBadges=xs=>xs.map(x=>`<span class="tbg">${CLK}<span>${esc(tourTxt(x))}</span></span>`).join('');
@@ -777,6 +787,15 @@ function tick(aid,tid,on,quiet){const a=areaById(aid),t=a&&tasksOf(a).find(x=>x.
   if(all>0&&allNow==0)setTimeout(confetti,80);else if(before>0&&after==0)toast('Done: '+a.n)}
  else{const e=lastOf(a,t);if(!e)return;const j=S.log.indexOf(e);S.log.splice(j,1);save();R();
   toast('Unchecked '+t.n,()=>{S.log.splice(Math.min(j,S.log.length),0,e);save();R()})}}
+// Remove the picked tasks from their areas: a standard task is switched off there (as in Edit area), an extra task is deleted.
+// History keeps their names. One Undo puts every area back the way it was.
+function pickDel(){if(!PICK||!PICK.size)return;const was=new Map();let n=0;
+ PICK.forEach(k=>{const [aid,tid]=k.split('|'),a=areaById(aid);if(!a)return;
+  if(!was.has(a))was.set(a,{skip:[...a.skip],ex:[...a.ex]});
+  if(P().std.some(t=>t.id==tid)){if(!a.skip.includes(tid))a.skip.push(tid);n++}
+  else{const i=a.ex.findIndex(t=>t.id==tid);if(i<0)return;snap(e=>e.a==a.id&&e.t==tid);a.ex.splice(i,1);n++}});
+ PICK=null;save();R();
+ toast('Removed '+plural(n,'task'),()=>{was.forEach((v,a)=>{a.skip=v.skip;a.ex=v.ex});save();R()})}
 function confetti(){toast('Done for today. Nice!');if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
  const C=['#2f8fff','#5ec4ff','#7fd3ff','#1f7ae0','#b9e3ff','#0e9fc2'],box=document.createElement('div');box.className='confetti';
  for(let i=0;i<70;i++){const s=document.createElement('i'),w=6+Math.random()*6;s.style.cssText=`left:${Math.random()*100}%;width:${w}px;height:${w*(1+Math.random())}px;background:${C[i%C.length]};border-radius:${Math.random()<.4?'50%':'3px'};animation-delay:${Math.random()*.3}s;animation-duration:${1.5+Math.random()*1.2}s;--dx:${((Math.random()-.5)*180).toFixed(0)}px;--r:${(Math.random()*900-450).toFixed(0)}deg`;box.appendChild(s)}
@@ -905,6 +924,8 @@ const ACT={
  delProp:()=>{const p=P();openDlg('Delete '+(p.n||'this property')+'?','Its floors, areas, supplies and history are removed from this device. This can’t be undone.',[['Delete property','x bd',()=>{const id=p.id;S.props=S.props.filter(x=>x!==p);S.log=S.log.filter(e=>e.p!=id);S.set.prop=S.props[0].id;EA=EL=MS=null;save();R();scrollTo(0,0);toast('Deleted '+(p.n||'property'))}],['Cancel','g bd',null]])},
  pwOn:(d,el)=>{const p=P();p.pw=p.pw||{n:4,from:0};p.pw.on=el.checked;if(el.checked&&!p.pw.from)p.pw.from=Date.now();save();R()},
  pwN:(d,el)=>{const n=Math.max(2,Math.min(20,parseInt(el.value)||4));P().pw.n=n;save();R()},
+ pickOff:()=>{PICK=null;R()},
+ pickDel:pickDel,
  swhen:(d,el)=>{const a=ea();if(!a)return;a.st=a.st||{};if(!el.value)delete a.st[d.id];else a.st[d.id]=el.value;save();R()},
  sfreq:(d,el)=>{const a=ea();if(!a)return;a.sf=a.sf||{};if(el.value=='daily')delete a.sf[d.id];else a.sf[d.id]=el.value;save();R()},
  skip:(d,el)=>{const a=ea();if(!a)return;a.skip=a.skip.filter(x=>x!=d.id);if(!el.checked)a.skip.push(d.id);save();R()},
@@ -982,7 +1003,8 @@ let DAY='';document.addEventListener('visibilitychange',()=>{if(!document.hidden
 let RK='';
 function R(){const de=document.documentElement;de.dataset.theme=themeOf(S.set.theme||'system');dnTimer();DAY=tdy();buildIndex();
  const c=TC[T]||TC.today;de.style.setProperty('--pc',c[0]);de.style.setProperty('--pc2',c[1]);
- if(T!='setup'){EA=EL=ERET=null;DRAG=null}if(T!='rounds')FV=null;
+ if(T!='setup'){EA=EL=ERET=null;DRAG=null}if(T!='rounds'){FV=null;PICK=null}
+ const pb=document.getElementById('pickbar');pb.hidden=!PICK;document.body.classList.toggle('picking',!!PICK);if(PICK)patch(pb,`<span>${PICK.size?PICK.size+' selected':'Tap tasks to select'}</span><button class="g bd" data-a="pickOff">Cancel</button><button class="x bd" data-a="pickDel" ${PICK.size?'':'disabled'}>Remove</button>`);
  const key=T+'|'+(EA||'')+'|'+(EL||'')+'|'+(FV||'')+'|'+P().id,full=key!==RK;RK=key;
  patch(APP(),(T=='more'?SETTINGS:TABS.find(t=>t[0]==T))[2](),full);
  document.getElementById('gear').classList.toggle('on',T=='more');
@@ -1002,8 +1024,8 @@ function slideIn(dir){const m=APP(),w=innerWidth;m.style.willChange='transform,o
  m.style.transition=`transform .22s ${EZ_IN},opacity .16s ease-out`;m.style.transform='translate3d(0,0,0)';m.style.opacity='1';
  setTimeout(()=>{m.style.transition='';m.style.transform='';m.style.opacity='';m.style.willChange=''},240)}
 // Levels below Today: any other tab (or Settings) 1; an area or floor map open in Setup and an open popup each add one
-function navDepth(){const sa=T=='setup'&&EA&&areaById(EA);return (T=='today'?0:1)+(T=='setup'&&(EA||EL)?1:0)+(sa&&sa.par?1:0)+(T=='rounds'&&FV?1:0)+(DLG?1:0)}
-function navUp(){if(DLG)return closeDlg();if(T=='setup'&&EA&&ERET&&!(areaById(EA)||{}).par)return backRounds();if(T=='setup'&&(EA||EL)){const a=EA&&areaById(EA);EA=a&&a.par?a.par:null;EL=null;R();return}if(T=='rounds'&&FV){FV=null;MS=null;R();return}if(T!='today')goTab('today')}
+function navDepth(){const sa=T=='setup'&&EA&&areaById(EA);return (T=='today'?0:1)+(PICK?1:0)+(T=='setup'&&(EA||EL)?1:0)+(sa&&sa.par?1:0)+(T=='rounds'&&FV?1:0)+(DLG?1:0)}
+function navUp(){if(DLG)return closeDlg();if(PICK){PICK=null;R();return}if(T=='setup'&&EA&&ERET&&!(areaById(EA)||{}).par)return backRounds();if(T=='setup'&&(EA||EL)){const a=EA&&areaById(EA);EA=a&&a.par?a.par:null;EL=null;R();return}if(T=='rounds'&&FV){FV=null;MS=null;R();return}if(T!='today')goTab('today')}
 // ---- Phone back button (the same block as the other Big apps) ----
 let HD=0,HPOP=0;
 function navSync(){if(HPOP)return;const d=navDepth();
@@ -1022,6 +1044,19 @@ function goTab(id){if(id==T){scrollTo({top:0,behavior:'smooth'});return}const o=
 // =====================================================================
 // 10. GESTURES
 // =====================================================================
+// ---- Long-press a task on Rounds to start picking tasks to remove; while picking, a tap picks or unpicks ----
+(function(){let tmr=0,x0=0,y0=0,eat=false;
+ const row=e=>T=='rounds'&&e.target.closest&&e.target.closest('.task[data-tk]');
+ const stop=()=>{clearTimeout(tmr);tmr=0};
+ document.addEventListener('pointerdown',e=>{const r=row(e);if(!r||PICK||e.button>0||e.target.closest('button'))return;x0=e.clientX;y0=e.clientY;
+  tmr=setTimeout(()=>{tmr=0;eat=true;PICK=new Set([r.dataset.ar+'|'+r.dataset.tk]);window.Feedback&&Feedback.hap('tick');R()},500)});
+ document.addEventListener('pointermove',e=>{if(tmr&&Math.hypot(e.clientX-x0,e.clientY-y0)>10)stop()});
+ ['pointerup','pointercancel','scroll'].forEach(t=>addEventListener(t,stop,true));
+ document.addEventListener('contextmenu',e=>{if(row(e))e.preventDefault()});
+ // The tap that ends a long press, and every tap while picking, must not tick a task
+ document.addEventListener('click',e=>{const r=row(e);if(eat){eat=false;if(r){e.preventDefault();e.stopPropagation();return}}
+  if(!PICK||!r)return;e.preventDefault();e.stopPropagation();const k=r.dataset.ar+'|'+r.dataset.tk;PICK.has(k)?PICK.delete(k):PICK.add(k);window.Feedback&&Feedback.hap('tick');R()},true);
+})();
 // ---- Swipe between tabs: the page and its neighbour move together under your finger ----
 function nbr(dir){if(T=='more')return null;const i=TABS.findIndex(x=>x[0]==T)+dir;return TABS[i]?TABS[i][0]:null}
 function mkPeek(id){let p=document.getElementById('peek');
@@ -1032,7 +1067,7 @@ function mkPeek(id){let p=document.getElementById('peek');
 const rmPeek=()=>{const p=document.getElementById('peek');if(p)p.remove()};
 (function(){let sx=0,sy=0,lx=0,lt=0,vx=0,ax=null,ok=false,busy=false;const W=()=>innerWidth,nav=()=>document.getElementById('nav');
  const mv=(el,x,tr)=>{el.style.transition=tr||'none';el.style.transform=`translate3d(${x}px,0,0)`};
- document.addEventListener('touchstart',e=>{const t=e.target;ok=!busy&&!DLG&&T!='more'&&e.touches.length==1&&!t.closest('input,select,textarea,nav,header,.dh,.stp,.board.edit');ax=null;if(!ok)return;sx=lx=e.touches[0].clientX;sy=e.touches[0].clientY;lt=performance.now();vx=0},{passive:true});
+ document.addEventListener('touchstart',e=>{const t=e.target;ok=!busy&&!DLG&&!PICK&&T!='more'&&e.touches.length==1&&!t.closest('input,select,textarea,nav,header,.dh,.stp,.board.edit');ax=null;if(!ok)return;sx=lx=e.touches[0].clientX;sy=e.touches[0].clientY;lt=performance.now();vx=0},{passive:true});
  document.addEventListener('touchmove',e=>{if(!ok)return;const x=e.touches[0].clientX,y=e.touches[0].clientY,dx=x-sx,dy=y-sy;
   if(ax==null){if(Math.abs(dx)<8&&Math.abs(dy)<8)return;ax=Math.abs(dx)>Math.abs(dy)*1.2?'x':'y';if(ax=='x'){APP().style.willChange='transform';nav().classList.add('drag')}}
   if(ax!='x')return;e.preventDefault();const now=performance.now();vx=.7*vx+.3*((x-lx)/Math.max(1,now-lt));lx=x;lt=now;
