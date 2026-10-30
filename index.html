@@ -87,8 +87,9 @@ nav.drag .hl{transition:none}
 /* ===== Toast & popup ===== */
 /* ===== Pick tasks to remove ===== */
 .task{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-.task label .pk{flex:none;width:24px;height:24px;border-radius:50%;border:2px solid color-mix(in srgb,var(--mu) 45%,transparent);display:grid;place-items:center;color:#fff;transition:background var(--fast),border-color var(--fast)}
-.task.pkd .pk{background:var(--neg);border-color:transparent}.task.pkd{background:color-mix(in srgb,var(--neg) 8%,transparent);margin:0 -16px;padding-left:16px;padding-right:16px}
+.sup>summary{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.pk{flex:none;width:24px;height:24px;border-radius:50%;border:2px solid color-mix(in srgb,var(--mu) 45%,transparent);display:grid;place-items:center;color:#fff;transition:background var(--fast),border-color var(--fast)}
+.pkd .pk{background:var(--neg);border-color:transparent}.sup>summary.pkd{background:color-mix(in srgb,var(--neg) 8%,transparent);margin:0 -16px;padding-left:16px;padding-right:16px}.task.pkd{background:color-mix(in srgb,var(--neg) 8%,transparent);margin:0 -16px;padding-left:16px;padding-right:16px}
 .task.pkm label{cursor:pointer}
 #pickbar{position:fixed;z-index:7;left:12px;right:12px;bottom:calc(80px + env(safe-area-inset-bottom,0px));max-width:520px;margin:0 auto;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:10px 10px 10px 16px;box-shadow:0 12px 30px rgba(0,0,0,.22);animation:dup .24s cubic-bezier(.16,1,.3,1)}
 #pickbar[hidden]{display:none}body.picking main{padding-bottom:84px}#pickbar>span{flex:1;font-weight:700}#pickbar .x.bd{background:var(--neg);color:#fff;border-color:transparent}
@@ -318,7 +319,7 @@ let FV=null;                              // UI-only: floor opened from Today (R
 let ERET=null;                            // UI-only: where an area editor opened from Rounds returns to {fv: floor shown, a: area}
 let O={},EA=null,EL=null,DLG=null,VIEW='due',MS=null,FL='';// UI-only: open <details>, area / floor map being edited in Setup, open popup, Rounds view (due/all/map), area picked on the map, flash message
 let LR='today',LF='',LT='';               // UI-only: log range and custom dates
-let PICK=null;                            // UI-only: tasks picked on Rounds to remove (a Set of 'area id|task id'), or null
+let PICK=null,PKT='';                     // UI-only: things picked to remove, or null: on Rounds a Set of 'area id|task id', on Supplies a Set of supply ids; PKT = the tab it started on
 let LI=new Map();                         // UI-only: latest log entry for each "area|task", rebuilt on every draw
 
 // A brand-new install starts with the building from the notebook pages
@@ -615,8 +616,8 @@ const whenTag=(t,s)=>t.w&&!s.done?`<span class="tag wh${t.w=='early'&&s.due&&pas
 function taskRows(a,shown,map){return [...shown].sort((x,y)=>WO[x.t.w||'']-WO[y.t.w||'']).map(({t,s})=>{
    const note=s.done&&s.last.note;
    if(PICK){const on=PICK.has(a.id+'|'+t.id);   // picking tasks to remove: a round marker instead of the checkbox, no note button
-    return `<div class="task pkm${on?' pkd':''}" data-ar="${a.id}" data-tk="${t.id}"><label><span class="pk">${on?ICK:''}</span><span>${esc(t.n)}</span></label>${pwTag(a,t,s)}${whenTag(t,s)}</div>`}
-   return `<div class="task" data-ar="${a.id}" data-tk="${t.id}"><label><input type="checkbox" ${s.done?'checked':''} data-a="tick" data-ar="${a.id}" data-tk="${t.id}"><span>${esc(t.n)}</span></label>${pwTag(a,t,s)}${whenTag(t,s)}${s.skip?'<span class="tag sk">Skipped</span>':t.f!='daily'?`<span class="tag">${FN[t.f]}</span>`:''}${s.done?`<span class="tm">${tm(s.last.at)}</span><button class="nb${note?' has':''}" data-a="note" data-id="${s.last.id}" aria-label="Note">${ICN}</button>`:s.last&&(VIEW=='all'||map)?`<span class="tm">${sd(dOf(s.last.at))}</span>`:''}</div>${note?`<div class="nt">${esc(note)}</div>`:''}`}).join('')}
+    return `<div class="task pkm${on?' pkd':''}" data-pk="${a.id}|${t.id}"><label><span class="pk">${on?ICK:''}</span><span>${esc(t.n)}</span></label>${pwTag(a,t,s)}${whenTag(t,s)}</div>`}
+   return `<div class="task" data-pk="${a.id}|${t.id}"><label><input type="checkbox" ${s.done?'checked':''} data-a="tick" data-ar="${a.id}" data-tk="${t.id}"><span>${esc(t.n)}</span></label>${pwTag(a,t,s)}${whenTag(t,s)}${s.skip?'<span class="tag sk">Skipped</span>':t.f!='daily'?`<span class="tag">${FN[t.f]}</span>`:''}${s.done?`<span class="tm">${tm(s.last.at)}</span><button class="nb${note?' has':''}" data-a="note" data-id="${s.last.id}" aria-label="Note">${ICN}</button>`:s.last&&(VIEW=='all'||map)?`<span class="tm">${sd(dOf(s.last.at))}</span>`:''}</div>${note?`<div class="nt">${esc(note)}</div>`:''}`}).join('')}
 const wetWhen=a=>dOf(a.wet)==tdy()?tm(a.wet):sd(dOf(a.wet));
 const wetBadge=a=>a.wet?`<span class="tbg wbg">${WET}<span>Wet floor sign out since ${wetWhen(a)}</span></span>`:'';
 const tourBadges=xs=>xs.map(x=>`<span class="tbg">${CLK}<span>${esc(tourTxt(x))}</span></span>`).join('');
@@ -669,8 +670,8 @@ function buildReport(){const r=logRange(),L=inRange(r),days=[...new Set(L.map(e=
 // ---- Supplies ----
 function vSup(){const low=P().sup.filter(isLow);
  return propBar()+(low.length?`<div class="card warn"><h3><span><i class="bang">!</i>Running low</span><span>${low.length}</span></h3><p class="mu" style="margin:0">${low.map(s=>esc(s.n)).join(', ')}</p></div>`:'')
- +`<div class="card wide"><h2>Supplies</h2><p class="mu" style="margin:0 0 6px">Tap an item to set where it’s kept, its unit, and when to warn you it’s running low.</p>${P().sup.map((s,i)=>`<details class="sup" data-o="s${s.id}" ${O['s'+s.id]?'open':''}><summary><div><b>${esc(s.n||'Untitled')}</b><span class="mu">${s.w?esc(s.w):s.q==null?'Not counted yet':''}${isLow(s)?' <span class="tag low">Low</span>':''}</span></div>
-   <div class="stp"><button data-a="qty" data-i="${i}" data-d="-1" aria-label="One less">-</button><b class="${isLow(s)?'lw':''}">${s.q==null?'--':s.q}</b><button data-a="qty" data-i="${i}" data-d="1" aria-label="One more">+</button></div></summary>
+ +`<div class="card wide"><h2>Supplies</h2><p class="mu" style="margin:0 0 6px">Tap an item to set where it’s kept, its unit, and when to warn you it’s running low.</p>${P().sup.map((s,i)=>`<details class="sup" data-o="s${s.id}" ${O['s'+s.id]&&!PICK?'open':''}><summary data-pk="${s.id}" class="${PICK&&PICK.has(s.id)?'pkd':''}">${PICK?`<span class="pk">${PICK.has(s.id)?ICK:''}</span>`:''}<div><b>${esc(s.n||'Untitled')}</b><span class="mu">${s.w?esc(s.w):s.q==null?'Not counted yet':''}${isLow(s)?' <span class="tag low">Low</span>':''}</span></div>
+   ${PICK?'':`<div class="stp"><button data-a="qty" data-i="${i}" data-d="-1" aria-label="One less">-</button><b class="${isLow(s)?'lw':''}">${s.q==null?'--':s.q}</b><button data-a="qty" data-i="${i}" data-d="1" aria-label="One more">+</button></div>`}</summary>
    <div class="sbody"><label>Name${I(`${PP()}.sup.${i}.n`)}</label><label>Where it’s kept${I(`${PP()}.sup.${i}.w`,'e.g. Floor 1 closet')}</label>
    <div class="g3"><label>Count${I(`${PP()}.sup.${i}.q`,'--','qty')}</label><label>Unit${I(`${PP()}.sup.${i}.u`,'bottles')}</label><label>Warn at${I(`${PP()}.sup.${i}.low`,'--','qty')}</label></div>
    <div class="row" style="margin-top:8px;justify-content:flex-end"><button class="x" data-a="delSup" data-i="${i}">Delete</button></div></div></details>`).join('')}
@@ -789,13 +790,16 @@ function tick(aid,tid,on,quiet){const a=areaById(aid),t=a&&tasksOf(a).find(x=>x.
   toast('Unchecked '+t.n,()=>{S.log.splice(Math.min(j,S.log.length),0,e);save();R()})}}
 // Remove the picked tasks from their areas: a standard task is switched off there (as in Edit area), an extra task is deleted.
 // History keeps their names. One Undo puts every area back the way it was.
-function pickDel(){if(!PICK||!PICK.size)return;const was=new Map();let n=0;
+function pickDel(){if(!PICK||!PICK.size)return;if(T=='sup')return pickDelSup();const was=new Map();let n=0;
  PICK.forEach(k=>{const [aid,tid]=k.split('|'),a=areaById(aid);if(!a)return;
   if(!was.has(a))was.set(a,{skip:[...a.skip],ex:[...a.ex]});
   if(P().std.some(t=>t.id==tid)){if(!a.skip.includes(tid))a.skip.push(tid);n++}
   else{const i=a.ex.findIndex(t=>t.id==tid);if(i<0)return;snap(e=>e.a==a.id&&e.t==tid);a.ex.splice(i,1);n++}});
  PICK=null;save();R();
  toast('Removed '+plural(n,'task'),()=>{was.forEach((v,a)=>{a.skip=v.skip;a.ex=v.ex});save();R()})}
+// Delete the picked supplies; one Undo brings them all back in their places
+function pickDelSup(){const p=P(),was=[...p.sup],n=p.sup.filter(x=>PICK.has(x.id)).length;p.sup=p.sup.filter(x=>!PICK.has(x.id));
+ PICK=null;save();R();toast('Deleted '+plural(n,n==1?'supply':'supplie'),()=>{p.sup=was;save();R()})}
 function confetti(){toast('Done for today. Nice!');if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
  const C=['#2f8fff','#5ec4ff','#7fd3ff','#1f7ae0','#b9e3ff','#0e9fc2'],box=document.createElement('div');box.className='confetti';
  for(let i=0;i<70;i++){const s=document.createElement('i'),w=6+Math.random()*6;s.style.cssText=`left:${Math.random()*100}%;width:${w}px;height:${w*(1+Math.random())}px;background:${C[i%C.length]};border-radius:${Math.random()<.4?'50%':'3px'};animation-delay:${Math.random()*.3}s;animation-duration:${1.5+Math.random()*1.2}s;--dx:${((Math.random()-.5)*180).toFixed(0)}px;--r:${(Math.random()*900-450).toFixed(0)}deg`;box.appendChild(s)}
@@ -1003,8 +1007,8 @@ let DAY='';document.addEventListener('visibilitychange',()=>{if(!document.hidden
 let RK='';
 function R(){const de=document.documentElement;de.dataset.theme=themeOf(S.set.theme||'system');dnTimer();DAY=tdy();buildIndex();
  const c=TC[T]||TC.today;de.style.setProperty('--pc',c[0]);de.style.setProperty('--pc2',c[1]);
- if(T!='setup'){EA=EL=ERET=null;DRAG=null}if(T!='rounds'){FV=null;PICK=null}
- const pb=document.getElementById('pickbar');pb.hidden=!PICK;document.body.classList.toggle('picking',!!PICK);if(PICK)patch(pb,`<span>${PICK.size?PICK.size+' selected':'Tap tasks to select'}</span><button class="g bd" data-a="pickOff">Cancel</button><button class="x bd" data-a="pickDel" ${PICK.size?'':'disabled'}>Remove</button>`);
+ if(T!='setup'){EA=EL=ERET=null;DRAG=null}if(T!='rounds')FV=null;if(T!=PKT)PICK=null;
+ const pb=document.getElementById('pickbar');pb.hidden=!PICK;document.body.classList.toggle('picking',!!PICK);if(PICK)patch(pb,`<span>${PICK.size?PICK.size+' selected':T=='sup'?'Tap supplies to select':'Tap tasks to select'}</span><button class="g bd" data-a="pickOff">Cancel</button><button class="x bd" data-a="pickDel" ${PICK.size?'':'disabled'}>Remove</button>`);
  const key=T+'|'+(EA||'')+'|'+(EL||'')+'|'+(FV||'')+'|'+P().id,full=key!==RK;RK=key;
  patch(APP(),(T=='more'?SETTINGS:TABS.find(t=>t[0]==T))[2](),full);
  document.getElementById('gear').classList.toggle('on',T=='more');
@@ -1044,18 +1048,20 @@ function goTab(id){if(id==T){scrollTo({top:0,behavior:'smooth'});return}const o=
 // =====================================================================
 // 10. GESTURES
 // =====================================================================
-// ---- Long-press a task on Rounds to start picking tasks to remove; while picking, a tap picks or unpicks ----
+// ---- Long-press a task on Rounds, or a supply on Supplies, to start picking things to remove; while picking, a tap picks or unpicks ----
 (function(){let tmr=0,x0=0,y0=0,eat=false;
- const row=e=>T=='rounds'&&e.target.closest&&e.target.closest('.task[data-tk]');
+ const row=e=>e.target.closest&&(T=='rounds'?e.target.closest('.task[data-pk]'):T=='sup'?e.target.closest('.sup>summary[data-pk]'):null);
  const stop=()=>{clearTimeout(tmr);tmr=0};
+ // A new touch means the click that ends a long press has passed (some browsers never send it after the redraw)
+ document.addEventListener('pointerdown',()=>{eat=false},true);
  document.addEventListener('pointerdown',e=>{const r=row(e);if(!r||PICK||e.button>0||e.target.closest('button'))return;x0=e.clientX;y0=e.clientY;
-  tmr=setTimeout(()=>{tmr=0;eat=true;PICK=new Set([r.dataset.ar+'|'+r.dataset.tk]);window.Feedback&&Feedback.hap('tick');R()},500)});
+  tmr=setTimeout(()=>{tmr=0;eat=true;PICK=new Set([r.dataset.pk]);PKT=T;window.Feedback&&Feedback.hap('tick');R()},500)});
  document.addEventListener('pointermove',e=>{if(tmr&&Math.hypot(e.clientX-x0,e.clientY-y0)>10)stop()});
  ['pointerup','pointercancel','scroll'].forEach(t=>addEventListener(t,stop,true));
  document.addEventListener('contextmenu',e=>{if(row(e))e.preventDefault()});
- // The tap that ends a long press, and every tap while picking, must not tick a task
+ // The tap that ends a long press, and every tap while picking, must not tick a task or open a supply
  document.addEventListener('click',e=>{const r=row(e);if(eat){eat=false;if(r){e.preventDefault();e.stopPropagation();return}}
-  if(!PICK||!r)return;e.preventDefault();e.stopPropagation();const k=r.dataset.ar+'|'+r.dataset.tk;PICK.has(k)?PICK.delete(k):PICK.add(k);window.Feedback&&Feedback.hap('tick');R()},true);
+  if(!PICK||!r)return;e.preventDefault();e.stopPropagation();const k=r.dataset.pk;PICK.has(k)?PICK.delete(k):PICK.add(k);window.Feedback&&Feedback.hap('tick');R()},true);
 })();
 // ---- Swipe between tabs: the page and its neighbour move together under your finger ----
 function nbr(dir){if(T=='more')return null;const i=TABS.findIndex(x=>x[0]==T)+dir;return TABS[i]?TABS[i][0]:null}
