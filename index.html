@@ -668,14 +668,17 @@ function buildReport(){const r=logRange(),L=inRange(r),days=[...new Set(L.map(e=
   <p class="foot">Printed ${new Date().toLocaleString()} from Big Shiny Rounds</p>`}
 
 // ---- Supplies ----
+// Places already typed for this property's supplies, offered as suggestions under "Where it's kept" (A to Z, no repeats)
+function supPlaces(){const m=new Map();P().sup.forEach(s=>{const w=(s.w||'').trim();if(w&&!m.has(w.toLowerCase()))m.set(w.toLowerCase(),w)});
+ return `<datalist id="supw">${[...m.values()].sort((a,b)=>a.localeCompare(b)).map(w=>`<option value="${esc(w)}"></option>`).join('')}</datalist>`}
 function vSup(){const low=P().sup.filter(isLow);
  return propBar()+(low.length?`<div class="card warn"><h3><span><i class="bang">!</i>Running low</span><span>${low.length}</span></h3><p class="mu" style="margin:0">${low.map(s=>esc(s.n)).join(', ')}</p></div>`:'')
  +`<div class="card wide"><h2>Supplies</h2><p class="mu" style="margin:0 0 6px">Tap an item to set where it’s kept, its unit, and when to warn you it’s running low.</p>${P().sup.map((s,i)=>`<details class="sup" data-o="s${s.id}" ${O['s'+s.id]&&!PICK?'open':''}><summary data-pk="${s.id}" class="${PICK&&PICK.has(s.id)?'pkd':''}">${PICK?`<span class="pk">${PICK.has(s.id)?ICK:''}</span>`:''}<div><b>${esc(s.n||'Untitled')}</b><span class="mu">${s.w?esc(s.w):s.q==null?'Not counted yet':''}${isLow(s)?' <span class="tag low">Low</span>':''}</span></div>
    ${PICK?'':`<div class="stp"><button data-a="qty" data-i="${i}" data-d="-1" aria-label="One less">-</button><b class="${isLow(s)?'lw':''}">${s.q==null?'--':s.q}</b><button data-a="qty" data-i="${i}" data-d="1" aria-label="One more">+</button></div>`}</summary>
-   <div class="sbody"><label>Name${I(`${PP()}.sup.${i}.n`)}</label><label>Where it’s kept${I(`${PP()}.sup.${i}.w`,'e.g. Floor 1 closet')}</label>
+   <div class="sbody"><label>Name${I(`${PP()}.sup.${i}.n`)}</label><label>Where it’s kept${I(`${PP()}.sup.${i}.w`,'e.g. Floor 1 closet').replace('<input ','<input list="supw" autocomplete="off" ')}</label>
    <div class="g3"><label>Count${I(`${PP()}.sup.${i}.q`,'--','qty')}</label><label>Unit${I(`${PP()}.sup.${i}.u`,'bottles')}</label><label>Warn at${I(`${PP()}.sup.${i}.low`,'--','qty')}</label></div>
    <div class="row" style="margin-top:8px;justify-content:flex-end"><button class="x" data-a="delSup" data-i="${i}">Delete</button></div></div></details>`).join('')}
-  <div class="row" style="margin-top:10px"><input type="text" id="sn" placeholder="New supply"><button data-a="addSup">Add</button></div>${flash()}</div>`}
+  ${supPlaces()}<div class="row" style="margin-top:10px"><input type="text" id="sn" placeholder="New supply"><button data-a="addSup">Add</button></div>${flash()}</div>`}
 
 // ---- Setup: standard tasks, floors, areas ----
 const freqSel=p=>SEL(p,FREQ,'f');
