@@ -159,6 +159,8 @@ textarea.anotein{height:72px}
 /* ===== Tours ===== */
 .tbg{display:inline-flex;align-items:center;gap:5px;margin-top:7px;max-width:100%;font-size:12px;font-weight:800;color:var(--wn);background:color-mix(in srgb,var(--wn) 13%,transparent);border-radius:99px;padding:3px 9px}
 .tbg span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tbg svg,.tb svg{flex:none}
+/* Move-ins: violet, so they stand apart from tours (amber) and wet floor signs (green) */
+.tbg.mv{color:#6a45e8;background:color-mix(in srgb,#7b5cff 14%,transparent)}:root[data-theme="dark"] .tbg.mv{color:#b3a2ff}.tb.mv{color:#fff;background:#7b5cff}
 .tours .lrow{align-items:center}.tours .lrow>.tm{line-height:1.25}.tours .lrow>div b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wbg{color:var(--ac);background:color-mix(in srgb,var(--ac) 13%,transparent)}.sub>.wbg,.tasks>.wbg{margin:2px 0 4px}
 .wb{position:absolute;z-index:2;transform:translate(calc(-100% - 3px),calc(-100% - 3px));display:flex;align-items:center;color:#00283d;background:#8fdcff;border-radius:4px;padding:3px;pointer-events:none}.wb svg{width:14px;height:14px}
@@ -391,6 +393,8 @@ const MIGRATIONS=[
  // v12: plain water mop for each property: p.pw {on, n: every nth mop, from: ms it was first turned on}.
  // Any task with "mop" in its name counts, per area. A mop done as the plain water one keeps e.v = 'Plain water' in the log.
  S=>{S.props.forEach(p=>{if(!p.pw||typeof p.pw!='object')p.pw={on:false,n:4,from:0}})},
+ // v13: tours can also be move-ins. Each entry in p.tours gets x.k: 'tour' or 'move'; everything saved so far was a tour.
+ S=>{S.props.forEach(p=>(p.tours||[]).forEach(x=>{if(x.k!='move')x.k='tour'}))},
 ];
 function migrate(){S.set=S.set||{};for(let v=S.v||0;v<MIGRATIONS.length;v++)MIGRATIONS[v](S);S.v=MIGRATIONS.length;if(!S.props.some(p=>p.id==S.set.prop))S.set.prop=S.props[0].id;prune()}
 function load(){try{S=JSON.parse(localStorage.getItem(LS))}catch(e){}if(!S)S=seed();migrate()}
@@ -510,7 +514,9 @@ const areaName=a=>{const p=a.par&&areaById(a.par);return (p?(p.n||'Untitled')+' 
 const tourKey=x=>x.d+(x.t||'99');                                  // tours with no time sort last in their day
 // strict: only tours for this exact area; otherwise its sub areas' tours count too
 const toursToday=(a,strict)=>P().tours.filter(x=>x.d==tdy()&&(x.a==a.id||(!strict&&kids(a).some(k=>k.id==x.a)))).sort((p,q)=>tourKey(p)<tourKey(q)?-1:1);
-const tourTxt=x=>'Tour'+(x.t?' '+tmS(x.t):'')+(x.n?' · '+x.n:'');
+const isMove=x=>x.k=='move';                                       // a move-in rather than a tour
+const kindTxt=x=>isMove(x)?'Move-in':'Tour';
+const tourTxt=x=>kindTxt(x)+(x.t?' '+tmS(x.t):'')+(x.n?' · '+x.n:'');
 const isLow=s=>s.low!=null&&s.q!=null&&s.q<=s.low;
 // Names for a log entry (falls back to the names saved when an area or task was deleted)
 const eArea=e=>{const a=areaById(e.a);return a?areaName(a):e.an||'Deleted area'};
@@ -535,6 +541,7 @@ const CHEV='<svg class="chev" viewBox="0 0 16 16" width="16" height="16" aria-hi
 const ICN='<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
 const ICS='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>';
 const WET='<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M5.3 1.8h5.4L14 14.2H2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 5.8v3.6M8 11.6v.2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>';   // wet floor sign
+const BOX='<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M2.5 5.2 8 2.5l5.5 2.7v5.6L8 13.5l-5.5-2.7z M2.5 5.2 8 7.9l5.5-2.7M8 7.9v5.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>';
 const CLK='<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 4.6V8l2.3 1.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
 const DH=`<span class="dh" title="Drag to reorder"><svg viewBox="0 0 10 16" width="10" height="16" aria-hidden="true"><g fill="currentColor"><circle cx="2.5" cy="3" r="1.5"/><circle cx="7.5" cy="3" r="1.5"/><circle cx="2.5" cy="8" r="1.5"/><circle cx="7.5" cy="8" r="1.5"/><circle cx="2.5" cy="13" r="1.5"/><circle cx="7.5" cy="13" r="1.5"/></g></svg></span>`;
 // Inputs bound to a data path save themselves on change
@@ -556,11 +563,11 @@ function roundCard(){const p=prog(P().areas),o=offToday();
  return `<div class="pcb"><div><b>${p.due?plural(p.due,'task')+' due':'All caught up'}</b><span>${p.done?plural(p.done,'task')+' done today':p.due?'Nothing checked off yet today':'Nothing due right now'}</span></div></div>`}
 // One-time tasks: things you were asked to do once that aren't tied to an area. They stay until checked off,
 // then show crossed out for the rest of that day. Checking one off writes it into the history like any task.
-// Tours today and coming up, soonest first
+// Tours and move-ins today and coming up, soonest first
 function tourCard(){const t=tdy(),xs=P().tours.filter(x=>x.d>=t).sort((p,q)=>tourKey(p)<tourKey(q)?-1:1);
- return `<div class="card tours"><h2>Tours</h2>${xs.map(x=>{const a=areaById(x.a),f=a&&floorOf(a);
-   return `<div class="lrow"><span class="tm">${x.d==t?'':sd(x.d)+'<br>'}${x.t?tmS(x.t):'Any time'}</span><div><b>${esc(x.n||'Tour')}</b><span class="mu">${esc(a?areaName(a):'Deleted area')}${f?' · '+esc(f.n):''}</span></div><button class="nb" data-a="editTour" data-id="${x.id}" aria-label="Edit tour">${ICN}</button><button class="x" data-a="delTour" data-id="${x.id}" aria-label="Delete">${ICX}</button></div>`}).join('')||'<p class="mu" style="margin:0 0 4px">No tours coming up.</p>'}
-  <div class="row" style="margin-top:8px"><button class="g bd" data-a="addTour">Add tour</button></div></div>`}
+ return `<div class="card tours"><h2>Tours &amp; move-ins</h2>${xs.map(x=>{const a=areaById(x.a),f=a&&floorOf(a);
+   return `<div class="lrow"><span class="tm">${x.d==t?'':sd(x.d)+'<br>'}${x.t?tmS(x.t):'Any time'}</span><div><b>${esc(x.n?kindTxt(x)+' · '+x.n:kindTxt(x))}</b><span class="mu">${esc(a?areaName(a):'Deleted area')}${f?' · '+esc(f.n):''}</span></div><button class="nb" data-a="editTour" data-id="${x.id}" aria-label="Edit">${ICN}</button><button class="x" data-a="delTour" data-id="${x.id}" aria-label="Delete">${ICX}</button></div>`}).join('')||'<p class="mu" style="margin:0 0 4px">No tours or move-ins coming up.</p>'}
+  <div class="row" style="margin-top:8px"><button class="g bd" data-a="addTour">Add tour or move-in</button></div></div>`}
 const jobsLeft=()=>P().jobs.filter(j=>!j.done).length;
 // Optional due date (j.due 'YYYY-MM-DD') and time (j.dt 'HH:MM'). Overdue once the day, or the time on that day, has passed.
 const jobLate=j=>!j.done&&!!j.due&&(j.due<tdy()||(j.due==tdy()&&!!j.dt&&j.dt<new Date().toTimeString().slice(0,5)));
@@ -620,7 +627,7 @@ function taskRows(a,shown,map){return [...shown].sort((x,y)=>WO[x.t.w||'']-WO[y.
    return `<div class="task" data-pk="${a.id}|${t.id}"><label><input type="checkbox" ${s.done?'checked':''} data-a="tick" data-ar="${a.id}" data-tk="${t.id}"><span>${esc(t.n)}</span></label>${pwTag(a,t,s)}${whenTag(t,s)}${s.skip?'<span class="tag sk">Skipped</span>':t.f!='daily'?`<span class="tag">${FN[t.f]}</span>`:''}${s.done?`<span class="tm">${tm(s.last.at)}</span><button class="nb${note?' has':''}" data-a="note" data-id="${s.last.id}" aria-label="Note">${ICN}</button>`:s.last&&(VIEW=='all'||map)?`<span class="tm">${sd(dOf(s.last.at))}</span>`:''}</div>${note?`<div class="nt">${esc(note)}</div>`:''}`}).join('')}
 const wetWhen=a=>dOf(a.wet)==tdy()?tm(a.wet):sd(dOf(a.wet));
 const wetBadge=a=>a.wet?`<span class="tbg wbg">${WET}<span>Wet floor sign out since ${wetWhen(a)}</span></span>`:'';
-const tourBadges=xs=>xs.map(x=>`<span class="tbg">${CLK}<span>${esc(tourTxt(x))}</span></span>`).join('');
+const tourBadges=xs=>xs.map(x=>`<span class="tbg${isMove(x)?' mv':''}">${isMove(x)?BOX:CLK}<span>${esc(tourTxt(x))}</span></span>`).join('');
 const noteBtn=a=>a.note?`<button class="anote" data-a="areaNote" data-id="${a.id}" aria-label="Edit note">${ICN}<span>${esc(a.note)}</span></button>`:'';
 // One area on Rounds. An area with sub areas shows each sub area's checklist under its own heading.
 function areaCard(a,map,force){const ks=kids(a),parts=(ks.length?ks:[a]).map(x=>{const ts=tasksOf(x).map(t=>({t,s:st(x,t)}));return {x,ts,shown:VIEW=='all'?ts:ts.filter(y=>y.s.due||y.s.today)}});
@@ -734,7 +741,7 @@ function board(f,edit){const as=areasOn(f),marks=f.marks||[];let pg='',sh='',ov=
     if(L.cut){const [nx,ny]=notchOf(L);hd+=`<i class="hd cut" data-hd="cut" data-id="${a.id}" style="left:${pct(nx,COLS)};top:${pct(ny,rows)}" title="Drag to change the L"></i>`}}}
   else{const q=prog([a]),cls=!q.tot?'idle':!q.due?'ok':q.done?'part':'due';
    sh+=`<path d="${d}" style="fill:${RC.get(a.id)}" class="${cls}${MS==a.id?' sel':''}"/>`;
-   const tt=toursToday(a)[0];if(tt)ov+=`<span class="tb" style="left:${pct(lr.x+lr.w,COLS)};top:${pct(lr.y-oy,rows)}">${CLK}${tt.t?tmS(tt.t).replace(/\s?[AP]M$/i,''):'Tour'}</span>`;
+   const tt=toursToday(a)[0];if(tt)ov+=`<span class="tb${isMove(tt)?' mv':''}" style="left:${pct(lr.x+lr.w,COLS)};top:${pct(lr.y-oy,rows)}">${isMove(tt)?BOX:CLK}${tt.t?tmS(tt.t).replace(/\s?[AP]M$/i,''):kindTxt(tt)}</span>`;
    if(a.wet)ov+=`<span class="wb" style="left:${pct(lr.x+lr.w,COLS)};top:${pct(lr.y+lr.h-oy,rows)}">${WET}</span>`;
    ov+=`<button class="rl ${cls}${tcls}" data-a="selArea" data-id="${a.id}" style="${box};--rc:${RC.get(a.id)}" aria-label="${esc(a.n)}: ${q.done} of ${q.tot} done${a.wet?', wet floor sign out':''}"><span>${esc(a.n||'Untitled')}</span><em>${!q.tot?'':!q.due?ICK:q.done+'/'+q.tot}</em></button>`}});
  marks.forEach(m=>{const dr=DRAG&&DRAG.mk==m.id,x=dr?DRAG.x:m.x,y=dr?DRAG.y:m.y;
@@ -821,13 +828,16 @@ function areaNoteDlg(id){const a=areaById(id);if(!a)return;const old=a.note||'';
  openDlg('Area note',a.n||'Untitled area',[['Save note','',v=>{v=(v||'').trim();if(v==old)return;if(v)a.note=v;else delete a.note;save();R();
   if(v)toast('Saved note');else toast('Removed note',()=>{a.note=old;save();R()})}],['Cancel','g bd',null]],
   `<textarea id="dlgIn" placeholder="e.g. Key is in the office. Mop sink is behind the second door.">${esc(old)}</textarea>`)}
-// Add or change a tour: which area, the day and time, and an optional label ("Unit 312")
+// Add or change a tour or move-in: which kind, which area, the day and time, and an optional label ("Unit 312")
 function tourDlg(id){const x=id?P().tours.find(q=>q.id==id):null;if(id&&!x)return;
  const opts=P().floors.map(f=>{const as=areasOn(f);return as.length?`<optgroup label="${esc(f.n)}">${as.flatMap(a=>[a,...kids(a)]).map(a=>`<option value="${a.id}" ${x&&x.a==a.id?'selected':''}>${a.par?'\u00a0\u00a0\u00a0› '+esc(a.n||'Untitled'):esc(areaName(a))}</option>`).join('')}</optgroup>`:''}).join('');
  if(!opts){toast('Add areas in Setup first');return}
- openDlg(x?'Edit tour':'Add a tour','',[[x?'Save tour':'Add tour','',(v,k)=>{if(!k.d){toast('Enter a date first');return}
-   const o={a:k.a,d:k.d,t:k.t||'',n:(k.n||'').trim()};if(x)Object.assign(x,o);else P().tours.push({id:uid('o'),...o});save();R();toast(x?'Saved tour':'Added tour')}],['Cancel','g bd',null]],
-  `<div class="dform"><label class="sec">Area</label><select data-k="a">${opts}</select>
+ const kd=x&&isMove(x)?'move':'tour';
+ openDlg(x?'Edit '+kindTxt(x).toLowerCase():'Add a tour or move-in','',[[x?'Save':'Add','',(v,k)=>{if(!k.d){toast('Enter a date first');return}
+   const o={k:k.k=='move'?'move':'tour',a:k.a,d:k.d,t:k.t||'',n:(k.n||'').trim()},w=o.k=='move'?'move-in':'tour';
+   if(x)Object.assign(x,o);else P().tours.push({id:uid('o'),...o});save();R();toast((x?'Saved ':'Added ')+w)}],['Cancel','g bd',null]],
+  `<div class="dform"><label class="sec">Type</label><input type="hidden" data-k="k" value="${kd}"><div class="seg qm">${[['tour','Tour'],['move','Move-in']].map(([v,l])=>`<button class="${kd==v?'on':''}" data-a="tourKind" data-v="${v}">${l}</button>`).join('')}</div>
+  <label class="sec">Area</label><select data-k="a">${opts}</select>
   <div class="dates"><label class="mu">Day<input type="date" data-k="d" value="${x?x.d:tdy()}"></label><label class="mu">Time<input type="time" data-k="t" value="${x?x.t:''}"></label></div>
   <label class="sec">Label <span style="text-transform:none;letter-spacing:0;font-weight:600">(optional)</span></label><input type="text" id="dlgIn" data-k="n" value="${esc(x?x.n:'')}" placeholder="e.g. Unit 312" autocomplete="off"></div>`)}
 // Set or clear a one-time task's due date and time
@@ -884,7 +894,8 @@ const ACT={
   else{a.wet=Date.now();save();R();toast('Wet floor sign out',()=>{delete a.wet;save();R()})}},
  // tours
  addTour:()=>tourDlg(), editTour:d=>tourDlg(d.id),
- delTour:d=>{const i=P().tours.findIndex(x=>x.id==d.id);if(i<0)return;const [x]=P().tours.splice(i,1);save();R();toast('Deleted tour',()=>{P().tours.splice(Math.min(i,P().tours.length),0,x);save();R()})},
+ tourKind:(d,el)=>{document.querySelector('#dlg [data-k="k"]').value=d.v;el.parentElement.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b==el))},
+ delTour:d=>{const i=P().tours.findIndex(x=>x.id==d.id);if(i<0)return;const [x]=P().tours.splice(i,1);save();R();toast('Deleted '+kindTxt(x).toLowerCase(),()=>{P().tours.splice(Math.min(i,P().tours.length),0,x);save();R()})},
  // one-time tasks
  job:(d,el)=>tickJob(d.id,el.checked), addJob, jobDue:d=>jobDueDlg(d.id),
  delJob:d=>{const i=+d.i,j=P().jobs[i];if(!j)return;P().jobs.splice(i,1);save();R();toast('Deleted “'+(j.n||'task')+'”',()=>{P().jobs.splice(Math.min(i,P().jobs.length),0,j);save();R()})},
