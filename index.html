@@ -45,7 +45,7 @@ summary{cursor:pointer;list-style:none}summary::-webkit-details-marker{display:n
 .tag{flex:none;font-size:10px;font-weight:800;letter-spacing:.4px;color:var(--pc);background:color-mix(in srgb,var(--pc) 13%,transparent);border-radius:99px;padding:3px 8px;text-transform:uppercase}
 .tag.low{color:var(--neg);background:color-mix(in srgb,var(--neg) 13%,transparent)}
 .bar{height:8px;background:var(--fld);border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--pc),var(--pc2));transition:width .35s cubic-bezier(.2,.8,.2,1)}
-.warn{border-color:var(--wn);background:color-mix(in srgb,var(--wn) 9%,var(--card))}.warn h3{color:var(--wn)}.warn .row button{padding:5px 12px;font-size:13px}
+.warn{border-color:var(--wn);background:color-mix(in srgb,var(--wn) 9%,var(--card))}.warn h3{color:var(--wn)}.warn .row button,.dueall .row button{padding:5px 12px;font-size:13px}
 .bang{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;margin-right:6px;border-radius:50%;background:var(--wn);color:#fff;font-weight:800;font-size:12px;line-height:1}
 
 /* ===== Inputs & buttons ===== */
@@ -63,7 +63,7 @@ input[type=checkbox].pop{animation:pop .3s cubic-bezier(.34,1.56,.64,1)}@keyfram
 button{background:linear-gradient(135deg,var(--pc),var(--pc2));color:#fff;border:0;border-radius:14px;padding:10px 16px;font:inherit;font-weight:800;cursor:pointer;box-shadow:0 6px 14px -6px color-mix(in srgb,var(--pc) 70%,transparent);transition:transform .25s var(--bounce),filter .1s,background var(--fast)}
 button.g{background:none;color:var(--mu);padding:8px 10px;font-weight:600}button.x{background:none;color:var(--neg);padding:8px 8px;font-weight:600}
 button.bd{border:1px solid var(--bd);color:var(--tx)}button.x.bd{color:var(--neg)}
-button.g,button.x,nav button,.seg button,.gear,#toast button,.warn .row button,.nb,.stp button{box-shadow:none}
+button.g,button.x,nav button,.seg button,.gear,#toast button,.warn .row button,.dueall .row button,.tile.tbtn,.nb,.stp button{box-shadow:none}
 button:is(:active,.prs){transform:scale(.93);filter:brightness(.95);transition-duration:.08s}
 button:disabled{opacity:.4}
 .seg{display:flex;gap:6px}.seg button{flex:1;background:var(--card);color:var(--tx);border:1px solid var(--bd)}
@@ -114,7 +114,9 @@ nav.drag .hl{transition:none}
 .pcb>div{flex:1;min-width:0}.pcb b{display:block;font:600 22px/1.2 var(--fd)}.pcb span{font-size:13px;opacity:.92}
 .pcb button{flex:none;background:#fff;color:var(--pc);box-shadow:0 6px 14px -6px rgba(0,0,0,.25)}
 .tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.tile{padding:14px 16px;background:var(--card);border:1px solid var(--bd)}.tile .mu{font-size:12px;font-weight:700}.tile b{display:block;font:600 28px/1.15 var(--fd);margin-top:2px;color:var(--pc)}
+.tile{padding:14px 16px;background:var(--card);border:1px solid var(--bd)}.tile .mu{font-size:12px;font-weight:700}
+/* The Still due tile is a button when there is something to list */
+.tile.tbtn{display:block;width:100%;text-align:left;color:var(--tx);font-weight:500;padding:14px 16px}.tile.tbtn .tbh{display:block;color:var(--pc);margin-top:2px}.tile b{display:block;font:600 28px/1.15 var(--fd);margin-top:2px;color:var(--pc)}
 .flr{display:flex;align-items:center;gap:12px;width:100%;background:none;color:var(--tx);box-shadow:none;border-radius:0;padding:11px 2px;text-align:left;font-weight:600}
 .flr+.flr{border-top:1px solid var(--bd)}.flr:is(:active,.prs){transform:none;filter:none;background:var(--fld)}
 .flr>span{flex:1;min-width:0}.flr .bar{margin-top:6px}.flr>b{flex:none;font-weight:700;font-size:14px}.flr>i{font-style:normal;color:var(--mu)}
@@ -277,7 +279,7 @@ body.dragmode{user-select:none;-webkit-user-select:none;cursor:grabbing}
  #rep .foot{margin-top:24px;color:#666;font-size:9pt}
 }
 @media(prefers-reduced-motion:reduce){*,*:after{transition-duration:.01ms!important;animation-duration:.01ms!important}}
-</style></head><body><header class="top"><span class="tt"><svg class="logo" viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#1f7ae0"/><circle cx="16" cy="16" r="12.2" fill="#dcefff"/><circle cx="16" cy="16" r="10.6" fill="#4aa8ff"/><path d="M16 6v20M6 16h20M8.6 8.6l14.8 14.8M23.4 8.6 8.6 23.4" stroke="#dcefff" stroke-width="1.7" stroke-linecap="round"/><circle cx="16" cy="16" r="2.2" fill="#dcefff"/></svg><span><span class="jz">Big Shiny</span> Rounds <span class="ver">v0.38</span></span></span><button id="gear" class="gear" aria-label="Settings" data-a="gear"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></header><div class="vclip"><main id="app" class="view"></main></div><nav id="nav"></nav><div id="pickbar" hidden></div><div id="toast" role="status" aria-live="polite"></div><div id="dlg" hidden></div><div id="rep"></div>
+</style></head><body><header class="top"><span class="tt"><svg class="logo" viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#1f7ae0"/><circle cx="16" cy="16" r="12.2" fill="#dcefff"/><circle cx="16" cy="16" r="10.6" fill="#4aa8ff"/><path d="M16 6v20M6 16h20M8.6 8.6l14.8 14.8M23.4 8.6 8.6 23.4" stroke="#dcefff" stroke-width="1.7" stroke-linecap="round"/><circle cx="16" cy="16" r="2.2" fill="#dcefff"/></svg><span><span class="jz">Big Shiny</span> Rounds <span class="ver">v0.39</span></span></span><button id="gear" class="gear" aria-label="Settings" data-a="gear"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></header><div class="vclip"><main id="app" class="view"></main></div><nav id="nav"></nav><div id="pickbar" hidden></div><div id="toast" role="status" aria-live="polite"></div><div id="dlg" hidden></div><div id="rep"></div>
 <script src="feedback.js"></script>
 <script src="sync.js"></script>
 <script>
@@ -320,6 +322,7 @@ function addMonths(d,n){const x=new Date(d+'T00:00'),day=x.getDate();x.setDate(1
 // =====================================================================
 let S,T='today';                          // data, current tab
 let FV=null;                              // UI-only: floor opened from Today (Rounds shows just that floor)
+let ODX=false,DUX=false;                  // UI-only: Overdue card showing every task, "Still due" list open on Today (never saved)
 let ERET=null;                            // UI-only: where an area editor opened from Rounds returns to {fv: floor shown, a: area}
 let O={},EA=null,EL=null,DLG=null,VIEW='due',MS=null,FL='';// UI-only: open <details>, area / floor map being edited in Setup, open popup, Rounds view (due/all/map), area picked on the map, flash message
 let LR='today',LF='',LT='';               // UI-only: log range and custom dates
@@ -510,6 +513,11 @@ function st(a,t){const last=lastOf(a,t),today=!!last&&dOf(last.at)==tdy();let du
 function prog(areas){let due=0,done=0;new Set(areas.flatMap(leaf)).forEach(a=>tasksOf(a).forEach(t=>{if(t.f=='need')return;const s=st(a,t);if(s.due)due++;else if(s.today)done++}));return {due,done,tot:due+done}}
 // Weekly and monthly tasks that came due before today
 function overdue(){const L=[],t0=tdy();P().areas.forEach(a=>tasksOf(a).forEach(t=>{if(t.f!='weekly'&&t.f!='monthly')return;const l=lastOf(a,t);if(!l)return;const nd=nextDue(t.f,l);if(nd<t0)L.push({a,t,l,nd})}));return L.sort((x,y)=>x.nd<y.nd?-1:1)}
+// Every task due right now (the same ones the "Still due" count adds up), grouped by floor in floor order
+function dueNow(){const g=new Map();P().floors.forEach(f=>g.set(f.id,{n:f.n,xs:[]}));
+ P().areas.filter(a=>!a.par).forEach(top=>leaf(top).forEach(a=>tasksOf(a).forEach(t=>{if(t.f=='need'||!st(a,t).due)return;
+  const k=g.has(top.fl)?top.fl:'';if(!g.has(k))g.set(k,{n:'Other',xs:[]});g.get(k).xs.push({a,t})})));
+ return [...g.values()].filter(x=>x.xs.length)}
 // ---- Tours: someone is being shown a unit or space at a set time. The area gets a badge so you can steer clear or have it ready. ----
 const tmS=t=>t?tm(new Date('2000-01-01T'+t)):'';                  // '12:30' -> "12:30 PM"
 const areaName=a=>{const p=a.par&&areaById(a.par);return (p?(p.n||'Untitled')+' › ':'')+(a.n||'Untitled')};   // "Office hallway › Office 1"
@@ -587,17 +595,20 @@ function jobCard(){const js=P().jobs.map((j,i)=>[j,i]).filter(([j])=>!j.done||dO
 // 7. VIEWS
 // =====================================================================
 // ---- Today ----
+// The full list behind "Still due": every due task by floor and area, each with a Done button
+function dueCard(n){if(!DUX||!n)return '';
+ return `<div class="card wide dueall"><h3><span>Due now</span><span>${n}</span></h3>${dueNow().map(g=>`<div class="sec">${esc(g.n)}</div>${g.xs.map(({a,t})=>`<div class="row"><span style="flex:1;min-width:0"><b>${esc(t.n)}</b><span class="mu" style="display:block">${esc(areaName(a))}</span></span><button data-a="tick1" data-ar="${a.id}" data-tk="${t.id}">Done</button></div>`).join('')}`).join('')}<div class="row" style="margin-top:6px"><button class="g bd" data-a="dueToggle">Hide list</button></div></div>`}
 function vToday(){const p=prog(P().areas),od=overdue(),low=P().sup.filter(isLow);
  const welcome=S.set.welcome?`<div class="card wide"><h3><span>Welcome to Big Shiny</span><button class="g" data-a="welcomeOff" aria-label="Dismiss">${ICX}</button></h3><p class="mu" style="margin:0 0 12px">Your building is loaded from your notes. The extra tasks for the restrooms, fitness center, elevators, trash room and sidewalks are starting guesses, so check them in Setup.</p><div class="row"><button data-a="tab" data-id="setup">Check Setup</button></div></div>`:'';
  const bk=needBk()?`<div class="card wide"><h3><span>Back up your rounds?</span></h3><p class="mu" style="margin:0 0 12px">Your history is only saved in this browser unless sync is on, and some browsers clear site data after a while.</p><div class="row"><button data-a="gear">Back up</button><button class="g bd" data-a="bkLater">Later</button></div></div>`:'';
- const odc=od.length?`<div class="card warn"><h3><span><i class="bang">!</i>Overdue</span><span>${od.length}</span></h3>${od.slice(0,8).map(x=>`<div class="row"><span style="flex:1;min-width:0"><b>${esc(x.t.n)}</b><span class="mu" style="display:block">${esc(areaName(x.a))} · last done ${sd(dOf(x.l.at))}</span></span><button data-a="tick1" data-ar="${x.a.id}" data-tk="${x.t.id}">Done</button></div>`).join('')}${od.length>8?`<div class="mu">and ${od.length-8} more on the Rounds tab</div>`:''}</div>`:'';
+ const odc=od.length?`<div class="card warn"><h3><span><i class="bang">!</i>Overdue</span><span>${od.length}</span></h3>${(ODX?od:od.slice(0,8)).map(x=>`<div class="row"><span style="flex:1;min-width:0"><b>${esc(x.t.n)}</b><span class="mu" style="display:block">${esc(areaName(x.a))} · last done ${sd(dOf(x.l.at))}</span></span><button data-a="tick1" data-ar="${x.a.id}" data-tk="${x.t.id}">Done</button></div>`).join('')}${od.length>8?`<div class="row" style="margin-top:6px"><button class="g bd" data-a="odToggle">${ODX?'Show less':'Show all '+od.length}</button></div>`:''}</div>`:'';
  const wets=P().areas.filter(a=>a.wet).sort((x,y)=>x.wet-y.wet);
  const wetc=wets.length?`<div class="card"><h3><span>Wet floor signs out</span><span>${wets.length}</span></h3>${wets.map(a=>{const f=floorOf(a);return `<div class="row"><span style="flex:1;min-width:0"><b>${esc(areaName(a))}</b><span class="mu" style="display:block">${f?esc(f.n)+' · ':''}out since ${wetWhen(a)}</span></span><button data-a="wet" data-id="${a.id}">Picked up</button></div>`}).join('')}</div>`:'';
  const lowc=low.length?`<div class="card warn"><h3><span><i class="bang">!</i>Running low</span><span>${low.length}</span></h3>${low.map(s=>`<div class="ln"><span>${esc(s.n)}${s.w?` <span class="mu">· ${esc(s.w)}</span>`:''}</span><b class="neg">${s.q} ${esc(s.u)}</b></div>`).join('')}<div class="row" style="margin-top:6px"><button class="g bd" data-a="tab" data-id="sup">Supplies</button></div></div>`:'';
  const floors=P().floors.filter(f=>areasOn(f).length).map(f=>{const q=prog(areasOn(f));
   return `<button class="flr" data-a="goFloor" data-id="${f.id}"><span>${esc(f.n)}${bar(q.done,q.tot)}</span><b class="${q.tot&&!q.due?'pos':''}">${q.done}/${q.tot}</b><i>${CHEV}</i></button>`}).join('');
  return hello()+propBar()+welcome+bk+roundCard()
-  +`<div class="tiles"><div class="tile"><span class="mu">Done today</span><b>${p.done}</b></div><div class="tile"><span class="mu">Still due</span><b>${p.due}</b></div></div>`
+  +`<div class="tiles"><div class="tile"><span class="mu">Done today</span><b>${p.done}</b></div>${p.due?`<button class="tile tbtn" data-a="dueToggle" aria-expanded="${DUX}"><span class="mu">Still due</span><b>${p.due}</b><span class="mu tbh">${DUX?'Hide list':'See list'}</span></button>`:'<div class="tile"><span class="mu">Still due</span><b>0</b></div>'}</div>`+dueCard(p.due)
   +(inRange([tdy(),tdy()]).length?`<button class="g bd shr" data-a="shareDay">${ICS}Share today’s summary</button>`:'')
   +wetc+odc+tourCard()+jobCard()+lowc+`<div class="card"><h2>Floors</h2>${floors||'<p class="mu">No areas yet. Add them in Setup.</p>'}</div>`
   +(offToday()?'':`<div class="card"><h2>End of the day</h2><p class="mu" style="margin:0 0 12px">Clock out when you’re done working, or mark today as a day off. Anything left stays due for tomorrow.</p><div class="row"><button data-a="clockOut" data-k="out">Clock out</button><button class="g bd" data-a="clockOut" data-k="day">Day off</button></div></div>`)}
@@ -879,6 +890,7 @@ const ACT={
  tab:d=>goTab(d.id), gear:()=>goTab(T=='more'?'today':'more'),
  // rounds
  tick:(d,el)=>tick(d.ar,d.tk,el.checked),
+ odToggle:()=>{ODX=!ODX;R()},dueToggle:()=>{DUX=!DUX;R()},
  tick1:d=>{tick(d.ar,d.tk,true,true);R();toast('Done: '+eTask({a:d.ar,t:d.tk}))},
  allDone:d=>{const a=areaById(d.ar);if(!a)return;buildIndex();const ids=[],all=prog(P().areas).due;
   leaf(a).forEach(x=>tasksOf(x).forEach(t=>{if(st(x,t).due){const e=entry(x,t);S.log.push(e);ids.push(e.id)}}));
