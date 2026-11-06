@@ -137,6 +137,7 @@ nav.drag .hl{transition:none}
 .task label span{flex:1;min-width:0;font-weight:600}
 .task:has(input:checked) label span{opacity:.5;text-decoration:line-through}
 .tm{flex:none;font-size:12px;font-weight:700;color:var(--mu)}
+.tmb{background:none;box-shadow:none;border:1px solid var(--bd);border-radius:10px;padding:5px 9px;min-height:32px}
 .nb{flex:none;background:none;color:var(--mu);width:36px;height:36px;padding:0;display:grid;place-items:center;border-radius:10px}.nb.has{color:var(--pc);background:color-mix(in srgb,var(--pc) 12%,transparent)}
 .nt{margin:-4px 0 8px 38px;font-size:13px;color:var(--tx);background:var(--fld);border-radius:10px;padding:6px 10px}
 .aall{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px;padding-top:6px}.aall button{padding:7px 14px;font-size:13px}.aall button.g:not(.bd){margin-right:auto;padding:7px 4px}
@@ -279,7 +280,7 @@ body.dragmode{user-select:none;-webkit-user-select:none;cursor:grabbing}
  #rep .foot{margin-top:24px;color:#666;font-size:9pt}
 }
 @media(prefers-reduced-motion:reduce){*,*:after{transition-duration:.01ms!important;animation-duration:.01ms!important}}
-</style></head><body><header class="top"><span class="tt"><svg class="logo" viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#1f7ae0"/><circle cx="16" cy="16" r="12.2" fill="#dcefff"/><circle cx="16" cy="16" r="10.6" fill="#4aa8ff"/><path d="M16 6v20M6 16h20M8.6 8.6l14.8 14.8M23.4 8.6 8.6 23.4" stroke="#dcefff" stroke-width="1.7" stroke-linecap="round"/><circle cx="16" cy="16" r="2.2" fill="#dcefff"/></svg><span><span class="jz">Big Shiny</span> Rounds <span class="ver">v0.40</span></span></span><button id="gear" class="gear" aria-label="Settings" data-a="gear"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></header><div class="vclip"><main id="app" class="view"></main></div><nav id="nav"></nav><div id="pickbar" hidden></div><div id="toast" role="status" aria-live="polite"></div><div id="dlg" hidden></div><div id="rep"></div>
+</style></head><body><header class="top"><span class="tt"><svg class="logo" viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#1f7ae0"/><circle cx="16" cy="16" r="12.2" fill="#dcefff"/><circle cx="16" cy="16" r="10.6" fill="#4aa8ff"/><path d="M16 6v20M6 16h20M8.6 8.6l14.8 14.8M23.4 8.6 8.6 23.4" stroke="#dcefff" stroke-width="1.7" stroke-linecap="round"/><circle cx="16" cy="16" r="2.2" fill="#dcefff"/></svg><span><span class="jz">Big Shiny</span> Rounds <span class="ver">v0.41</span></span></span><button id="gear" class="gear" aria-label="Settings" data-a="gear"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></header><div class="vclip"><main id="app" class="view"></main></div><nav id="nav"></nav><div id="pickbar" hidden></div><div id="toast" role="status" aria-live="polite"></div><div id="dlg" hidden></div><div id="rep"></div>
 <script src="feedback.js"></script>
 <script src="sync.js"></script>
 <script>
@@ -635,11 +636,14 @@ function vRounds(){
 // "Plain water" on a mop when this one is it, or on one already done that way today
 const pwTag=(a,t,s)=>(s.done?!!s.last.v:pwNext(a,t)===0)?'<span class="tag">Plain water</span>':'';
 const whenTag=(t,s)=>t.w&&!s.done?`<span class="tag wh${t.w=='early'&&s.due&&pastEarly()?' lt':''}">${WN[t.w]}</span>`:'';
+// When a task was last done. For weekly and monthly tasks it is a button: tap it to log another time you did it (see againDlg).
+const lastChip=(a,t,s)=>{const x=dOf(s.last.at)==tdy()?tm(s.last.at):sd(dOf(s.last.at));
+ return t.f=='weekly'||t.f=='monthly'?`<button class="tm tmb" data-a="again" data-ar="${a.id}" data-tk="${t.id}" aria-label="Done again, last done ${x}">${x}</button>`:`<span class="tm">${x}</span>`};
 function taskRows(a,shown,map){return [...shown].sort((x,y)=>WO[x.t.w||'']-WO[y.t.w||'']).map(({t,s})=>{
    const note=s.done&&s.last.note;
    if(PICK){const on=PICK.has(a.id+'|'+t.id);   // picking tasks to remove: a round marker instead of the checkbox, no note button
     return `<div class="task pkm${on?' pkd':''}" data-pk="${a.id}|${t.id}"><label><span class="pk">${on?ICK:''}</span><span>${esc(t.n)}</span></label>${pwTag(a,t,s)}${whenTag(t,s)}</div>`}
-   return `<div class="task" data-pk="${a.id}|${t.id}"><label><input type="checkbox" ${s.done?'checked':''} data-a="tick" data-ar="${a.id}" data-tk="${t.id}"><span>${esc(t.n)}</span></label>${pwTag(a,t,s)}${whenTag(t,s)}${s.skip?'<span class="tag sk">Skipped</span>':t.f!='daily'?`<span class="tag">${FN[t.f]}</span>`:''}${s.done?`<span class="tm">${tm(s.last.at)}</span><button class="nb${note?' has':''}" data-a="note" data-id="${s.last.id}" aria-label="Note">${ICN}</button>`:s.last&&(VIEW=='all'||map)?`<span class="tm">${sd(dOf(s.last.at))}</span>`:''}</div>${note?`<div class="nt">${esc(note)}</div>`:''}`}).join('')}
+   return `<div class="task" data-pk="${a.id}|${t.id}"><label><input type="checkbox" ${s.done?'checked':''} data-a="tick" data-ar="${a.id}" data-tk="${t.id}"><span>${esc(t.n)}</span></label>${pwTag(a,t,s)}${whenTag(t,s)}${s.skip?'<span class="tag sk">Skipped</span>':t.f!='daily'?`<span class="tag">${FN[t.f]}</span>`:''}${s.done?`${lastChip(a,t,s)}<button class="nb${note?' has':''}" data-a="note" data-id="${s.last.id}" aria-label="Note">${ICN}</button>`:s.last&&(VIEW=='all'||map)?`<span class="tm">${sd(dOf(s.last.at))}</span>`:''}</div>${note?`<div class="nt">${esc(note)}</div>`:''}`}).join('')}
 const wetWhen=a=>dOf(a.wet)==tdy()?tm(a.wet):sd(dOf(a.wet));
 const wetBadge=a=>a.wet?`<span class="tbg wbg">${WET}<span>Wet floor sign out since ${wetWhen(a)}</span></span>`:'';
 const tourBadges=xs=>xs.map(x=>`<span class="tbg${isMove(x)?' mv':''}">${isMove(x)?BOX:CLK}<span>${esc(tourTxt(x))}</span></span>`).join('');
@@ -838,6 +842,16 @@ document.addEventListener('keydown',e=>{if(e.key=='Escape'&&DLG)closeDlg()});
 function noteDlg(id){const e=S.log.find(x=>x.id==id);if(!e)return;
  openDlg('Note',eTask(e)+' · '+eArea(e)+' · '+tm(e.at),[['Save note','',v=>{v=(v||'').trim();if(v)e.note=v;else delete e.note;save();R();toast(v?'Saved':'Removed note')}],['Cancel','g bd',null]],
   `<textarea id="dlgIn" placeholder="e.g. Out of soap, light out by the door">${esc(e.note||'')}</textarea>`)}
+// Log another time a weekly or monthly task was done (mopped on Thursday when it was last done Monday). The next due date counts from it.
+// Pick today or an earlier day; undo removes just that entry.
+function againDlg(aid,tid){const a=areaById(aid),t=a&&tasksOf(a).find(x=>x.id==tid);if(!t)return;buildIndex();const last=lastOf(a,t);if(!last)return;
+ openDlg('Done again?',t.n+' · '+(a.n||'Untitled')+' · last done '+sd(dOf(last.at)),[['Mark done','',(v,k)=>{const d=k.d||tdy();
+   if(d>tdy()){toast('Can’t use a day that hasn’t happened yet');return}
+   if(d<=dOf(last.at)){toast('Already done on or after that day');return}
+   const e=entry(a,t);e.at=d==tdy()?Date.now():new Date(d+'T12:00').getTime();
+   let j=S.log.findIndex(x=>x.at>e.at);if(j<0)j=S.log.length;S.log.splice(j,0,e);buildIndex();save();R();
+   toast('Done: '+t.n+'. Next due '+sd(nextDue(t.f,e)),()=>{S.log=S.log.filter(x=>x.id!=e.id);save();R()})}],['Cancel','g bd',null]],
+  `<div class="dform"><div class="dates"><label class="mu">Day<input type="date" data-k="d" value="${tdy()}" max="${tdy()}"></label></div></div>`)}
 // The standing note on an area (directions, codes, where things are). Removing one can be undone.
 function areaNoteDlg(id){const a=areaById(id);if(!a)return;const old=a.note||'';
  openDlg('Area note',a.n||'Untitled area',[['Save note','',v=>{v=(v||'').trim();if(v==old)return;if(v)a.note=v;else delete a.note;save();R();
@@ -903,7 +917,7 @@ const ACT={
   const sk=leaf(a).flatMap(x=>tasksOf(x).filter(t=>st(x,t).due).map(t=>(ks?(x.n||'Untitled')+': ':'')+t.n));if(!sk.length)return;
   const e={...entry(a,{id:'fin'}),sk};S.log.push(e);save();buildIndex();R();if(all>0&&prog(P().areas).due==0)setTimeout(confetti,80);
   else toast((a.n||'Area')+' marked clean, skipped '+sk.length,()=>{S.log=S.log.filter(x=>x.id!=e.id);save();R()})},
- note:d=>noteDlg(d.id),
+ note:d=>noteDlg(d.id), again:d=>againDlg(d.ar,d.tk),
  areaNote:d=>areaNoteDlg(d.id),
  wet:d=>{const a=areaById(d.id);if(!a)return;const was=a.wet;
   if(was){delete a.wet;save();R();toast('Picked up the sign',()=>{a.wet=was;save();R()})}
