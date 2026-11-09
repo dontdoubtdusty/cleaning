@@ -316,7 +316,6 @@ const sd=v=>{const m=/^(\d{4})-(\d\d)-(\d\d)/.exec(v||'');return m?MO[+m[2]-1]+'
 const longDate=d=>new Date(d+'T00:00').toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'});
 const tm=ts=>new Date(ts).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
 const addDays=(d,n)=>{const x=new Date(d+'T00:00');x.setDate(x.getDate()+n);return iso(x)};
-const daysBetween=(a,b)=>Math.round((new Date(b+'T00:00')-new Date(a+'T00:00'))/DAY_MS);
 function addMonths(d,n){const x=new Date(d+'T00:00'),day=x.getDate();x.setDate(1);x.setMonth(x.getMonth()+n);x.setDate(Math.min(day,new Date(x.getFullYear(),x.getMonth()+1,0).getDate()));return iso(x)}
 
 // =====================================================================
@@ -402,7 +401,7 @@ const MIGRATIONS=[
  S=>{S.props.forEach(p=>{if(!p.pw||typeof p.pw!='object')p.pw={on:false,n:4,from:0}})},
  // v13: tours can also be move-ins. Each entry in p.tours gets x.k: 'tour' or 'move'; everything saved so far was a tour.
  S=>{S.props.forEach(p=>(p.tours||[]).forEach(x=>{if(x.k!='move')x.k='tour'}))},
- // v14: optional focus floor for the day on Today: p.focus {f: floor id, d: the day it was picked}. It only counts on that day. null = none.
+ // v14: optional focus floor for the day on Today: p.focus {f: floor id, d: the day it was picked, a: optional area id on that floor}. It only counts on that day. null = none.
  S=>{S.props.forEach(p=>{if(p.focus===undefined)p.focus=null})},
 ];
 function migrate(){S.set=S.set||{};for(let v=S.v||0;v<MIGRATIONS.length;v++)MIGRATIONS[v](S);S.v=MIGRATIONS.length;if(!S.props.some(p=>p.id==S.set.prop))S.set.prop=S.props[0].id;prune()}
@@ -519,14 +518,16 @@ function prog(areas){let due=0,done=0;new Set(areas.flatMap(leaf)).forEach(a=>ta
 function overdue(){const L=[],t0=tdy();P().areas.forEach(a=>tasksOf(a).forEach(t=>{if(t.f!='weekly'&&t.f!='monthly')return;const l=lastOf(a,t);if(!l)return;const nd=nextDue(t.f,l);if(nd<t0)L.push({a,t,l,nd})}));return L.sort((x,y)=>x.nd<y.nd?-1:1)}
 // The floor picked to focus on today (optional, saved per property), or '' when none. It expires on its own the next day.
 function focusFloor(){const f=P().focus;return f&&f.d==tdy()&&P().floors.some(x=>x.id==f.f)?f.f:''}
+// The section (top-level area) picked within the focus floor, or '' when none. It goes with the focus floor, so it expires with it.
+function focusArea(){const f=P().focus,fo=focusFloor();return fo&&f.a&&P().areas.some(a=>a.id==f.a&&!a.par&&a.fl==fo)?f.a:''}
 // Every task due right now (the same ones the "Still due" count adds up), grouped by how often it's done: daily, weekly, monthly,
 // plus every as-needed task (those are never "due", but they're always there to tick). Inside each group the focus floor comes
 // first (inF), then the other floors in floor order and areas in list order. Overdue ones lead within their floor.
-function dueNow(){const fl=P().floors.map(f=>f.id),fo=focusFloor(),t0=tdy(),g=new Map(FREQ.map(x=>[x[0],{k:x[0],n:FN[x[0]],xs:[]}]));
- P().areas.filter(a=>!a.par).forEach(top=>{const i=fl.indexOf(top.fl),inF=!!fo&&top.fl==fo,w=inF?-1:i<0?fl.length:i;
+function dueNow(){const fl=P().floors.map(f=>f.id),fo=focusFloor(),fa=focusArea(),t0=tdy(),g=new Map(FREQ.map(x=>[x[0],{k:x[0],n:FN[x[0]],xs:[]}]));
+ P().areas.filter(a=>!a.par).forEach(top=>{const i=fl.indexOf(top.fl),inF=!!fo&&top.fl==fo,inA=!!fa&&top.id==fa,w=inA?-2:inF?-1:i<0?fl.length:i;
   leaf(top).forEach(a=>tasksOf(a).forEach(t=>{const s=st(a,t);if(t.f!='need'&&!s.due)return;
    const l=s.last,od=t.f=='weekly'||t.f=='monthly'?!!l&&nextDue(t.f,l)<t0:false;
-   (g.get(t.f)||g.get('daily')).xs.push({a,t,w,inF,od,at:t.f=='need'&&s.today?l.at:0})}))});
+   (g.get(t.f)||g.get('daily')).xs.push({a,t,w,inF,inA,od,at:t.f=='need'&&s.today?l.at:0})}))});
  g.forEach(x=>x.xs.sort((p,q)=>p.w-q.w||q.od-p.od));
  return [...g.values()].filter(x=>x.xs.length)}
 // ---- Tours: someone is being shown a unit or space at a set time. The area gets a badge so you can steer clear or have it ready. ----
@@ -609,14 +610,16 @@ function jobCard(){const js=P().jobs.map((j,i)=>[j,i]).filter(([j])=>!j.done||dO
 // =====================================================================
 // ---- Today ----
 // Floor chips at the top of the list: tap a floor to bump its tasks to the top of each group for today, tap another to swap, tap it again to clear
-function focusChips(){const fs=mapFloors();if(fs.length<2)return '';const fo=focusFloor();
- return `<div class="sec">Focus floor today</div><div class="seg qm wrap" style="margin-bottom:6px">${fs.map(f=>`<button class="${fo==f.id?'on':''}" data-a="focus" data-id="${f.id}" aria-pressed="${fo==f.id}">${esc(f.n)}</button>`).join('')}</div>`}
+// After a floor is picked, its sections (areas) show too, so a building with one floor can still focus on one part of it
+function focusChips(){const fs=mapFloors();if(fs.length<2&&!fs.some(f=>areasOn(f).length>1))return '';const fo=focusFloor(),fa=focusArea(),ff=fs.find(f=>f.id==fo),as=ff?areasOn(ff):[];
+ return `<div class="sec">Focus floor today</div><div class="seg qm wrap" style="margin-bottom:6px">${fs.map(f=>`<button class="${fo==f.id?'on':''}" data-a="focus" data-id="${f.id}" aria-pressed="${fo==f.id}">${esc(f.n)}</button>`).join('')}</div>`
+ +(as.length>1?`<div class="sec">Focus section of ${esc(ff.n)}</div><div class="seg qm wrap" style="margin-bottom:6px">${as.map(a=>`<button class="${fa==a.id?'on':''}" data-a="focusArea" data-id="${a.id}" aria-pressed="${fa==a.id}">${esc(a.n||'Untitled')}</button>`).join('')}</div>`:'')}
 // One row of the Due now list
 const dueRow=({a,t,od,at})=>`<div class="row"><span style="flex:1;min-width:0"><b>${esc(t.n)}</b><span class="mu" style="display:block">${floorName(a)?esc(floorName(a))+' · ':''}${esc(areaName(a))}${od?' · <b class="neg" style="display:inline">overdue</b>':''}${at?' · done '+tm(at):''}</span></span><button data-a="tick1" data-ar="${a.id}" data-tk="${t.id}">Done</button></div>`;
 // The full list behind "Still due": a collapsible section per frequency (Daily open to start), the focus floor's tasks first in each
-function dueCard(n){const gs=dueNow(),fo=focusFloor(),fn=esc(fo&&(P().floors.find(f=>f.id==fo)||{}).n||'');if(!DUX||!gs.length)return '';
+function dueCard(n){const gs=dueNow(),fo=focusFloor(),fa=focusArea(),fn=esc(fo&&(P().floors.find(f=>f.id==fo)||{}).n||''),an=esc(fa&&(areaById(fa)||{}).n||'Untitled');if(!DUX||!gs.length)return '';
  return `<div class="card wide dueall"><h3><span>Due now</span><span>${n}</span></h3>${focusChips()}${gs.map(g=>{
-  let prev=null;const rows=g.xs.map(x=>{const lb=fo&&(prev===null?x.inF:x.inF!==prev)?`<div class="sub mu">${x.inF?fn:'Other floors'}</div>`:'';prev=x.inF;return lb+dueRow(x)}).join('');
+  let prev=null;const rows=g.xs.map(x=>{const tr=x.inA?0:x.inF?1:2,lb=fo&&tr!==prev?`<div class="sub mu">${tr==0?an:tr==1?(fa?fn+' · other sections':fn):'Other floors'}</div>`:'';prev=tr;return lb+dueRow(x)}).join('');
   return `<details class="dgrp" data-o="q${g.k}" ${O['q'+g.k]??(g.k=='daily')?'open':''}><summary><b>${esc(g.n)}</b><span class="ct">${g.xs.length}</span>${CHEV}</summary>${rows}</details>`}).join('')}<div class="row" style="margin-top:6px"><button class="g bd" data-a="dueToggle">Hide list</button></div></div>`}
 function vToday(){const p=prog(P().areas),od=overdue(),low=P().sup.filter(isLow);
  const welcome=S.set.welcome?`<div class="card wide"><h3><span>Welcome to Big Shiny</span><button class="g" data-a="welcomeOff" aria-label="Dismiss">${ICX}</button></h3><p class="mu" style="margin:0 0 12px">Your building is loaded from your notes. The extra tasks for the restrooms, fitness center, elevators, trash room and sidewalks are starting guesses, so check them in Setup.</p><div class="row"><button data-a="tab" data-id="setup">Check Setup</button></div></div>`:'';
@@ -927,6 +930,7 @@ const ACT={
  tick:(d,el)=>tick(d.ar,d.tk,el.checked),
  odToggle:()=>{ODX=!ODX;R()},dueToggle:()=>{DUX=!DUX;R()},
  focus:d=>{const p=P();p.focus=focusFloor()==d.id?null:{f:d.id,d:tdy()};save();R()},
+ focusArea:d=>{const p=P(),fo=focusFloor();if(!fo)return;p.focus={f:fo,d:tdy(),a:focusArea()==d.id?null:d.id};save();R()},
  tick1:d=>{tick(d.ar,d.tk,true,true);R();toast('Done: '+eTask({a:d.ar,t:d.tk}))},
  allDone:d=>{const a=areaById(d.ar);if(!a)return;buildIndex();const ids=[],all=prog(P().areas).due;
   leaf(a).forEach(x=>tasksOf(x).forEach(t=>{if(st(x,t).due){const e=entry(x,t);S.log.push(e);ids.push(e.id)}}));
