@@ -324,6 +324,7 @@ function addMonths(d,n){const x=new Date(d+'T00:00'),day=x.getDate();x.setDate(1
 // =====================================================================
 let S,T='today';                          // data, current tab
 let FV=null;                              // UI-only: floor opened from Today (Rounds shows just that floor)
+let HIDEDONE=true;                              // UI-only: completed tasks hidden in Rounds checklists (hidden on every load; never saved)
 let ODX=false,DUX=true;                   // UI-only: Overdue card showing every task, "Still due" list open on Today (open on every load; never saved)
 let ERET=null;                            // UI-only: where an area editor opened from Rounds returns to {fv: floor shown, a: area}
 let O={},EA=null,EL=null,DLG=null,VIEW='due',MS=null,FL='';// UI-only: open <details>, area / floor map being edited in Setup, open popup, Rounds view (due/all/map), area picked on the map, flash message
@@ -639,7 +640,7 @@ function vToday(){const p=prog(P().areas),od=overdue(),low=P().sup.filter(isLow)
 
 // ---- Rounds: walk the building and check tasks off ----
 // Due now / All tasks / Map / By floor
-const viewSeg=()=>`<div class="seg qm wrap">${[['due','Due now'],['all','All tasks'],['map','Map'],['floor','By floor']].map(([v,l])=>`<button class="${(FV?'floor':VIEW)==v?'on':''}" data-a="view" data-v="${v}">${l}</button>`).join('')}</div>`;
+const viewSeg=()=>`<div class="seg qm wrap">${[['due','Due now'],['all','All tasks'],['map','Map'],['floor','By floor']].map(([v,l])=>`<button class="${(FV?'floor':VIEW)==v?'on':''}" data-a="view" data-v="${v}">${l}</button>`).join('')}</div><div class="row" style="margin:6px 0"><button class="g bd" data-a="hideDone" aria-pressed="${!HIDEDONE}">${HIDEDONE?'Show completed tasks':'Hide completed tasks'}</button></div>`;
 const mapFloors=()=>P().floors.filter(f=>areasOn(f).length);
 function vRounds(){
  if(FV){const f=P().floors.find(x=>x.id==FV);if(f)return vFloor(f);FV=null}
@@ -660,7 +661,7 @@ const whenTag=(t,s)=>t.w&&!s.done?`<span class="tag wh${t.w=='early'&&s.due&&pas
 // When a task was last done. For weekly and monthly tasks it is a button: tap it to log another time you did it (see againDlg).
 const lastChip=(a,t,s)=>{const x=dOf(s.last.at)==tdy()?tm(s.last.at):sd(dOf(s.last.at));
  return t.f=='weekly'||t.f=='monthly'?`<button class="tm tmb" data-a="again" data-ar="${a.id}" data-tk="${t.id}" aria-label="Done again, last done ${x}">${x}</button>`:`<span class="tm">${x}</span>`};
-function taskRows(a,shown,map){return [...shown].sort((x,y)=>WO[x.t.w||'']-WO[y.t.w||'']).map(({t,s})=>{
+function taskRows(a,shown,map){const vis=HIDEDONE&&!PICK?[...shown].filter(y=>!y.s.done):[...shown];if(shown.length&&!vis.length)return '<p class="mu" style="margin:6px 0">Completed tasks are hidden.</p>';return vis.sort((x,y)=>WO[x.t.w||'']-WO[y.t.w||'']).map(({t,s})=>{
    const note=s.done&&s.last.note;
    if(PICK){const on=PICK.has(a.id+'|'+t.id);   // picking tasks to remove: a round marker instead of the checkbox, no note button
     return `<div class="task pkm${on?' pkd':''}" data-pk="${a.id}|${t.id}"><label><span class="pk">${on?ICK:''}</span><span>${esc(t.n)}</span></label>${pwTag(a,t,s)}${whenTag(t,s)}</div>`}
@@ -929,7 +930,7 @@ const ACT={
  tab:d=>goTab(d.id), gear:()=>goTab(T=='more'?'today':'more'),
  // rounds
  tick:(d,el)=>tick(d.ar,d.tk,el.checked),
- odToggle:()=>{ODX=!ODX;R()},dueToggle:()=>{DUX=!DUX;R()},
+ odToggle:()=>{ODX=!ODX;R()},hideDone:()=>{HIDEDONE=!HIDEDONE;R()},dueToggle:()=>{DUX=!DUX;R()},
  focus:d=>{const p=P();p.focus=focusFloor()==d.id?null:{f:d.id,d:tdy()};save();R()},
  focusArea:d=>{const p=P(),fo=focusFloor();if(!fo)return;p.focus={f:fo,d:tdy(),a:focusArea()==d.id?null:d.id};save();R()},
  tick1:d=>{tick(d.ar,d.tk,true,true);R();toast('Done: '+eTask({a:d.ar,t:d.tk}))},
