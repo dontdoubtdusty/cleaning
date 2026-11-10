@@ -634,8 +634,9 @@ function vToday(){const p=prog(P().areas),od=overdue(),low=P().sup.filter(isLow)
   return `<button class="flr" data-a="goFloor" data-id="${f.id}"><span>${esc(f.n)}${bar(q.done,q.tot)}</span><b class="${q.tot&&!q.due?'pos':''}">${q.done}/${q.tot}</b><i>${CHEV}</i></button>`}).join('');
  return hello()+propBar()+welcome+bk+roundCard()
   +`<div class="tiles"><div class="tile"><span class="mu">Done today</span><b>${p.done}</b></div>${p.due?`<button class="tile tbtn" data-a="dueToggle" aria-expanded="${DUX}"><span class="mu">Still due</span><b>${p.due}</b><span class="mu tbh">${DUX?'Hide list':'See list'}</span></button>`:'<div class="tile"><span class="mu">Still due</span><b>0</b></div>'}</div>`+dueCard(p.due)
+  +wetc
   +(inRange([tdy(),tdy()]).length?`<button class="g bd shr" data-a="shareDay">${ICS}Share today’s summary</button>`:'')
-  +wetc+odc+tourCard()+jobCard()+lowc+`<div class="card"><h2>Floors</h2>${floors||'<p class="mu">No areas yet. Add them in Setup.</p>'}</div>`
+  +odc+tourCard()+jobCard()+lowc+`<div class="card"><h2>Floors</h2>${floors||'<p class="mu">No areas yet. Add them in Setup.</p>'}</div>`
   +(offToday()?'':`<div class="card"><h2>End of the day</h2><p class="mu" style="margin:0 0 12px">Clock out when you’re done working, or mark today as a day off. Anything left stays due for tomorrow.</p><div class="row"><button data-a="clockOut" data-k="out">Clock out</button><button class="g bd" data-a="clockOut" data-k="day">Day off</button></div></div>`)}
 
 // ---- Rounds: walk the building and check tasks off ----
