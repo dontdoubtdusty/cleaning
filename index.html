@@ -136,14 +136,6 @@ nav.drag .hl{transition:none}
 .dcard.foc{border-color:color-mix(in srgb,var(--pc) 45%,var(--bd));box-shadow:inset 3px 0 0 color-mix(in srgb,var(--pc) 55%,transparent),var(--sh)}.dcard.foc.fin{border-color:color-mix(in srgb,var(--ok) 55%,var(--bd));box-shadow:inset 3px 0 0 var(--ok),var(--sh)}.dcard.fin .ct{color:var(--ok)}
 .dcard .fq{display:flex;justify-content:space-between;font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--mu);margin:10px 0 2px;padding-top:8px;border-top:1px solid var(--bd)}.dcard .fq:first-of-type{border-top:0;padding-top:0}
 .allok.ok{color:var(--ok);padding:4px 0}
-.guide h2{margin-bottom:4px}.gsum{margin:0 0 10px}.gsl{flex:none;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.arow>span:first-child{flex:1;min-width:0}
-.gneed,.gtips{margin:2px 0 12px;padding-left:20px}.gneed li,.gtips li{margin:4px 0}.gtips li::marker{color:var(--wn)}
-.gsteps{margin:2px 0 12px;padding:0;list-style:none;counter-reset:gs}.gsteps li{counter-increment:gs;display:grid;grid-template-columns:26px 1fr;gap:2px 10px;padding:9px 0;border-top:1px solid var(--bd)}.gsteps li:first-child{border-top:0}
-.gsteps li::before{content:counter(gs);grid-row:span 2;width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--pc),var(--pc2));color:#fff;font-weight:800;font-size:13px;display:grid;place-items:center}.gsteps li>span{grid-column:2}
-.glinks{display:flex;flex-direction:column;gap:8px;margin-bottom:6px}.mlink{display:inline-flex;align-items:center;gap:6px;color:var(--pc);font-weight:700;text-decoration:none;overflow-wrap:anywhere}
-.gused{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}.gused button{padding:5px 10px;font-size:12px}
-.gnum{flex:none;width:20px;text-align:center;color:var(--mu);align-self:flex-start;margin-top:10px}.gcol{flex-direction:column;gap:6px}.gta{min-height:64px}
-.cpl{display:flex;flex-direction:column;gap:10px;max-height:50vh;overflow:auto;margin-bottom:14px}
 button.flg,.dueall .row button.flg{flex:none;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:12px;font-weight:700;border-radius:999px;background:var(--card);color:var(--mu);border:1px solid var(--bd);box-shadow:none}button.flg.on,.dueall .row button.flg.on{color:var(--wn);border-color:color-mix(in srgb,var(--wn) 55%,transparent);background:color-mix(in srgb,var(--wn) 12%,var(--card))}
 .seg.qm button.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 55%,transparent);background:color-mix(in srgb,var(--ok) 11%,var(--card))}.seg.qm button.ok.on{background:linear-gradient(135deg,var(--ok),color-mix(in srgb,var(--ok) 65%,#fff));color:#fff;border-color:transparent;box-shadow:0 6px 14px -6px color-mix(in srgb,var(--ok) 70%,transparent)}.seg.qm button svg.okc{vertical-align:-1px;margin-right:4px}
 .tasks{padding:0 16px 12px;border-top:1px solid var(--bd)}
@@ -292,11 +284,10 @@ body.dragmode{user-select:none;-webkit-user-select:none;cursor:grabbing}
  #rep table{width:100%;border-collapse:collapse}#rep th,#rep td{text-align:left;padding:4px 6px;border-bottom:1px solid #ddd;vertical-align:top}
  #rep th{font-size:9pt;text-transform:uppercase;letter-spacing:.5px;color:#555}#rep tr{break-inside:avoid}
  #rep td.t{white-space:nowrap;width:70px}#rep td.n{color:#333;font-style:italic}
- #rep ol,#rep ul{margin:4px 0 8px;padding-left:22px}#rep li{margin:4px 0;break-inside:avoid}#rep li .n{color:#333;font-style:italic;font-size:10pt}
  #rep .foot{margin-top:24px;color:#666;font-size:9pt}
 }
 @media(prefers-reduced-motion:reduce){*,*:after{transition-duration:.01ms!important;animation-duration:.01ms!important}}
-</style></head><body><header class="top"><span class="tt"><svg class="logo" viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#1f7ae0"/><circle cx="16" cy="16" r="12.2" fill="#dcefff"/><circle cx="16" cy="16" r="10.6" fill="#4aa8ff"/><path d="M16 6v20M6 16h20M8.6 8.6l14.8 14.8M23.4 8.6 8.6 23.4" stroke="#dcefff" stroke-width="1.7" stroke-linecap="round"/><circle cx="16" cy="16" r="2.2" fill="#dcefff"/></svg><span><span class="jz">Big Shiny</span> Rounds <span class="ver">v0.47.0</span></span></span><button id="gear" class="gear" aria-label="Settings" data-a="gear"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></header><div class="vclip"><main id="app" class="view"></main></div><nav id="nav"></nav><div id="pickbar" hidden></div><div id="toast" role="status" aria-live="polite"></div><div id="dlg" hidden></div><div id="rep"></div>
+</style></head><body><header class="top"><span class="tt"><svg class="logo" viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#1f7ae0"/><circle cx="16" cy="16" r="12.2" fill="#dcefff"/><circle cx="16" cy="16" r="10.6" fill="#4aa8ff"/><path d="M16 6v20M6 16h20M8.6 8.6l14.8 14.8M23.4 8.6 8.6 23.4" stroke="#dcefff" stroke-width="1.7" stroke-linecap="round"/><circle cx="16" cy="16" r="2.2" fill="#dcefff"/></svg><span><span class="jz">Big Shiny</span> Rounds <span class="ver">v0.48.0</span></span></span><button id="gear" class="gear" aria-label="Settings" data-a="gear"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></header><div class="vclip"><main id="app" class="view"></main></div><nav id="nav"></nav><div id="pickbar" hidden></div><div id="toast" role="status" aria-live="polite"></div><div id="dlg" hidden></div><div id="rep"></div>
 <script src="feedback.js"></script>
 <script src="sync.js"></script>
 <script>
@@ -371,7 +362,7 @@ function seed(){
   A('Outdoor sidewalks','Building-wide',['Pick up litter'],['Mop','Dust','Windows and door glass'])];
  const sup=['Gloves','All-purpose cleaner','Window cleaner','Floor cleaner','Paper towels','Microfiber cloths','Feather duster','Toilet bowl cleaner','Magic erasers','Microfiber cloths for windows','Trash bags','Disinfectant spray','Mop heads','Dust mop heads']
   .map(n=>({id:uid('s'),n,q:null,u:'',low:null,w:''}));
- const prop={id:uid('p'),n:'Main building',floors,std,areas,sup,jobs:[],tours:[],pw:{on:false,n:4,from:0},focus:null,flags:{},guides:[],tools:[]};prop.areas.forEach(a=>place(prop,a));
+ const prop={id:uid('p'),n:'Main building',floors,std,areas,sup,jobs:[],tours:[],pw:{on:false,n:4,from:0},focus:null,flags:{}};prop.areas.forEach(a=>place(prop,a));
  return {v:MIGRATIONS.length,set:{theme:'system',welcome:1,since:Date.now(),who:'',keep:6,tsw:'12:00',prop:prop.id},props:[prop],log:[]}}
 
 // Schema migrations. S.v records how many have run. To change the data shape later,
@@ -421,8 +412,8 @@ const MIGRATIONS=[
  S=>{S.props.forEach(p=>{if(p.focus===undefined)p.focus=null})},
  // v15: flags on as-needed tasks: p.flags {'areaId|taskId': ms when flagged}. A flagged task is due until it's done after that time.
  S=>{S.props.forEach(p=>{if(!p.flags||typeof p.flags!='object')p.flags={}})},
- // v16: guides and tools per property. p.guides [{id, n title, sum, need: supply/tool ids, nx: other things (one per line),
- // steps [{t, nt note}], tips [text], links [{n, u}]}]; p.tools [{id, n, w where kept, man manual link}]. Supplies can have man too.
+ // v16: guides and tools per property (p.guides, p.tools). The feature was removed in 0.48.0; this stays so the
+ // migration count still lines up on devices that already ran it. The two lists are unused.
  S=>{S.props.forEach(p=>{if(!Array.isArray(p.guides))p.guides=[];if(!Array.isArray(p.tools))p.tools=[]})},
 ];
 function migrate(){S.set=S.set||{};for(let v=S.v||0;v<MIGRATIONS.length;v++)MIGRATIONS[v](S);S.v=MIGRATIONS.length;ensureGen();if(!S.props.some(p=>p.id==S.set.prop))S.set.prop=S.props[0].id;prune()}
@@ -766,115 +757,16 @@ function buildReport(){const r=logRange(),L=inRange(r),days=[...new Set(L.map(e=
 
 // ---- Supplies ----
 // Places already typed for this property's supplies, offered as suggestions under "Where it's kept" (A to Z, no repeats)
-function supPlaces(){const m=new Map();[...P().sup,...P().tools].forEach(s=>{const w=(s.w||'').trim();if(w&&!m.has(w.toLowerCase()))m.set(w.toLowerCase(),w)});
+function supPlaces(){const m=new Map();P().sup.forEach(s=>{const w=(s.w||'').trim();if(w&&!m.has(w.toLowerCase()))m.set(w.toLowerCase(),w)});
  return `<datalist id="supw">${[...m.values()].sort((a,b)=>a.localeCompare(b)).map(w=>`<option value="${esc(w)}"></option>`).join('')}</datalist>`}
-function vSup(){if(GV){const g=guideBy(GV);if(g)return GE?vGuideEdit(g):vGuide(g);GV=null;GE=false}
- const low=P().sup.filter(isLow);
- return propBar()+(low.length?`<div class="card warn"><h3><span><i class="bang">!</i>Running low</span><span>${low.length}</span></h3><p class="mu" style="margin:0">${low.map(s=>esc(s.n)).join(', ')}</p></div>`:'')+guideCard()
+function vSup(){const low=P().sup.filter(isLow);
+ return propBar()+(low.length?`<div class="card warn"><h3><span><i class="bang">!</i>Running low</span><span>${low.length}</span></h3><p class="mu" style="margin:0">${low.map(s=>esc(s.n)).join(', ')}</p></div>`:'')
  +`<div class="card wide"><h2>Supplies</h2><p class="mu" style="margin:0 0 6px">Tap an item to set where it’s kept, its unit, and when to warn you it’s running low.</p>${P().sup.map((s,i)=>`<details class="sup" data-o="s${s.id}" ${O['s'+s.id]&&!PICK?'open':''}><summary data-pk="${s.id}" class="${PICK&&PICK.has(s.id)?'pkd':''}">${PICK?`<span class="pk">${PICK.has(s.id)?ICK:''}</span>`:''}<div><b>${esc(s.n||'Untitled')}</b><span class="mu">${s.w?esc(s.w):s.q==null?'Not counted yet':''}${isLow(s)?' <span class="tag low">Low</span>':''}</span></div>
    ${PICK?'':`<div class="stp"><button data-a="qty" data-i="${i}" data-d="-1" aria-label="One less">-</button><b class="${isLow(s)?'lw':''}">${s.q==null?'--':s.q}</b><button data-a="qty" data-i="${i}" data-d="1" aria-label="One more">+</button></div>`}</summary>
    <div class="sbody"><label>Name${I(`${PP()}.sup.${i}.n`)}</label><label>Where it’s kept${I(`${PP()}.sup.${i}.w`,'e.g. Floor 1 closet').replace('<input ','<input list="supw" autocomplete="off" ')}</label>
    <div class="g3"><label>Count${I(`${PP()}.sup.${i}.q`,'--','qty')}</label><label>Unit${I(`${PP()}.sup.${i}.u`,'bottles')}</label><label>Warn at${I(`${PP()}.sup.${i}.low`,'--','qty')}</label></div>
-   <label>Manual link ${OPT}${I(`${PP()}.sup.${i}.man`,'https://...')}</label>${manRow(s)}${guideBtns(s.id)}
    <div class="row" style="margin-top:8px;justify-content:flex-end"><button class="x" data-a="delSup" data-i="${i}">Delete</button></div></div></details>`).join('')}
-  ${supPlaces()}<div class="row" style="margin-top:10px"><input type="text" id="sn" placeholder="New supply"><button data-a="addSup">Add</button></div>${copyBtn('sup')}${flash()}</div>`+toolCard()}
-
-// ---- Guides and tools (on the Supplies tab) ----
-// Guides are your own how-tos: what you need, numbered steps, tips and warnings, links to manuals. Tools are equipment you
-// don't count (auto scrubber, vacuum). Both belong to a property, and any guide, supply or tool can be copied in from another
-// property. Manuals and other files are links only: nothing large is stored, so sync stays under its size limit.
-let GV=null,GE=false;   // UI-only: the guide open on the Supplies tab, and whether it's being edited
-const OPT='<span style="text-transform:none;letter-spacing:0;font-weight:600">(optional)</span>';
-const ICB='<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M2.5 3.2c2-.9 3.8-.7 5.5.6 1.7-1.3 3.5-1.5 5.5-.6v9.4c-2-.9-3.8-.7-5.5.6-1.7-1.3-3.5-1.5-5.5-.6zM8 3.8v9.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>';
-const ICL='<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M9 3h4v4M13 3 7.5 8.5M11.5 9.5v3a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-const guideBy=id=>P().guides.find(g=>g.id==id);
-const kitBy=id=>P().sup.find(s=>s.id==id)||P().tools.find(s=>s.id==id);
-// A typed link made safe to open: adds https:// when missing, and only allows web links
-const safeUrl=u=>{u=(u||'').trim();if(!u)return '';if(!/^[a-z][a-z0-9+.-]*:/i.test(u))u='https://'+u;return /^https?:\/\//i.test(u)?u:''};
-const extA=(u,label,ic)=>`<a class="mlink" href="${esc(u)}" target="_blank" rel="noopener">${ic}${esc(label)}</a>`;
-const manRow=x=>{const u=safeUrl(x.man);return u?`<div style="margin-top:8px">${extA(u,'Open manual',ICB)}</div>`:''};
-const usedIn=id=>P().guides.filter(g=>(g.need||[]).includes(id));
-// Buttons to open the guides that use a supply or tool
-const guideBtns=id=>{const gs=usedIn(id);return gs.length?`<div class="gused"><span class="mu">Used in</span>${gs.map(g=>`<button class="g bd" data-a="openGuide" data-id="${g.id}">${esc(g.n||'Untitled guide')}</button>`).join('')}</div>`:''};
-// "Add from another property" under a list, when another property has any of that kind
-const copyBtn=k=>S.props.some(p=>p!==P()&&(p[k]||[]).length)?`<div class="row" style="margin-top:6px"><button class="g bd" data-a="copyIn" data-k="${k}">Add from another property</button></div>`:'';
-// A guide's filled-in parts, for reading, sharing and printing
-function guideParts(g){
- const need=(g.need||[]).map(kitBy).filter(Boolean).concat((g.nx||'').split('\n').map(x=>x.trim()).filter(Boolean).map(n=>({n})));
- const st=(g.steps||[]).filter(s=>(s.t||'').trim()||(s.nt||'').trim()).map(s=>({t:(s.t||'').trim(),nt:(s.nt||'').trim()}));
- const tp=(g.tips||[]).map(t=>(t||'').trim()).filter(Boolean);
- const ln=(g.links||[]).map(l=>({n:(l.n||'').trim(),u:safeUrl(l.u)})).filter(l=>l.u);
- return {need,st,tp,ln}}
-// The Guides card at the top of the Supplies tab, A to Z
-function guideCard(){const gs=[...P().guides].sort((a,b)=>(a.n||'').localeCompare(b.n||'',undefined,{sensitivity:'base'}));
- return `<div class="card wide"><h2>Guides</h2><p class="mu" style="margin:0 0 6px">Your own how-tos: what you need, the steps, tips and warnings, and links to manuals.</p>${gs.map(g=>`<div class="row"><button class="arow" data-a="openGuide" data-id="${g.id}"><span>${esc(g.n||'Untitled guide')}</span><span class="mu gsl">${g.sum?esc(g.sum):plural(guideParts(g).st.length,'step')}</span>${CHEV}</button></div>`).join('')||'<p class="mu">No guides yet.</p>'}
-  <div class="row" style="margin-top:10px"><input type="text" id="gn" placeholder="New guide, e.g. Clean the auto scrubber" enterkeyhint="done"><button data-a="addGuide">Add</button></div>${copyBtn('guides')}</div>`}
-// The Tools card, under Supplies: no counts, just where it's kept, its manual and the guides that use it
-function toolCard(){
- return `<div class="card wide"><h2>Tools</h2><p class="mu" style="margin:0 0 6px">Equipment you use but don’t count, like an auto scrubber or a vacuum. Tap one for where it’s kept and its manual.</p>${P().tools.map((x,i)=>{const n=usedIn(x.id).length;
-   return `<details class="sup" data-o="t${x.id}" ${O['t'+x.id]?'open':''}><summary><div><b>${esc(x.n||'Untitled')}</b><span class="mu">${[x.w?esc(x.w):'',n?plural(n,'guide'):'',safeUrl(x.man)?'Manual':''].filter(Boolean).join(' · ')}</span></div>${CHEV}</summary>
-   <div class="sbody"><label>Name${I(`${PP()}.tools.${i}.n`)}</label><label>Where it’s kept${I(`${PP()}.tools.${i}.w`,'e.g. Floor 1 closet').replace('<input ','<input list="supw" autocomplete="off" ')}</label>
-   <label>Manual link ${OPT}${I(`${PP()}.tools.${i}.man`,'https://...')}</label>${manRow(x)}${guideBtns(x.id)}
-   <div class="row" style="margin-top:8px;justify-content:flex-end"><button class="x" data-a="delTool" data-i="${i}">Delete</button></div></div></details>`}).join('')||'<p class="mu">No tools yet.</p>'}
-  <div class="row" style="margin-top:10px"><input type="text" id="tn" placeholder="New tool"><button data-a="addTool">Add</button></div>${copyBtn('tools')}</div>`}
-// Reading a guide
-function vGuide(g){const {need,st,tp,ln}=guideParts(g);
- return `<button class="g lback" data-a="gBack">‹ Supplies</button>
- <div class="card wide guide"><h2>${esc(g.n||'Untitled guide')}</h2>${g.sum?`<p class="mu gsum">${esc(g.sum)}</p>`:''}
-  ${need.length?`<div class="sec">You’ll need</div><ul class="gneed">${need.map(x=>`<li>${esc(x.n||'Untitled')}${safeUrl(x.man)?' '+extA(safeUrl(x.man),'Manual',ICB):''}</li>`).join('')}</ul>`:''}
-  ${st.length?`<div class="sec">Steps</div><ol class="gsteps">${st.map(s=>`<li><span>${esc(s.t)}</span>${s.nt?`<span class="mu">${esc(s.nt)}</span>`:''}</li>`).join('')}</ol>`:'<p class="mu">No steps yet. Tap Edit to add them.</p>'}
-  ${tp.length?`<div class="sec">Tips and warnings</div><ul class="gtips">${tp.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}
-  ${ln.length?`<div class="sec">Links</div><div class="glinks">${ln.map(l=>extA(l.u,l.n||l.u,ICL)).join('')}</div>`:''}
-  <div class="row" style="margin-top:12px"><button data-a="gEdit">Edit</button><button class="g bd" data-a="gShare">${ICS}Share</button><button class="g bd" data-a="gPrint">Print</button></div></div>`}
-// Editing a guide: every field saves as you type
-function vGuideEdit(g){const p=PP()+'.guides.'+P().guides.indexOf(g),kit=[...P().sup,...P().tools];
- return `<button class="g lback" data-a="gDone">‹ Done</button>
- <div class="card wide"><h2>Edit guide</h2><label class="sec">Title</label>${I(p+'.n','e.g. Strip and wax a floor')}
-  <label class="sec" style="margin-top:12px">Summary ${OPT}</label>${I(p+'.sum','One line on what it’s for')}</div>
- <div class="card wide"><h2>You’ll need</h2>${kit.length?`<p class="mu" style="margin:0 0 6px">Tap what this guide uses from your supplies and tools.</p><div class="seg qm wrap">${kit.map(x=>{const on=(g.need||[]).includes(x.id);return `<button class="${on?'on':''}" data-a="gNeed" data-id="${x.id}" aria-pressed="${on}">${esc(x.n||'Untitled')}</button>`}).join('')}</div>`:''}
-  <label class="sec" style="margin-top:10px">Anything else ${OPT}</label><textarea class="gta" data-p="${p}.nx" data-t="s" placeholder="One per line, e.g. A fan to dry the floor">${esc(g.nx||'')}</textarea></div>
- <div class="card wide"><h2>Steps</h2>${(g.steps||[]).map((s,j)=>`<div class="row ed gstep" data-dl="${p}.steps" data-di="${j}">${DH}<b class="gnum">${j+1}</b><div class="exw gcol"><textarea class="gta" data-p="${p}.steps.${j}.t" data-t="s" placeholder="What to do">${esc(s.t||'')}</textarea>${I(`${p}.steps.${j}.nt`,'Note (optional)')}</div><button class="x" data-a="gDel" data-k="steps" data-i="${j}" aria-label="Delete step">${ICX}</button></div>`).join('')||'<p class="mu">No steps yet.</p>'}
-  <div class="row" style="margin-top:6px"><button class="g bd" data-a="gAdd" data-k="steps">Add step</button></div></div>
- <div class="card wide"><h2>Tips and warnings</h2>${(g.tips||[]).map((t,j)=>`<div class="row ed" data-dl="${p}.tips" data-di="${j}">${DH}${I(`${p}.tips.${j}`,'e.g. Wear non-slip shoes')}<button class="x" data-a="gDel" data-k="tips" data-i="${j}" aria-label="Delete">${ICX}</button></div>`).join('')||'<p class="mu">None yet.</p>'}
-  <div class="row" style="margin-top:6px"><button class="g bd" data-a="gAdd" data-k="tips">Add tip or warning</button></div></div>
- <div class="card wide"><h2>Links</h2><p class="mu" style="margin:0 0 6px">Manuals, videos, or files in Google Drive. They open in a new tab; nothing is saved in the app.</p>${(g.links||[]).map((l,j)=>`<div class="row ed" data-dl="${p}.links" data-di="${j}">${DH}<div class="exw gcol">${I(`${p}.links.${j}.n`,'Name, e.g. Scrubber manual')}${I(`${p}.links.${j}.u`,'https://...')}</div><button class="x" data-a="gDel" data-k="links" data-i="${j}" aria-label="Delete">${ICX}</button></div>`).join('')||'<p class="mu">None yet.</p>'}
-  <div class="row" style="margin-top:6px"><button class="g bd" data-a="gAdd" data-k="links">Add link</button></div></div>
- <div class="card wide"><h2>Remove</h2><button class="x bd" data-a="gDelGuide">Delete this guide</button></div>`}
-// A guide as plain text, for texting or emailing
-function guideText(g){const {need,st,tp,ln}=guideParts(g),out=[g.n||'Untitled guide'];if((g.sum||'').trim())out.push(g.sum.trim());
- if(need.length)out.push('','YOU’LL NEED',...need.map(x=>'- '+(x.n||'Untitled')+(safeUrl(x.man)?' (manual: '+safeUrl(x.man)+')':'')));
- if(st.length)out.push('','STEPS',...st.flatMap((s,i)=>[(i+1)+'. '+s.t].concat(s.nt?['   '+s.nt]:[])));
- if(tp.length)out.push('','TIPS AND WARNINGS',...tp.map(x=>'- '+x));
- if(ln.length)out.push('','LINKS',...ln.map(l=>'- '+(l.n?l.n+': ':'')+l.u));
- return out.join('\n')}
-async function shareGuide(g){const text=guideText(g),title=g.n||'Guide';
- try{if(navigator.share){await navigator.share({title,text});return}}catch(e){if(e&&e.name=='AbortError')return}
- try{await navigator.clipboard.writeText(text);toast('Copied guide');return}catch(e){}
- openDlg(title,'Copy this and paste it into a text or email.',[['Close','g bd',null]],`<textarea readonly style="height:220px">${esc(text)}</textarea>`)}
-// A guide on its own printed page (same print sheet as the report)
-function printGuide(g){const {need,st,tp,ln}=guideParts(g);
- document.getElementById('rep').innerHTML=`<h1>${esc(g.n||'Untitled guide')}</h1>${g.sum?`<p class="meta">${esc(g.sum)}</p>`:''}
-  ${need.length?`<h2>You’ll need</h2><ul>${need.map(x=>`<li>${esc(x.n||'Untitled')}${safeUrl(x.man)?`<div class="n">Manual: ${esc(safeUrl(x.man))}</div>`:''}</li>`).join('')}</ul>`:''}
-  ${st.length?`<h2>Steps</h2><ol>${st.map(s=>`<li>${esc(s.t)}${s.nt?`<div class="n">${esc(s.nt)}</div>`:''}</li>`).join('')}</ol>`:''}
-  ${tp.length?`<h2>Tips and warnings</h2><ul>${tp.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}
-  ${ln.length?`<h2>Links</h2><ul>${ln.map(l=>`<li>${l.n?esc(l.n)+': ':''}${esc(l.u)}</li>`).join('')}</ul>`:''}
-  <p class="foot">Printed ${new Date().toLocaleString()} from Big Shiny Rounds</p>`;setTimeout(()=>window.print(),50)}
-// Copy guides, supplies or tools (k) from other properties into this one. Names already here are left out.
-// A copied supply starts uncounted and a copied supply or tool has no place yet, since those differ by property.
-// A copied guide's "You'll need" links to this property's items of the same name; any it can't find become plain text.
-function copyItem(k,x,from){const c=JSON.parse(JSON.stringify(x));c.id=uid(k=='guides'?'g':k=='tools'?'k':'s');
- if(k=='sup'){c.q=null;c.w=''}if(k=='tools')c.w='';
- if(k=='guides'){const kit=[...P().sup,...P().tools],src=(from.sup||[]).concat(from.tools||[]),miss=[],key=s=>(s||'').trim().toLowerCase();
-  c.need=(x.need||[]).map(id=>{const o=src.find(y=>y.id==id);if(!o)return null;const m=kit.find(y=>key(y.n)==key(o.n));if(!m)miss.push(o.n);return m?m.id:null}).filter(Boolean);
-  if(miss.length)c.nx=[(c.nx||'').trim(),...miss].filter(Boolean).join('\n')}
- return c}
-function copyInDlg(k){const key=s=>(s||'').trim().toLowerCase(),here=new Set(P()[k].map(x=>key(x.n))),L=[];
- S.props.forEach(p=>{if(p===P())return;(p[k]||[]).forEach(x=>{const n=key(x.n);if(n&&!here.has(n)&&!L.some(y=>key(y.x.n)==n))L.push({p,x})})});
- const what={guides:'guides',sup:'supplies',tools:'tools'}[k],one={guides:'guide',sup:'supply',tools:'tool'}[k];
- if(!L.length){toast('Every '+one+' from your other properties is already here');return}
- openDlg('Add '+what+' from another property','Tick the ones to copy here. Changes to a copy stay with this property.',
-  [['Add','',(v,vals)=>{const pick=L.filter((y,i)=>vals['c'+i]);if(!pick.length)return;pick.forEach(({p,x})=>P()[k].push(copyItem(k,x,p)));save();R();toast('Added '+pick.length+' '+(pick.length==1?one:what))}],['Cancel','g bd',null]],
-  `<div class="cpl">${L.map((y,i)=>`<label class="chk"><input type="checkbox" data-k="c${i}"><span>${esc(y.x.n)} <span class="mu">${esc(y.p.n||'Untitled property')}</span></span></label>`).join('')}</div>`)}
+  ${supPlaces()}<div class="row" style="margin-top:10px"><input type="text" id="sn" placeholder="New supply"><button data-a="addSup">Add</button></div>${flash()}</div>`}
 
 // ---- Setup: standard tasks, floors, areas ----
 const freqSel=p=>SEL(p,FREQ,'f');
@@ -1072,7 +964,7 @@ function switchProp(id){if(id==P().id)return;
  S.set.prop=id;EA=EL=MS=FV=null;save();R();scrollTo(0,0);toast('Switched to '+(P().n||'property'))}
 function addPropDlg(){openDlg('Add a property','It starts with the same standard tasks as '+(P().n||'this one')+'. Add its floors and areas in Setup.',
  [['Add property','',v=>{v=(v||'').trim();if(!v){toast('Enter a name first');return}
-  const p={id:uid('p'),n:v,floors:[{id:uid('f'),n:'Floor 1',marks:[]}],std:P().std.map(t=>({id:uid('t'),n:t.n})),areas:[],sup:[],jobs:[],tours:[],flags:{},guides:[],tools:[]};
+  const p={id:uid('p'),n:v,floors:[{id:uid('f'),n:'Floor 1',marks:[]}],std:P().std.map(t=>({id:uid('t'),n:t.n})),areas:[],sup:[],jobs:[],tours:[]};
   S.props.push(p);switchProp(p.id);goTab('setup')}],['Cancel','g bd',null]],'<input type="text" id="dlgIn" placeholder="Property name" autocomplete="off">')}
 const ACT={
  tab:d=>goTab(d.id), gear:()=>goTab(T=='more'?'today':'more'),
@@ -1120,24 +1012,6 @@ const ACT={
  delEntry:d=>{const j=S.log.findIndex(e=>e.id==d.id);if(j<0)return;const [e]=S.log.splice(j,1),jb=P().jobs.find(x=>x.e==e.id),jd=jb&&jb.done;if(jb){jb.done=null;delete jb.e}save();R();
   toast('Deleted “'+eTask(e)+'”',()=>{S.log.splice(Math.min(j,S.log.length),0,e);if(jb){jb.done=jd;jb.e=e.id}save();R()})},
  // supplies
- // guides and tools
- openGuide:d=>{GV=d.id;GE=false;if(T!='sup'){T='sup'}R();scrollTo(0,0)},
- gBack:()=>{GV=null;GE=false;R();scrollTo(0,0)},
- gEdit:()=>{GE=true;R();scrollTo(0,0)},
- gDone:()=>{GE=false;R();scrollTo(0,0)},
- addGuide:()=>{const el=document.getElementById('gn'),n=el.value.trim();if(!n){toast('Enter a title first');return}
-  const g={id:uid('g'),n,sum:'',need:[],nx:'',steps:[{t:'',nt:''}],tips:[],links:[]};P().guides.push(g);GV=g.id;GE=true;save();R();scrollTo(0,0)},
- gNeed:d=>{const g=guideBy(GV);if(!g)return;g.need=g.need||[];const i=g.need.indexOf(d.id);if(i<0)g.need.push(d.id);else g.need.splice(i,1);save();R()},
- gAdd:d=>{const g=guideBy(GV);if(!g)return;const L=g[d.k]=g[d.k]||[];L.push(d.k=='steps'?{t:'',nt:''}:d.k=='links'?{n:'',u:''}:'');save();R();
-  const r=[...document.querySelectorAll(`[data-dl$=".${d.k}"]`)].pop(),f=r&&r.querySelector('textarea,input');f&&f.focus()},
- gDel:d=>{const g=guideBy(GV);if(!g||!g[d.k])return;const L=g[d.k],i=+d.i,[x]=L.splice(i,1);save();R();toast('Deleted',()=>{L.splice(i,0,x);save();R()})},
- gDelGuide:()=>{const g=guideBy(GV);if(!g)return;openDlg('Delete this guide?','“'+(g.n||'Untitled guide')+'” is removed from this property. Copies in other properties stay.',
-  [['Delete','x',()=>{const i=P().guides.indexOf(g);P().guides.splice(i,1);GV=null;GE=false;save();R();toast('Deleted guide',()=>{P().guides.splice(i,0,g);save();R()})}],['Cancel','g bd',null]])},
- gShare:()=>{const g=guideBy(GV);g&&shareGuide(g)},
- gPrint:()=>{const g=guideBy(GV);g&&printGuide(g)},
- addTool:()=>{const el=document.getElementById('tn'),n=el.value.trim();if(!n){toast('Enter a name first');return}const x={id:uid('k'),n,w:'',man:''};P().tools.push(x);O['t'+x.id]=1;el.value='';save();R();toast('Added '+n)},
- delTool:d=>{const i=+d.i,[x]=P().tools.splice(i,1);save();R();toast('Deleted “'+x.n+'”',()=>{P().tools.splice(i,0,x);save();R()})},
- copyIn:d=>copyInDlg(d.k),
  qty:d=>{const s=P().sup[+d.i];if(!s)return;s.q=Math.max(0,(s.q==null?0:s.q)+(+d.d));save();R()},
  addSup:()=>{const el=document.getElementById('sn'),n=el.value.trim();if(!n){toast('Enter a name first');return}const s={id:uid('s'),n,q:null,u:'',low:null,w:''};P().sup.push(s);O['s'+s.id]=1;FL='Added '+n;save();R();FL=''},
  delSup:d=>{const i=+d.i,[s]=P().sup.splice(i,1);save();R();toast('Deleted “'+s.n+'”',()=>{P().sup.splice(i,0,s);save();R()})},
@@ -1195,7 +1069,7 @@ const ACT={
  bkLater:()=>{S.set.bkSnooze=Date.now()-4*DAY_MS;save();R()},
  welcomeOff:()=>{delete S.set.welcome;save();R()},
  // v: the main text box; vals: every popup field marked data-k, by name
- dlgBtn:d=>{const f=DLG&&DLG.b[+d.i],t=document.getElementById('dlgIn'),v=t?t.value:'',vals={};document.querySelectorAll('#dlg [data-k]').forEach(x=>vals[x.dataset.k]=x.type=='checkbox'?x.checked:x.value);closeDlg();f&&f(v,vals)},
+ dlgBtn:d=>{const f=DLG&&DLG.b[+d.i],t=document.getElementById('dlgIn'),v=t?t.value:'',vals={};document.querySelectorAll('#dlg [data-k]').forEach(x=>vals[x.dataset.k]=x.value);closeDlg();f&&f(v,vals)},
  undo:()=>{const f=UNDO;UNDO=null;clearTimeout(TT);document.getElementById('toast').classList.remove('on');f&&f()},
 };
 document.addEventListener('click',e=>{
@@ -1268,8 +1142,8 @@ function slideIn(dir){const m=APP(),w=innerWidth;m.style.willChange='transform,o
  m.style.transition=`transform .22s ${EZ_IN},opacity .16s ease-out`;m.style.transform='translate3d(0,0,0)';m.style.opacity='1';
  setTimeout(()=>{m.style.transition='';m.style.transform='';m.style.opacity='';m.style.willChange=''},240)}
 // Levels below Today: any other tab (or Settings) 1; an area or floor map open in Setup and an open popup each add one
-function navDepth(){const sa=T=='setup'&&EA&&areaById(EA);return (T=='today'?0:1)+(PICK?1:0)+(T=='setup'&&(EA||EL)?1:0)+(sa&&sa.par?1:0)+(T=='rounds'&&FV?1:0)+(T=='sup'&&GV?1:0)+(DLG?1:0)}
-function navUp(){if(DLG)return closeDlg();if(PICK){PICK=null;R();return}if(T=='setup'&&EA&&ERET&&!(areaById(EA)||{}).par)return backRounds();if(T=='setup'&&(EA||EL)){const a=EA&&areaById(EA);EA=a&&a.par?a.par:null;EL=null;R();return}if(T=='rounds'&&FV){FV=null;MS=null;R();return}if(T=='sup'&&GV){if(GE)GE=false;else GV=null;R();return}if(T!='today')goTab('today')}
+function navDepth(){const sa=T=='setup'&&EA&&areaById(EA);return (T=='today'?0:1)+(PICK?1:0)+(T=='setup'&&(EA||EL)?1:0)+(sa&&sa.par?1:0)+(T=='rounds'&&FV?1:0)+(DLG?1:0)}
+function navUp(){if(DLG)return closeDlg();if(PICK){PICK=null;R();return}if(T=='setup'&&EA&&ERET&&!(areaById(EA)||{}).par)return backRounds();if(T=='setup'&&(EA||EL)){const a=EA&&areaById(EA);EA=a&&a.par?a.par:null;EL=null;R();return}if(T=='rounds'&&FV){FV=null;MS=null;R();return}if(T!='today')goTab('today')}
 // ---- Phone back button (the same block as the other Big apps) ----
 let HD=0,HPOP=0;
 function navSync(){if(HPOP)return;const d=navDepth();
