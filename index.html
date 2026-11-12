@@ -16,8 +16,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* ===== Theme ===== */
-:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);color-scheme:light;--bg:#f3f8ff;--card:#fff;--fld:#e9f2fd;--tx:#13263b;--mu:#6b8098;--ac:#1593c9;--bd:#dce9f7;--neg:#e5484d;--wn:#f08c00;--pc:#2f8fff;--pc2:#5ec4ff;--brand:#2f8fff;--gl:12%;--tst:#13263b;--sh:0 1px 2px rgba(20,60,110,.05),0 10px 24px -14px rgba(20,60,110,.22);--fast:.16s;--fd:'Fredoka','Nunito',system-ui,sans-serif;--bounce:cubic-bezier(.34,1.56,.64,1)}
-:root[data-theme="dark"]{color-scheme:dark;--bg:#0c1622;--card:#142130;--fld:#1c2c3e;--tx:#eaf3ff;--mu:#93a8c0;--ac:#5cc4f0;--bd:#24364a;--neg:#ff6b70;--wn:#ffb020;--sh:0 10px 24px -16px rgba(0,0,0,.7);--gl:20%;--tst:#24364a}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);color-scheme:light;--bg:#f3f8ff;--card:#fff;--fld:#e9f2fd;--tx:#13263b;--mu:#6b8098;--ac:#1593c9;--ok:#1f9d63;--bd:#dce9f7;--neg:#e5484d;--wn:#f08c00;--pc:#2f8fff;--pc2:#5ec4ff;--brand:#2f8fff;--gl:12%;--tst:#13263b;--sh:0 1px 2px rgba(20,60,110,.05),0 10px 24px -14px rgba(20,60,110,.22);--fast:.16s;--fd:'Fredoka','Nunito',system-ui,sans-serif;--bounce:cubic-bezier(.34,1.56,.64,1)}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0c1622;--card:#142130;--fld:#1c2c3e;--tx:#eaf3ff;--mu:#93a8c0;--ac:#5cc4f0;--ok:#4fd18f;--bd:#24364a;--neg:#ff6b70;--wn:#ffb020;--sh:0 10px 24px -16px rgba(0,0,0,.7);--gl:20%;--tst:#24364a}
 :root[data-theme="dark"] .card{box-shadow:inset 0 1px 0 rgba(255,255,255,.05),var(--sh)}
 
 /* ===== Base ===== */
@@ -120,7 +120,7 @@ nav.drag .hl{transition:none}
 .tile.tbtn{display:block;width:100%;text-align:left;color:var(--tx);font-weight:500;padding:14px 16px}.tile.tbtn .tbh{display:block;color:var(--pc);margin-top:2px}.tile b{display:block;font:600 28px/1.15 var(--fd);margin-top:2px;color:var(--pc)}
 .flr{display:flex;align-items:center;gap:12px;width:100%;background:none;color:var(--tx);box-shadow:none;border-radius:0;padding:11px 2px;text-align:left;font-weight:600}
 .flr+.flr{border-top:1px solid var(--bd)}.flr:is(:active,.prs){transform:none;filter:none;background:var(--fld)}
-.flr>span{flex:1;min-width:0}.flr .bar{margin-top:6px}.flr>b{flex:none;font-weight:700;font-size:14px}.flr>i{font-style:normal;color:var(--mu)}
+.flr>span{flex:1;min-width:0}.flr .bar{margin-top:6px}.flr>b{flex:none;font-weight:700;font-size:14px}.flr>b.pos{color:var(--ok)}.flr>i{font-style:normal;color:var(--mu)}
 .allok{display:flex;align-items:center;gap:10px;color:var(--ac);font-weight:700}
 
 /* ===== Rounds ===== */
@@ -130,9 +130,14 @@ nav.drag .hl{transition:none}
 .area>summary{display:flex;align-items:center;gap:12px;padding:14px 16px}
 .area>summary>div{flex:1;min-width:0}.area>summary b{display:block;font-weight:700;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.area>summary .bar{margin-top:7px;height:6px}
 .area>summary>em{flex:none;font-style:normal;font-weight:800;font-size:13px;color:var(--mu)}
-.area.done>summary>em{color:var(--ac)}
+.area.done>summary>em{color:var(--ok)}
 .chev{flex:none;color:var(--mu);transition:transform .2s}.area[open] .chev{transform:rotate(90deg)}
-.dgrp{border-top:1px solid var(--bd);margin-top:6px}.dgrp>summary{display:flex;align-items:center;gap:10px;padding:12px 0}.dgrp>summary b{flex:1;font-size:15px}.dgrp .ct{font-weight:800;font-size:13px;color:var(--mu)}.dgrp[open]>summary .chev{transform:rotate(90deg)}.dgrp .row.pri{background:color-mix(in srgb,var(--pc) 9%,transparent);box-shadow:inset 3px 0 0 color-mix(in srgb,var(--pc) 55%,transparent);border-radius:8px;padding-left:10px;padding-right:6px}.dgrp .sub{font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;margin:8px 0 2px}
+.dcard>summary{display:flex;align-items:center;gap:10px}.dcard[open]>summary{margin-bottom:4px}.dcard>summary>span:first-child{flex:1;min-width:0}.dcard>summary b{display:block;font:600 16px/1.25 var(--fd)}.dcard>summary small{display:block;font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--mu)}.dcard .ct{flex:none;font-weight:800;font-size:13px;color:var(--mu)}.dcard[open]>summary .chev{transform:rotate(90deg)}
+.dcard.foc{border-color:color-mix(in srgb,var(--pc) 45%,var(--bd));box-shadow:inset 3px 0 0 color-mix(in srgb,var(--pc) 55%,transparent),var(--sh)}.dcard.foc.fin{border-color:color-mix(in srgb,var(--ok) 55%,var(--bd));box-shadow:inset 3px 0 0 var(--ok),var(--sh)}.dcard.fin .ct{color:var(--ok)}
+.dcard .fq{display:flex;justify-content:space-between;font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--mu);margin:10px 0 2px;padding-top:8px;border-top:1px solid var(--bd)}.dcard .fq:first-of-type{border-top:0;padding-top:0}
+.allok.ok{color:var(--ok);padding:4px 0}
+button.flg,.dueall .row button.flg{flex:none;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:12px;font-weight:700;border-radius:999px;background:var(--card);color:var(--mu);border:1px solid var(--bd);box-shadow:none}button.flg.on,.dueall .row button.flg.on{color:var(--wn);border-color:color-mix(in srgb,var(--wn) 55%,transparent);background:color-mix(in srgb,var(--wn) 12%,var(--card))}
+.seg.qm button.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 55%,transparent);background:color-mix(in srgb,var(--ok) 11%,var(--card))}.seg.qm button.ok.on{background:linear-gradient(135deg,var(--ok),color-mix(in srgb,var(--ok) 65%,#fff));color:#fff;border-color:transparent;box-shadow:0 6px 14px -6px color-mix(in srgb,var(--ok) 70%,transparent)}.seg.qm button svg.okc{vertical-align:-1px;margin-right:4px}
 .tasks{padding:0 16px 12px;border-top:1px solid var(--bd)}
 .task{display:flex;align-items:center;gap:12px;padding:9px 0;min-height:48px}.task+.task,.task+.nt+.task{border-top:1px solid color-mix(in srgb,var(--bd) 70%,transparent)}
 .task label{flex:1;min-width:0;display:flex;align-items:center;gap:12px;cursor:pointer}
@@ -160,7 +165,7 @@ textarea.anotein{height:72px}
 /* ===== Sub areas ===== */
 .sub{padding-top:10px}.sub+.sub{margin-top:6px;border-top:1px solid var(--bd)}
 .subh{display:flex;align-items:center;gap:8px;min-height:32px}.subh b{flex:1;min-width:0;font-weight:800;font-size:14px;color:var(--pc);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.subh>span{flex:none;font-weight:800;font-size:12px;color:var(--mu)}.subh>span.pos{color:var(--ac)}.subh button{flex:none;padding:5px 10px;font-size:12px}
+.subh>span{flex:none;font-weight:800;font-size:12px;color:var(--mu)}.subh>span.pos{color:var(--ok)}.subh button{flex:none;padding:5px 10px;font-size:12px}
 .sub .anote{margin:6px 0 2px}.sub>.tbg{margin:2px 0 4px}
 
 /* ===== Tours ===== */
@@ -282,7 +287,7 @@ body.dragmode{user-select:none;-webkit-user-select:none;cursor:grabbing}
  #rep .foot{margin-top:24px;color:#666;font-size:9pt}
 }
 @media(prefers-reduced-motion:reduce){*,*:after{transition-duration:.01ms!important;animation-duration:.01ms!important}}
-</style></head><body><header class="top"><span class="tt"><svg class="logo" viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#1f7ae0"/><circle cx="16" cy="16" r="12.2" fill="#dcefff"/><circle cx="16" cy="16" r="10.6" fill="#4aa8ff"/><path d="M16 6v20M6 16h20M8.6 8.6l14.8 14.8M23.4 8.6 8.6 23.4" stroke="#dcefff" stroke-width="1.7" stroke-linecap="round"/><circle cx="16" cy="16" r="2.2" fill="#dcefff"/></svg><span><span class="jz">Big Shiny</span> Rounds <span class="ver">v0.43</span></span></span><button id="gear" class="gear" aria-label="Settings" data-a="gear"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></header><div class="vclip"><main id="app" class="view"></main></div><nav id="nav"></nav><div id="pickbar" hidden></div><div id="toast" role="status" aria-live="polite"></div><div id="dlg" hidden></div><div id="rep"></div>
+</style></head><body><header class="top"><span class="tt"><svg class="logo" viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#1f7ae0"/><circle cx="16" cy="16" r="12.2" fill="#dcefff"/><circle cx="16" cy="16" r="10.6" fill="#4aa8ff"/><path d="M16 6v20M6 16h20M8.6 8.6l14.8 14.8M23.4 8.6 8.6 23.4" stroke="#dcefff" stroke-width="1.7" stroke-linecap="round"/><circle cx="16" cy="16" r="2.2" fill="#dcefff"/></svg><span><span class="jz">Big Shiny</span> Rounds <span class="ver">v0.45.0</span></span></span><button id="gear" class="gear" aria-label="Settings" data-a="gear"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></header><div class="vclip"><main id="app" class="view"></main></div><nav id="nav"></nav><div id="pickbar" hidden></div><div id="toast" role="status" aria-live="polite"></div><div id="dlg" hidden></div><div id="rep"></div>
 <script src="feedback.js"></script>
 <script src="sync.js"></script>
 <script>
@@ -405,6 +410,8 @@ const MIGRATIONS=[
  S=>{S.props.forEach(p=>(p.tours||[]).forEach(x=>{if(x.k!='move')x.k='tour'}))},
  // v14: optional focus floor for the day on Today: p.focus {f: floor id, d: the day it was picked, a: optional area id on that floor}. It only counts on that day. null = none.
  S=>{S.props.forEach(p=>{if(p.focus===undefined)p.focus=null})},
+ // v15: flags on as-needed tasks: p.flags {'areaId|taskId': ms when flagged}. A flagged task is due until it's done after that time.
+ S=>{S.props.forEach(p=>{if(!p.flags||typeof p.flags!='object')p.flags={}})},
 ];
 function migrate(){S.set=S.set||{};for(let v=S.v||0;v<MIGRATIONS.length;v++)MIGRATIONS[v](S);S.v=MIGRATIONS.length;if(!S.props.some(p=>p.id==S.set.prop))S.set.prop=S.props[0].id;prune()}
 function load(){try{S=JSON.parse(localStorage.getItem(LS))}catch(e){}if(!S)S=seed();migrate()}
@@ -510,12 +517,14 @@ function isDue(f,last){if(f=='need')return false;if(!last)return true;
 // An area marked clean for the day: a log entry with t 'fin' and sk = names of the tasks skipped then.
 // Whatever was still due in it (or in its parent area) stops being due until tomorrow.
 const finOf=a=>[a.id,a.par].map(id=>id&&LI.get(id+'|fin')).filter(e=>e&&dOf(e.at)==tdy()).sort((x,y)=>y.at-x.at)[0];
-function st(a,t){const last=lastOf(a,t),today=!!last&&dOf(last.at)==tdy();let due=isDue(t.f,last);
+// When an as-needed task was flagged (0 = not flagged). It counts only until the task is done after that.
+const flagAt=(a,t)=>{const v=(P().flags||{})[a.id+'|'+t.id]||0,l=lastOf(a,t);return v&&(!l||l.at<v)?v:0};
+function st(a,t){const last=lastOf(a,t),today=!!last&&dOf(last.at)==tdy(),fl=t.f=='need'?flagAt(a,t):0;let due=t.f=='need'?!!fl:isDue(t.f,last);
  const f=due&&finOf(a),skip=!!f&&(!last||f.at>last.at);if(skip)due=false;
- return {last,due,today,skip,done:t.f=='need'?today:!due&&!skip&&!!last}}
-// Progress for a set of areas: tasks done today vs. still due (as-needed tasks don't count)
+ return {last,due,today,skip,fl,done:t.f=='need'?today&&!due:!due&&!skip&&!!last}}
+// Progress for a set of areas: tasks done today vs. still due (an as-needed task counts once it's flagged or done today)
 // (an area split into sub areas counts its sub areas' tasks)
-function prog(areas){let due=0,done=0;new Set(areas.flatMap(leaf)).forEach(a=>tasksOf(a).forEach(t=>{if(t.f=='need')return;const s=st(a,t);if(s.due)due++;else if(s.today)done++}));return {due,done,tot:due+done}}
+function prog(areas){let due=0,done=0;new Set(areas.flatMap(leaf)).forEach(a=>tasksOf(a).forEach(t=>{const s=st(a,t);if(s.due)due++;else if(s.today)done++}));return {due,done,tot:due+done}}
 // Weekly and monthly tasks that came due before today
 function overdue(){const L=[],t0=tdy();P().areas.forEach(a=>tasksOf(a).forEach(t=>{if(t.f!='weekly'&&t.f!='monthly')return;const l=lastOf(a,t);if(!l)return;const nd=nextDue(t.f,l);if(nd<t0)L.push({a,t,l,nd})}));return L.sort((x,y)=>x.nd<y.nd?-1:1)}
 // The floor picked to focus on today (optional, saved per property), or '' when none. It expires on its own the next day.
@@ -523,14 +532,14 @@ function focusFloor(){const f=P().focus;return f&&f.d==tdy()&&P().floors.some(x=
 // The section (top-level area) picked within the focus floor, or '' when none. It goes with the focus floor, so it expires with it.
 function focusArea(){const f=P().focus,fo=focusFloor();return fo&&f.a&&P().areas.some(a=>a.id==f.a&&!a.par&&a.fl==fo)?f.a:''}
 // Every task due right now (the same ones the "Still due" count adds up), grouped by how often it's done: daily, weekly, monthly,
-// plus every as-needed task (those are never "due", but they're always there to tick). Inside each group the focus floor comes
+// plus every as-needed task (due only when flagged, flagged ones first, but always there to tick or flag). Inside each group the focus floor comes
 // first (inF), then the other floors in floor order and areas in list order. Overdue ones lead within their floor.
 function dueNow(){const fl=P().floors.map(f=>f.id),fo=focusFloor(),fa=focusArea(),t0=tdy(),g=new Map(FREQ.map(x=>[x[0],{k:x[0],n:FN[x[0]],xs:[]}]));
  P().areas.filter(a=>!a.par).forEach(top=>{const i=fl.indexOf(top.fl),inF=!!fo&&top.fl==fo,inA=!!fa&&top.id==fa,w=inA?-2:inF?-1:i<0?fl.length:i;
   leaf(top).forEach(a=>tasksOf(a).forEach(t=>{const s=st(a,t);if(t.f!='need'&&!s.due)return;
    const l=s.last,od=t.f=='weekly'||t.f=='monthly'?!!l&&nextDue(t.f,l)<t0:false;
-   (g.get(t.f)||g.get('daily')).xs.push({a,t,w,inF,inA,od,at:t.f=='need'&&s.today?l.at:0})}))});
- g.forEach(x=>x.xs.sort((p,q)=>p.w-q.w||q.od-p.od));
+   (g.get(t.f)||g.get('daily')).xs.push({a,t,w,inF,inA,od,due:s.due,fl:s.fl,at:t.f=='need'&&s.today&&!s.due?l.at:0})}))});
+ g.forEach(x=>x.xs.sort((p,q)=>!!q.fl-!!p.fl||p.w-q.w||q.od-p.od));
  return [...g.values()].filter(x=>x.xs.length)}
 // ---- Tours: someone is being shown a unit or space at a set time. The area gets a badge so you can steer clear or have it ready. ----
 const tmS=t=>t?tm(new Date('2000-01-01T'+t)):'';                  // '12:30' -> "12:30 PM"
@@ -613,16 +622,36 @@ function jobCard(){const js=P().jobs.map((j,i)=>[j,i]).filter(([j])=>!j.done||dO
 // ---- Today ----
 // Floor chips at the top of the list: tap a floor to bump its tasks to the top of each group for today, tap another to swap, tap it again to clear
 // After a floor is picked, its sections (areas) show too, so a building with one floor can still focus on one part of it
+// A floor or section with nothing left due today (all done or marked clean) is green with a check
+const ICOK='<svg class="okc" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const allClear=as=>prog(as).due==0;
+const chip=(on,ok,act,id,label)=>`<button class="${on?'on':''}${ok?' ok':''}" data-a="${act}" data-id="${id}" aria-pressed="${on}">${ok?ICOK:''}${esc(label)}</button>`;
 function focusChips(){const fs=mapFloors();if(fs.length<2&&!fs.some(f=>areasOn(f).length>1))return '';const fo=focusFloor(),fa=focusArea(),ff=fs.find(f=>f.id==fo),as=ff?areasOn(ff):[];
- return `<div class="sec">Focus floor today</div><div class="seg qm wrap" style="margin-bottom:6px">${fs.map(f=>`<button class="${fo==f.id?'on':''}" data-a="focus" data-id="${f.id}" aria-pressed="${fo==f.id}">${esc(f.n)}</button>`).join('')}</div>`
- +(as.length>1?`<div class="sec">Focus section of ${esc(ff.n)}</div><div class="seg qm wrap" style="margin-bottom:6px">${as.map(a=>`<button class="${fa==a.id?'on':''}" data-a="focusArea" data-id="${a.id}" aria-pressed="${fa==a.id}">${esc(a.n||'Untitled')}</button>`).join('')}</div>`:'')}
+ return `<div class="sec">Focus floor today</div><div class="seg qm wrap" style="margin-bottom:6px">${fs.map(f=>chip(fo==f.id,allClear(areasOn(f)),'focus',f.id,f.n)).join('')}</div>`
+ +(as.length>1?`<div class="sec">Focus section of ${esc(ff.n)}</div><div class="seg qm wrap" style="margin-bottom:6px">${as.map(a=>chip(fa==a.id,allClear([a]),'focusArea',a.id,a.n||'Untitled')).join('')}</div>`:'')}
 // One row of the Due now list
-const dueRow=({a,t,od,at,pri})=>`<div class="row${pri?' pri':''}"><span style="flex:1;min-width:0"><b>${esc(t.n)}</b><span class="mu" style="display:block">${floorName(a)?esc(floorName(a))+' · ':''}${esc(areaName(a))}${od?' · <b class="neg" style="display:inline">overdue</b>':''}${at?' · done '+tm(at):''}</span></span><button data-a="tick1" data-ar="${a.id}" data-tk="${t.id}">Done</button></div>`;
-// The full list behind "Still due": a collapsible section per frequency (Daily open to start), the focus floor's tasks first in each
-function dueCard(n){const gs=dueNow(),fo=focusFloor(),fa=focusArea(),fn=esc(fo&&(P().floors.find(f=>f.id==fo)||{}).n||''),an=esc(fa&&(areaById(fa)||{}).n||'Untitled');if(!DUX||!gs.length)return '';
- return `<div class="card wide dueall"><h3><span>Due now</span><span>${n}</span></h3>${focusChips()}${gs.map(g=>{
-  let prev=null;const rows=g.xs.map(x=>{const tr=x.inA?0:x.inF?1:2,lb=fo&&tr!==prev?`<div class="sub mu">${tr==0?an:tr==1?(fa?fn+' · other sections':fn):'Other floors'}</div>`:'';prev=tr;return lb+dueRow({...x,pri:fa?x.inA:x.inF})}).join('');
-  return `<details class="dgrp" data-o="q${g.k}" ${O['q'+g.k]??(g.k=='daily')?'open':''}><summary><b>${esc(g.n)}</b><span class="ct">${g.xs.length}</span>${CHEV}</summary>${rows}</details>`}).join('')}<div class="row" style="margin-top:6px"><button class="g bd" data-a="dueToggle">Hide list</button></div></div>`}
+// Flag button for an as-needed task: tap to make it due now (orange "Needed"), tap again to clear it
+const ICF='<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M3.5 14.5V2.2M3.5 2.8h8.2l-1.8 3 1.8 3H3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const flagBtn=(a,t,fl)=>`<button class="flg${fl?' on':''}" data-a="flag" data-ar="${a.id}" data-tk="${t.id}" aria-pressed="${!!fl}" aria-label="${fl?'Needed, tap to clear':'Flag as needed'}">${ICF}${fl?'Needed':'Flag'}</button>`;
+const dueRow=({a,t,od,at,fl})=>`<div class="row"><span style="flex:1;min-width:0"><b>${esc(t.n)}</b><span class="mu" style="display:block">${floorName(a)?esc(floorName(a))+' · ':''}${esc(areaName(a))}${od?' · <b class="neg" style="display:inline">overdue</b>':''}${at?' · done '+tm(at):''}</span></span>${t.f=='need'?flagBtn(a,t,fl):''}<button data-a="tick1" data-ar="${a.id}" data-tk="${t.id}">Done</button></div>`;
+// The list behind "Still due": one card each for Daily, Weekly and Monthly (Daily open to start), then As needed.
+// Picking a focus floor adds a card above them with just that floor's tasks (Daily, Weekly, Monthly in that order), and those
+// tasks leave the cards below. Picking a focus section adds one more card for that section, above the floor's card.
+// A focus card with nothing left due turns green and says so. As-needed tasks come last in each card and only count when flagged.
+const dueIn=g=>g.xs.filter(x=>x.due).length;
+const grpCt=g=>{const c=dueIn(g);return g.k=='need'?(c?c+' needed':''):g.xs.length};
+function focusCard(key,label,title,gs){const n=gs.reduce((s,g)=>s+dueIn(g),0),any=gs.some(g=>g.xs.length);
+ return `<details class="card wide dueall dcard foc${n?'':' fin'}" data-o="${key}" ${O[key]??true?'open':''}><summary><span><small>${esc(label)}</small><b>${esc(title)}</b></span><span class="ct">${n||ICOK}</span>${CHEV}</summary>`
+  +(n?'':`<div class="allok ok">${ICK} Nothing left due here today.</div>`)+(any?gs.map(g=>`<div class="fq"><span>${esc(g.n)}</span><span>${grpCt(g)}</span></div>`+g.xs.map(dueRow).join('')).join(''):'')+`</details>`}
+function dueCard(){if(!DUX)return '';const gs=dueNow(),fo=focusFloor(),fa=focusArea(),ff=fo&&P().floors.find(f=>f.id==fo),aa=fa&&areaById(fa),ch=focusChips();
+ // The groups, keeping only the tasks that pass `keep`
+ const part=keep=>gs.map(g=>({...g,xs:g.xs.filter(keep)})).filter(g=>g.xs.length);
+ const rest=part(x=>!x.inF);
+ if(!ch&&!rest.length)return '';
+ return (ch?`<div class="card wide">${ch}</div>`:'')
+  +(aa?focusCard('qfA','Focus section',aa.n||'Untitled',part(x=>x.inA)):'')
+  +(ff?focusCard('qfF','Focus floor',aa?ff.n+' · other sections':ff.n,part(x=>x.inF&&!x.inA)):'')
+  +rest.map(g=>`<details class="card wide dueall dcard" data-o="q${g.k}" ${O['q'+g.k]??(g.k=='daily')?'open':''}><summary><span>${fo?'<small>Other floors</small>':''}<b>${esc(g.n)}</b></span><span class="ct">${grpCt(g)}</span>${CHEV}</summary>${g.xs.map(dueRow).join('')}</details>`).join('')}
 function vToday(){const p=prog(P().areas),od=overdue(),low=P().sup.filter(isLow);
  const welcome=S.set.welcome?`<div class="card wide"><h3><span>Welcome to Big Shiny</span><button class="g" data-a="welcomeOff" aria-label="Dismiss">${ICX}</button></h3><p class="mu" style="margin:0 0 12px">Your building is loaded from your notes. The extra tasks for the restrooms, fitness center, elevators, trash room and sidewalks are starting guesses, so check them in Setup.</p><div class="row"><button data-a="tab" data-id="setup">Check Setup</button></div></div>`:'';
  const bk=needBk()?`<div class="card wide"><h3><span>Back up your rounds?</span></h3><p class="mu" style="margin:0 0 12px">Your history is only saved in this browser unless sync is on, and some browsers clear site data after a while.</p><div class="row"><button data-a="gear">Back up</button><button class="g bd" data-a="bkLater">Later</button></div></div>`:'';
@@ -633,7 +662,7 @@ function vToday(){const p=prog(P().areas),od=overdue(),low=P().sup.filter(isLow)
  const floors=P().floors.filter(f=>areasOn(f).length).map(f=>{const q=prog(areasOn(f));
   return `<button class="flr" data-a="goFloor" data-id="${f.id}"><span>${esc(f.n)}${bar(q.done,q.tot)}</span><b class="${q.tot&&!q.due?'pos':''}">${q.done}/${q.tot}</b><i>${CHEV}</i></button>`}).join('');
  return hello()+propBar()+welcome+bk+roundCard()+wetc
-  +`<div class="tiles"><div class="tile"><span class="mu">Done today</span><b>${p.done}</b></div>${p.due?`<button class="tile tbtn" data-a="dueToggle" aria-expanded="${DUX}"><span class="mu">Still due</span><b>${p.due}</b><span class="mu tbh">${DUX?'Hide list':'See list'}</span></button>`:'<div class="tile"><span class="mu">Still due</span><b>0</b></div>'}</div>`+dueCard(p.due)
+  +`<div class="tiles"><div class="tile"><span class="mu">Done today</span><b>${p.done}</b></div>${p.due?`<button class="tile tbtn" data-a="dueToggle" aria-expanded="${DUX}"><span class="mu">Still due</span><b>${p.due}</b><span class="mu tbh">${DUX?'Hide list':'See list'}</span></button>`:'<div class="tile"><span class="mu">Still due</span><b>0</b></div>'}</div>`+dueCard()
   +(inRange([tdy(),tdy()]).length?`<button class="g bd shr" data-a="shareDay">${ICS}Share today’s summary</button>`:'')
   +odc+tourCard()+jobCard()+lowc+`<div class="card"><h2>Floors</h2>${floors||'<p class="mu">No areas yet. Add them in Setup.</p>'}</div>`
   +(offToday()?'':`<div class="card"><h2>End of the day</h2><p class="mu" style="margin:0 0 12px">Clock out when you’re done working, or mark today as a day off. Anything left stays due for tomorrow.</p><div class="row"><button data-a="clockOut" data-k="out">Clock out</button><button class="g bd" data-a="clockOut" data-k="day">Day off</button></div></div>`)}
@@ -661,21 +690,22 @@ const whenTag=(t,s)=>t.w&&!s.done?`<span class="tag wh${t.w=='early'&&s.due&&pas
 // When a task was last done. For weekly and monthly tasks it is a button: tap it to log another time you did it (see againDlg).
 const lastChip=(a,t,s)=>{const x=dOf(s.last.at)==tdy()?tm(s.last.at):sd(dOf(s.last.at));
  return t.f=='weekly'||t.f=='monthly'?`<button class="tm tmb" data-a="again" data-ar="${a.id}" data-tk="${t.id}" aria-label="Done again, last done ${x}">${x}</button>`:`<span class="tm">${x}</span>`};
-function taskRows(a,shown,map){const vis=HIDEDONE&&!PICK?[...shown].filter(y=>!y.s.done):[...shown];if(shown.length&&!vis.length)return '<p class="mu" style="margin:6px 0">Completed tasks are hidden.</p>';return vis.sort((x,y)=>WO[x.t.w||'']-WO[y.t.w||'']).map(({t,s})=>{
+function taskRows(a,shown,map){const vis=HIDEDONE&&!PICK?[...shown].filter(y=>!y.s.done):[...shown];if(shown.length&&!vis.length)return '<p class="mu" style="margin:6px 0">Completed tasks are hidden.</p>';const idle=y=>y.t.f=='need'&&!y.s.due&&!y.s.done;return vis.sort((x,y)=>idle(x)-idle(y)||WO[x.t.w||'']-WO[y.t.w||'']).map(({t,s})=>{
    const note=s.done&&s.last.note;
    if(PICK){const on=PICK.has(a.id+'|'+t.id);   // picking tasks to remove: a round marker instead of the checkbox, no note button
     return `<div class="task pkm${on?' pkd':''}" data-pk="${a.id}|${t.id}"><label><span class="pk">${on?ICK:''}</span><span>${esc(t.n)}</span></label>${pwTag(a,t,s)}${whenTag(t,s)}</div>`}
-   return `<div class="task" data-pk="${a.id}|${t.id}"><label><input type="checkbox" ${s.done?'checked':''} data-a="tick" data-ar="${a.id}" data-tk="${t.id}"><span>${esc(t.n)}</span></label>${pwTag(a,t,s)}${whenTag(t,s)}${s.skip?'<span class="tag sk">Skipped</span>':t.f!='daily'?`<span class="tag">${FN[t.f]}</span>`:''}${s.done?`${lastChip(a,t,s)}<button class="nb${note?' has':''}" data-a="note" data-id="${s.last.id}" aria-label="Note">${ICN}</button>`:s.last&&(VIEW=='all'||map)?`<span class="tm">${sd(dOf(s.last.at))}</span>`:''}</div>${note?`<div class="nt">${esc(note)}</div>`:''}`}).join('')}
+   return `<div class="task" data-pk="${a.id}|${t.id}"><label><input type="checkbox" ${s.done?'checked':''} data-a="tick" data-ar="${a.id}" data-tk="${t.id}"><span>${esc(t.n)}</span></label>${pwTag(a,t,s)}${whenTag(t,s)}${s.skip?'<span class="tag sk">Skipped</span>':t.f=='need'&&!s.done?flagBtn(a,t,s.fl):t.f!='daily'?`<span class="tag">${FN[t.f]}</span>`:''}${s.done?`${lastChip(a,t,s)}<button class="nb${note?' has':''}" data-a="note" data-id="${s.last.id}" aria-label="Note">${ICN}</button>`:s.last&&(VIEW=='all'||map)?`<span class="tm">${sd(dOf(s.last.at))}</span>`:''}</div>${note?`<div class="nt">${esc(note)}</div>`:''}`}).join('')}
 const wetWhen=a=>dOf(a.wet)==tdy()?tm(a.wet):sd(dOf(a.wet));
 const wetBadge=a=>a.wet?`<span class="tbg wbg">${WET}<span>Wet floor sign out since ${wetWhen(a)}</span></span>`:'';
 const tourBadges=xs=>xs.map(x=>`<span class="tbg${isMove(x)?' mv':''}">${isMove(x)?BOX:CLK}<span>${esc(tourTxt(x))}</span></span>`).join('');
 const noteBtn=a=>a.note?`<button class="anote" data-a="areaNote" data-id="${a.id}" aria-label="Edit note">${ICN}<span>${esc(a.note)}</span></button>`:'';
 // One area on Rounds. An area with sub areas shows each sub area's checklist under its own heading.
 function areaCard(a,map,force){const ks=kids(a),parts=(ks.length?ks:[a]).map(x=>{const ts=tasksOf(x).map(t=>({t,s:st(x,t)}));return {x,ts,shown:VIEW=='all'?ts:ts.filter(y=>y.s.due||y.s.today)}});
- // On Due now, a weekly or monthly task that's already done (not today) still shows, checked off with its date, wherever something else in that area or sub area is showing
- if(VIEW!='all')parts.forEach(q=>{if(q.shown.length)q.shown=q.ts.filter(y=>y.s.due||y.s.today||(y.s.done&&(y.t.f=='weekly'||y.t.f=='monthly')))});
+ // On Due now, a weekly or monthly task that's already done (not today) still shows, checked off with its date, wherever something else in that area or sub area is showing.
+ // As-needed tasks show there too, last, with a Flag button.
+ if(VIEW!='all')parts.forEach(q=>{if(q.shown.length)q.shown=q.ts.filter(y=>y.s.due||y.s.today||y.t.f=='need'||(y.s.done&&(y.t.f=='weekly'||y.t.f=='monthly')))});
  if(map&&!parts.some(q=>q.shown.length))parts.forEach(q=>q.shown=q.ts);if(!parts.some(q=>q.shown.length))return '';
- const cut=ts=>{const due=ts.filter(y=>y.s.due).length,cnt=ts.filter(y=>y.t.f!='need'&&(y.s.due||y.s.today)).length;return {due,cnt,dn:cnt-due}};
+ const cut=ts=>{const due=ts.filter(y=>y.s.due).length,cnt=ts.filter(y=>y.s.due||y.s.today).length;return {due,cnt,dn:cnt-due}};
  const {due,cnt,dn}=cut(parts.flatMap(q=>q.ts)),open=map||force||(O['a'+a.id]??(due>0));
  const body=ks.length?parts.filter(q=>q.shown.length).map(({x,ts,shown})=>{const c=cut(ts);
    return `<div class="sub"><div class="subh"><b>${esc(x.n||'Untitled')}</b><span class="${c.due?'':'pos'}">${c.due?c.dn+'/'+c.cnt:'Done'}</span>${c.due>1?`<button class="g bd" data-a="allDone" data-ar="${x.id}">All done</button>`:''}</div>${tourBadges(toursToday(x,1))}${noteBtn(x)}${taskRows(x,shown,map)}</div>`}).join(''):taskRows(a,parts[0].shown,map);
@@ -933,6 +963,10 @@ const ACT={
  odToggle:()=>{ODX=!ODX;R()},hideDone:()=>{HIDEDONE=!HIDEDONE;R()},dueToggle:()=>{DUX=!DUX;R()},
  focus:d=>{const p=P();p.focus=focusFloor()==d.id?null:{f:d.id,d:tdy()};save();R()},
  focusArea:d=>{const p=P(),fo=focusFloor();if(!fo)return;p.focus={f:fo,d:tdy(),a:focusArea()==d.id?null:d.id};save();R()},
+ // Flag an as-needed task so it's due now (it stays due, even past today, until it's done), or clear the flag
+ flag:d=>{const a=areaById(d.ar),t=a&&tasksOf(a).find(x=>x.id==d.tk);if(!t)return;buildIndex();const p=P(),k=a.id+'|'+t.id;p.flags=p.flags||{};
+  if(flagAt(a,t)){const was=p.flags[k];delete p.flags[k];save();R();toast('Cleared: '+t.n,()=>{p.flags[k]=was;save();R()})}
+  else{p.flags[k]=Date.now();save();R();toast('Needed: '+t.n,()=>{delete p.flags[k];save();R()})}},
  tick1:d=>{tick(d.ar,d.tk,true,true);R();toast('Done: '+eTask({a:d.ar,t:d.tk}))},
  allDone:d=>{const a=areaById(d.ar);if(!a)return;buildIndex();const ids=[],all=prog(P().areas).due;
   leaf(a).forEach(x=>tasksOf(x).forEach(t=>{if(st(x,t).due){const e=entry(x,t);S.log.push(e);ids.push(e.id)}}));
